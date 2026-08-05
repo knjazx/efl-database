@@ -9,31 +9,37 @@ generator client {
 }
 
 model Team {
-  id          String           @id @default(uuid())
-  name        String
-  tag         String
-  slug        String           @unique
-  tier        String           // T1, T2, T3
-  logoUrl     String
-  description String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  name              String
+  tag               String
+  slug              String           @unique
+  tier              String           // T1, T2, T3
+  logoUrl           String
+  description       String?
+  isDisqualified    Boolean          @default(false)
+  disqualifiedUntil DateTime?
+  disqualifyReason  String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  memberships TeamMembership[]
+  memberships  TeamMembership[]
   activityLogs ActivityLog[]
 }
 
 model Player {
-  id          String           @id @default(uuid())
-  nickname    String
-  slug        String           @unique
-  avatarUrl   String?
-  defaultRole String?          // Captain, AWPer, Rifler, IGL, Entry, Support, Coach
-  steamUrl    String?
-  faceitUrl   String?
-  discordUrl  String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  nickname          String
+  slug              String           @unique
+  avatarUrl         String?
+  defaultRole       String?          // Captain, AWPer, Rifler, IGL, Entry, Support, Coach
+  steamUrl          String?
+  faceitUrl         String?
+  discordUrl        String?
+  isDisqualified    Boolean          @default(false)
+  disqualifiedUntil DateTime?
+  disqualifyReason  String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   memberships TeamMembership[]
 }

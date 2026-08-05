@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown } from "lucide-react";
+import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import { getBanStatus } from "@/lib/disqualification";
 
 interface PlayerItem {
   id: string;
@@ -14,6 +15,9 @@ interface PlayerItem {
   steamUrl?: string;
   faceitUrl?: string;
   discordUrl?: string;
+  isDisqualified?: boolean;
+  disqualifiedUntil?: Date | string | null;
+  disqualifyReason?: string | null;
   currentTeam: {
     id: string;
     name: string;
@@ -27,9 +31,16 @@ export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal State
+  // Edit/Add Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<PlayerItem | null>(null);
+
+  // Ban Modal State
+  const [isBanModalOpen, setIsBanModalOpen] = useState(false);
+  const [banTargetPlayer, setBanTargetPlayer] = useState<PlayerItem | null>(null);
+  const [banDurationDays, setBanDurationDays] = useState<number | "permanent">(7);
+  const [banReason, setBanReason] = useState("");
+  const [banSubmitting, setBanSubmitting] = useState(false);
 
   // Form Inputs
   const [nickname, setNickname] = useState("");
@@ -83,6 +94,43 @@ export default function AdminPlayersPage() {
     setAvatarFile(null);
     setFormError("");
     setIsModalOpen(true);
+  };
+
+  const openBanModal = (player: PlayerItem) => {
+    setBanTargetPlayer(player);
+    setBanDurationDays(7);
+    setBanReason(player.disqualifyReason || "Нарушение регламента лиги");
+    setIsBanModalOpen(true);
+  };
+
+  const handleBanSubmit = async (action: "DISQUALIFY" | "UNBAN") => {
+    if (!banTargetPlayer) return;
+    setBanSubmitting(true);
+
+    try {
+      const res = await fetch("/api/players", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playerId: banTargetPlayer.id,
+          action,
+          durationDays: action === "DISQUALIFY" ? (banDurationDays === "permanent" ? null : banDurationDays) : null,
+          reason: banReason,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsBanModalOpen(false);
+        fetchPlayers();
+      } else {
+        alert(data.error || "Failed to update player ban status");
+      }
+    } catch (err) {
+      alert("Failed to update player ban status");
+    } finally {
+      setBanSubmitting(false);
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -153,7 +201,7 @@ export default function AdminPlayersPage() {
               PLAYER MANAGEMENT
             </h2>
             <p className="text-xs text-[#858585] mt-1">
-              Create players, manage avatars, Captain status, Steam & FACEIT URLs.
+              Create players, manage avatars, Captain status, Steam & FACEIT URLs, and disqualifications.
             </p>
           </div>
 
@@ -180,7 +228,7 @@ export default function AdminPlayersPage() {
                   <tr>
                     <th className="px-6 py-4">PLAYER</th>
                     <th className="px-6 py-4">TEAM</th>
-                    <th className="px-6 py-4">STATUS</th>
+                    <th className="px-6 py-4">BAN STATUS</th>
                     <th className="px-6 py-4">LINKS</th>
                     <th className="px-6 py-4 text-right">ACTIONS</th>
                   </tr>
@@ -189,6 +237,7 @@ export default function AdminPlayersPage() {
                   {players.map((p) => {
                     const activeRole = p.currentTeam?.role || p.defaultRole || "";
                     const playerIsCaptain = activeRole.toUpperCase() === "CAPTAIN";
+                    const ban = getBanStatus(p);
 
                     return (
                       <tr key={p.id} className="hover:bg-[#0E0E0E] transition-colors">
@@ -202,9 +251,17 @@ export default function AdminPlayersPage() {
                                 <User className="w-4 h-4 text-[#858585]" />
                               )}
                             </div>
-                            <Link href={`/players/${p.slug}`} className="font-bold text-white hover:underline text-sm">
-                              {p.nickname}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/players/${p.slug}`} className="font-bold text-white hover:underline text-sm">
+                                {p.nickname}
+                              </Link>
+                              {playerIsCaptain && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[9px]">
+                                  <Crown className="w-2.5 h-2.5" />
+                                  <span>CAPTAIN</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
 
@@ -225,16 +282,17 @@ export default function AdminPlayersPage() {
                           )}
                         </td>
 
-                        {/* STATUS */}
+                        {/* BAN STATUS */}
                         <td className="px-6 py-4">
-                          {playerIsCaptain ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[10px]">
-                              <Crown className="w-3 h-3" />
-                              <span>CAPTAIN</span>
+                          {ban.isBanned ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/50 border border-red-800 text-red-300 font-bold uppercase text-[10px]">
+                              <AlertTriangle className="w-3 h-3 text-red-400" />
+                              <span>{ban.remainingText}</span>
                             </span>
                           ) : (
-                            <span className="px-2.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#858585] text-[10px]">
-                              Player
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 font-bold uppercase text-[10px]">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Active</span>
                             </span>
                           )}
                         </td>
@@ -275,6 +333,17 @@ export default function AdminPlayersPage() {
                         {/* ACTIONS */}
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openBanModal(p)}
+                              className={`px-2.5 py-1.5 rounded border text-[11px] font-bold transition-colors flex items-center gap-1 ${
+                                ban.isBanned
+                                  ? "bg-red-950/40 border-red-800 text-red-300 hover:bg-red-900/60"
+                                  : "bg-[#141414] border-[#222222] text-[#858585] hover:text-white hover:border-white"
+                              }`}
+                            >
+                              <ShieldAlert className="w-3.5 h-3.5" />
+                              <span>{ban.isBanned ? "Ban Active" : "Ban Status"}</span>
+                            </button>
                             <button
                               onClick={() => openEditModal(p)}
                               className="p-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white transition-colors"
@@ -320,7 +389,6 @@ export default function AdminPlayersPage() {
               </h3>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
-                {/* Nickname */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Nickname *
@@ -335,7 +403,6 @@ export default function AdminPlayersPage() {
                   />
                 </div>
 
-                {/* Captain Checkbox */}
                 <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
@@ -352,7 +419,6 @@ export default function AdminPlayersPage() {
                   />
                 </div>
 
-                {/* Conditional Discord Field for Captain */}
                 {isCaptain && (
                   <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded-xl space-y-1">
                     <label className="block text-[11px] font-bold text-amber-400 uppercase">
@@ -365,13 +431,9 @@ export default function AdminPlayersPage() {
                       onChange={(e) => setDiscordUrl(e.target.value)}
                       className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-amber-400"
                     />
-                    <p className="text-[10px] text-[#858585]">
-                      Discord details visible to organizers and match lobbies.
-                    </p>
                   </div>
                 )}
 
-                {/* Avatar Upload */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Avatar Image
@@ -397,7 +459,6 @@ export default function AdminPlayersPage() {
                   </div>
                 </div>
 
-                {/* Steam URL */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Steam Profile URL
@@ -411,7 +472,6 @@ export default function AdminPlayersPage() {
                   />
                 </div>
 
-                {/* FACEIT URL */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     FACEIT Profile URL
@@ -449,6 +509,108 @@ export default function AdminPlayersPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Manage Player Disqualification / Ban */}
+        {isBanModalOpen && banTargetPlayer && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setIsBanModalOpen(false)}
+                className="absolute top-4 right-4 text-[#858585] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 border-b border-[#222222] pb-3 mb-4">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+                <h3 className="text-base font-black text-white uppercase tracking-wider">
+                  DISQUALIFICATION FOR {banTargetPlayer.nickname.toUpperCase()}
+                </h3>
+              </div>
+
+              <div className="space-y-4">
+                {/* Presets */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-2">
+                    Ban Duration Presets
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "3 Days", days: 3 },
+                      { label: "7 Days", days: 7 },
+                      { label: "14 Days", days: 14 },
+                      { label: "30 Days", days: 30 },
+                      { label: "60 Days", days: 60 },
+                      { label: "Permanent", days: "permanent" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setBanDurationDays(preset.days as any)}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
+                          banDurationDays === preset.days
+                            ? "bg-red-900/60 border-red-500 text-white"
+                            : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                    Reason for Disqualification *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rule 3.1 Violation / Toxic behavior"
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-4 border-t border-[#222222] gap-3">
+                  {banTargetPlayer.isDisqualified ? (
+                    <button
+                      type="button"
+                      disabled={banSubmitting}
+                      onClick={() => handleBanSubmit("UNBAN")}
+                      className="px-4 py-2 bg-emerald-950/60 border border-emerald-800 text-emerald-300 rounded-lg text-xs font-bold uppercase hover:bg-emerald-900 transition-colors"
+                    >
+                      LIFT BAN (UNBAN)
+                    </button>
+                  ) : (
+                    <div></div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsBanModalOpen(false)}
+                      className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-lg text-xs font-semibold text-[#858585] hover:text-white transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      type="button"
+                      disabled={banSubmitting}
+                      onClick={() => handleBanSubmit("DISQUALIFY")}
+                      className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-extrabold uppercase transition-colors"
+                    >
+                      APPLY BAN
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -98,7 +98,7 @@ export default function TeamsPage() {
           </div>
         ) : filteredTeams.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
-            {filteredTeams.map((team) => (
+            {filteredTeams.map((team: any) => (
               <TeamCard
                 key={team.id}
                 name={team.name}
@@ -107,6 +107,9 @@ export default function TeamsPage() {
                 tier={team.tier || ""}
                 logoUrl={team.logoUrl}
                 playerCount={team.playerCount}
+                isDisqualified={team.isDisqualified}
+                disqualifiedUntil={team.disqualifiedUntil}
+                disqualifyReason={team.disqualifyReason}
               />
             ))}
           </div>

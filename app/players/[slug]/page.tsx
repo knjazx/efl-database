@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, User, Shield, RefreshCw, Crown } from "lucide-react";
+import { ArrowLeft, User, Shield, RefreshCw, Crown, AlertTriangle } from "lucide-react";
+import { getBanStatus } from "@/lib/disqualification";
 
 interface TeamRef {
   id: string;
@@ -23,6 +24,9 @@ interface PlayerProfile {
   steamUrl?: string;
   faceitUrl?: string;
   discordUrl?: string;
+  isDisqualified?: boolean;
+  disqualifiedUntil?: Date | string | null;
+  disqualifyReason?: string | null;
   currentTeam: TeamRef | null;
   history: Array<{
     teamId: string;
@@ -86,6 +90,7 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
 
   const activeRole = player.currentTeam?.role || player.defaultRole || "";
   const isCaptain = activeRole.toUpperCase() === "CAPTAIN";
+  const playerBan = getBanStatus(player);
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -94,8 +99,30 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
         <ArrowLeft className="w-4 h-4" /> Back to Teams
       </Link>
 
+      {/* Disqualification Banner */}
+      {playerBan.isBanned && (
+        <div className="bg-red-950/80 border border-red-800 rounded-2xl p-6 mb-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl shadow-red-950/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-red-900/60 border border-red-700 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black uppercase tracking-wider text-red-300">
+                ИГРОК ДИСКВАЛИФИЦИРОВАН
+              </h3>
+              <p className="text-xs text-red-200/80 mt-0.5">
+                Причина: <span className="font-semibold text-white">{playerBan.reason}</span>
+              </p>
+            </div>
+          </div>
+          <div className="bg-red-900/40 border border-red-700/60 px-4 py-2 rounded-xl font-mono text-xs font-bold text-red-300">
+            {playerBan.remainingText}
+          </div>
+        </div>
+      )}
+
       {/* Main Profile Header Card */}
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-8 mb-8">
+      <div className={`bg-[#0A0A0A] border rounded-2xl p-8 mb-8 ${playerBan.isBanned ? "border-red-900/60" : "border-[#222222]"}`}>
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
           {/* Avatar */}
           <div className="w-32 h-32 relative bg-[#050505] border border-[#222222] rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0">

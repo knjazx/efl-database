@@ -56,6 +56,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         steamUrl: player.steamUrl,
         faceitUrl: player.faceitUrl,
         discordUrl: player.discordUrl,
+        isDisqualified: player.isDisqualified,
+        disqualifiedUntil: player.disqualifiedUntil,
+        disqualifyReason: player.disqualifyReason,
         createdAt: player.createdAt,
         currentTeam: activeMembership
           ? {
@@ -87,10 +90,10 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
     const { slug } = params;
     const formData = await req.formData();
     const nickname = formData.get("nickname") as string;
-    const defaultRole = formData.get("role") as string || "PLAYER";
-    const steamUrl = formData.get("steamUrl") as string || "";
-    const faceitUrl = formData.get("faceitUrl") as string || "";
-    const discordUrl = (formData.get("discordUrl") as string || "").trim();
+    const defaultRole = (formData.get("role") as string) || "PLAYER";
+    const steamUrl = (formData.get("steamUrl") as string) || "";
+    const faceitUrl = (formData.get("faceitUrl") as string) || "";
+    const discordUrl = ((formData.get("discordUrl") as string) || "").trim();
     const avatarFile = formData.get("avatar") as File | null;
 
     const existingPlayer = await prisma.player.findFirst({

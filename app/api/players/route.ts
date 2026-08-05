@@ -36,6 +36,9 @@ export async function GET() {
         steamUrl: player.steamUrl,
         faceitUrl: player.faceitUrl,
         discordUrl: player.discordUrl,
+        isDisqualified: player.isDisqualified,
+        disqualifiedUntil: player.disqualifiedUntil,
+        disqualifyReason: player.disqualifyReason,
         currentTeam: activeMembership
           ? {
               id: activeMembership.team.id,
@@ -64,13 +67,13 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const nickname = formData.get("nickname") as string;
-    const defaultRole = formData.get("role") as string || "PLAYER";
-    const steamUrl = formData.get("steamUrl") as string || "";
-    const faceitUrl = formData.get("faceitUrl") as string || "";
-    const discordUrl = (formData.get("discordUrl") as string || "").trim();
+    const defaultRole = (formData.get("role") as string) || "PLAYER";
+    const steamUrl = (formData.get("steamUrl") as string) || "";
+    const faceitUrl = (formData.get("faceitUrl") as string) || "";
+    const discordUrl = ((formData.get("discordUrl") as string) || "").trim();
     const avatarFile = formData.get("avatar") as File | null;
-    let avatarUrl = formData.get("avatarUrl") as string || "";
-    const teamId = formData.get("teamId") as string || "";
+    let avatarUrl = (formData.get("avatarUrl") as string) || "";
+    const teamId = (formData.get("teamId") as string) || "";
 
     if (!nickname) {
       return NextResponse.json({ success: false, error: "Nickname is required" }, { status: 400 });
@@ -94,7 +97,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // If assigned to a team immediately
     if (teamId) {
       const team = await prisma.team.findUnique({ where: { id: teamId } });
       if (team) {
@@ -111,7 +113,7 @@ export async function POST(req: Request) {
           data: {
             teamId: team.id,
             teamName: team.name,
-            description: `Player "${newPlayer.nickname}" added to ${team.name} roster (${defaultRole})`,
+            description: `Player "${newPlayer.nickname}" added to ${team.name} roster`,
           },
         });
       }
@@ -121,5 +123,63 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("POST /api/players error:", error);
     return NextResponse.json({ success: false, error: error.message || "Failed to create player" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  if (!isAuthorized()) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const { playerId, action, durationDays, reason } = body;
+
+    if (!playerId) {
+      return NextResponse.json({ success: false, error: "Player ID is required" }, { status: 400 });
+    }
+
+    let isDisqualified = false;
+    let disqualifiedUntil: Date | null = null;
+    let disqualifyReason: string | null = null;
+    let logDescription = "";
+
+    if (action === "DISQUALIFY") {
+      isDisqualified = true;
+      disqualifyReason = reason || "Нарушение регламента лиги";
+
+      if (durationDays && typeof durationDays === "number" && durationDays > 0) {
+        disqualifiedUntil = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+        logDescription = `Player disqualified for ${durationDays} days. Reason: ${disqualifyReason}`;
+      } else {
+        disqualifiedUntil = null; // Permanent
+        logDescription = `Player permanently disqualified. Reason: ${disqualifyReason}`;
+      }
+    } else if (action === "UNBAN") {
+      isDisqualified = false;
+      disqualifiedUntil = null;
+      disqualifyReason = null;
+      logDescription = `Player disqualification lifted`;
+    }
+
+    const updatedPlayer = await prisma.player.update({
+      where: { id: playerId },
+      data: {
+        isDisqualified,
+        disqualifiedUntil,
+        disqualifyReason,
+      },
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        description: `Player "${updatedPlayer.nickname}": ${logDescription}`,
+      },
+    });
+
+    return NextResponse.json({ success: true, player: updatedPlayer });
+  } catch (error: any) {
+    console.error("PATCH /api/players error:", error);
+    return NextResponse.json({ success: false, error: error.message || "Failed to update player ban status" }, { status: 500 });
   }
 }

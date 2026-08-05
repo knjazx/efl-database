@@ -13,7 +13,6 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   try {
     const { slug } = params;
 
-    // Search by slug or by ID
     const team = await prisma.team.findFirst({
       where: {
         OR: [{ slug: slug }, { id: slug }],
@@ -44,6 +43,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
         discordUrl: m.player.discordUrl,
+        isDisqualified: m.player.isDisqualified,
+        disqualifiedUntil: m.player.disqualifiedUntil,
+        disqualifyReason: m.player.disqualifyReason,
         joinedAt: m.joinedAt,
       }));
 
@@ -59,6 +61,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
         discordUrl: m.player.discordUrl,
+        isDisqualified: m.player.isDisqualified,
+        disqualifiedUntil: m.player.disqualifiedUntil,
+        disqualifyReason: m.player.disqualifyReason,
         joinedAt: m.joinedAt,
         leftAt: m.leftAt,
       }));
@@ -73,6 +78,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         tier: team.tier,
         logoUrl: team.logoUrl,
         description: team.description,
+        isDisqualified: team.isDisqualified,
+        disqualifiedUntil: team.disqualifiedUntil,
+        disqualifyReason: team.disqualifyReason,
         createdAt: team.createdAt,
         activeRoster,
         formerPlayers,
@@ -94,7 +102,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
     const formData = await req.formData();
     const name = formData.get("name") as string;
     const tag = formData.get("tag") as string;
-    const tier = formData.get("tier") as string;
+    const tier = (formData.get("tier") as string) || "T1";
     const description = formData.get("description") as string;
     const logoFile = formData.get("logo") as File | null;
 
@@ -125,12 +133,11 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
       },
     });
 
-    // Record activity log
     await prisma.activityLog.create({
       data: {
         teamId: updatedTeam.id,
         teamName: updatedTeam.name,
-        description: `Team details updated (${updatedTeam.tag}, ${updatedTeam.tier})`,
+        description: `Team details updated (${updatedTeam.tag})`,
       },
     });
 
@@ -160,7 +167,6 @@ export async function DELETE(req: Request, { params }: { params: { slug: string 
       where: { id: existingTeam.id },
     });
 
-    // Record activity log
     await prisma.activityLog.create({
       data: {
         description: `Team "${existingTeam.name}" deleted from EFL database`,

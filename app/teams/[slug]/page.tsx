@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown } from "lucide-react";
+import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle } from "lucide-react";
+import { getBanStatus } from "@/lib/disqualification";
 
 interface PlayerMember {
   membershipId: string;
@@ -14,6 +15,9 @@ interface PlayerMember {
   steamUrl?: string;
   faceitUrl?: string;
   discordUrl?: string;
+  isDisqualified?: boolean;
+  disqualifiedUntil?: Date | string | null;
+  disqualifyReason?: string | null;
   joinedAt: string;
   leftAt?: string;
 }
@@ -25,6 +29,9 @@ interface TeamDetail {
   slug: string;
   logoUrl: string;
   description?: string;
+  isDisqualified?: boolean;
+  disqualifiedUntil?: Date | string | null;
+  disqualifyReason?: string | null;
   activeRoster: PlayerMember[];
   formerPlayers: PlayerMember[];
 }
@@ -87,6 +94,8 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
     );
   }
 
+  const teamBan = getBanStatus(team);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* Back Link */}
@@ -94,8 +103,30 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
         <ArrowLeft className="w-4 h-4" /> Back to Teams
       </Link>
 
+      {/* Disqualification Banner */}
+      {teamBan.isBanned && (
+        <div className="bg-red-950/80 border border-red-800 rounded-2xl p-6 mb-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl shadow-red-950/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-red-900/60 border border-red-700 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black uppercase tracking-wider text-red-300">
+                КОМАНДА ДИСКВАЛИФИЦИРОВАНА
+              </h3>
+              <p className="text-xs text-red-200/80 mt-0.5">
+                Причина: <span className="font-semibold text-white">{teamBan.reason}</span>
+              </p>
+            </div>
+          </div>
+          <div className="bg-red-900/40 border border-red-700/60 px-4 py-2 rounded-xl font-mono text-xs font-bold text-red-300">
+            {teamBan.remainingText}
+          </div>
+        </div>
+      )}
+
       {/* Hero / Header Section */}
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
+      <div className={`bg-[#0A0A0A] border rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 ${teamBan.isBanned ? "border-red-900/60" : "border-[#222222]"}`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Logo Container */}
           <div className="w-28 h-28 relative bg-[#050505] border border-[#222222] rounded-xl p-4 flex items-center justify-center flex-shrink-0">
@@ -154,12 +185,21 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 mb-16">
           {team.activeRoster.map((player) => {
             const isCaptain = player.role.toUpperCase() === "CAPTAIN";
+            const playerBan = getBanStatus(player);
 
             return (
               <div
                 key={player.id}
-                className="bg-[#0A0A0A] border border-[#222222] hover:border-[#444444] rounded-xl p-5 transition-all flex flex-col justify-between group"
+                className={`bg-[#0A0A0A] border rounded-xl p-5 transition-all flex flex-col justify-between group relative overflow-hidden ${
+                  playerBan.isBanned ? "border-red-900/60 bg-red-950/10" : "border-[#222222] hover:border-[#444444]"
+                }`}
               >
+                {playerBan.isBanned && (
+                  <div className="mb-3 bg-red-950/80 border border-red-800 rounded py-1 px-2 text-center text-[10px] font-bold text-red-300 uppercase">
+                    ДИСКВАЛИФИЦИРОВАН ({playerBan.remainingText})
+                  </div>
+                )}
+
                 <div>
                   {/* Avatar & Captain Status */}
                   <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">

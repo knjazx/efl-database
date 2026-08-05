@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, Shield, Upload, X, RefreshCw, Users, Check } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import { getBanStatus } from "@/lib/disqualification";
 
 interface TeamItem {
   id: string;
@@ -13,15 +14,25 @@ interface TeamItem {
   logoUrl: string;
   description: string;
   playerCount: number;
+  isDisqualified?: boolean;
+  disqualifiedUntil?: Date | string | null;
+  disqualifyReason?: string | null;
 }
 
 export default function AdminTeamsPage() {
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal State
+  // Edit/Add Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<TeamItem | null>(null);
+
+  // Ban Modal State
+  const [isBanModalOpen, setIsBanModalOpen] = useState(false);
+  const [banTargetTeam, setBanTargetTeam] = useState<TeamItem | null>(null);
+  const [banDurationDays, setBanDurationDays] = useState<number | "permanent">(7);
+  const [banReason, setBanReason] = useState("");
+  const [banSubmitting, setBanSubmitting] = useState(false);
 
   // Form Inputs
   const [name, setName] = useState("");
@@ -70,6 +81,43 @@ export default function AdminTeamsPage() {
     setIsModalOpen(true);
   };
 
+  const openBanModal = (team: TeamItem) => {
+    setBanTargetTeam(team);
+    setBanDurationDays(7);
+    setBanReason(team.disqualifyReason || "Нарушение регламента лиги");
+    setIsBanModalOpen(true);
+  };
+
+  const handleBanSubmit = async (action: "DISQUALIFY" | "UNBAN") => {
+    if (!banTargetTeam) return;
+    setBanSubmitting(true);
+
+    try {
+      const res = await fetch("/api/teams", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: banTargetTeam.id,
+          action,
+          durationDays: action === "DISQUALIFY" ? (banDurationDays === "permanent" ? null : banDurationDays) : null,
+          reason: banReason,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsBanModalOpen(false);
+        fetchTeams();
+      } else {
+        alert(data.error || "Failed to update ban status");
+      }
+    } catch (err) {
+      alert("Failed to update ban status");
+    } finally {
+      setBanSubmitting(false);
+    }
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
@@ -79,7 +127,7 @@ export default function AdminTeamsPage() {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("tag", tag);
-      formData.append("tier", "T1"); // Default fallback if needed
+      formData.append("tier", "T1");
       formData.append("description", description);
 
       if (logoFile) {
@@ -137,7 +185,7 @@ export default function AdminTeamsPage() {
               TEAM MANAGEMENT
             </h2>
             <p className="text-xs text-[#858585] mt-1">
-              Add, edit details, replace logos, and manage team rosters.
+              Add, edit details, replace logos, manage team rosters, and set disqualifications.
             </p>
           </div>
 
@@ -164,70 +212,101 @@ export default function AdminTeamsPage() {
                   <tr>
                     <th className="px-6 py-4">TEAM</th>
                     <th className="px-6 py-4">TAG</th>
+                    <th className="px-6 py-4">STATUS</th>
                     <th className="px-6 py-4">PLAYERS</th>
                     <th className="px-6 py-4 text-right">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1A1A1A]">
-                  {teams.map((t) => (
-                    <tr key={t.id} className="hover:bg-[#0E0E0E] transition-colors">
-                      {/* TEAM NAME & LOGO */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] p-1 flex items-center justify-center flex-shrink-0">
-                            <img src={t.logoUrl} alt={t.name} className="w-full h-full object-contain" />
+                  {teams.map((t) => {
+                    const ban = getBanStatus(t);
+
+                    return (
+                      <tr key={t.id} className="hover:bg-[#0E0E0E] transition-colors">
+                        {/* TEAM NAME & LOGO */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] p-1 flex items-center justify-center flex-shrink-0">
+                              <img src={t.logoUrl} alt={t.name} className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                              <Link href={`/teams/${t.slug}`} className="font-bold text-white hover:underline text-sm block">
+                                {t.name}
+                              </Link>
+                            </div>
                           </div>
-                          <div>
-                            <Link href={`/teams/${t.slug}`} className="font-bold text-white hover:underline text-sm block">
-                              {t.name}
-                            </Link>
-                          </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* TAG */}
-                      <td className="px-6 py-4 font-mono font-bold text-[#858585]">
-                        {t.tag}
-                      </td>
+                        {/* TAG */}
+                        <td className="px-6 py-4 font-mono font-bold text-[#858585]">
+                          {t.tag}
+                        </td>
 
-                      {/* PLAYERS */}
-                      <td className="px-6 py-4">
-                        <Link
-                          href={`/admin/teams/${t.id}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#050505] border border-[#222222] hover:border-white font-bold text-white transition-colors"
-                        >
-                          <Users className="w-3 h-3 text-[#858585]" />
-                          <span>{t.playerCount}</span>
-                        </Link>
-                      </td>
+                        {/* STATUS */}
+                        <td className="px-6 py-4">
+                          {ban.isBanned ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/50 border border-red-800 text-red-300 font-bold uppercase text-[10px]">
+                              <AlertTriangle className="w-3 h-3 text-red-400" />
+                              <span>{ban.remainingText}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 font-bold uppercase text-[10px]">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Active</span>
+                            </span>
+                          )}
+                        </td>
 
-                      {/* ACTIONS */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        {/* PLAYERS */}
+                        <td className="px-6 py-4">
                           <Link
                             href={`/admin/teams/${t.id}`}
-                            className="px-2.5 py-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white text-[11px] font-semibold transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#050505] border border-[#222222] hover:border-white font-bold text-white transition-colors"
                           >
-                            Roster
+                            <Users className="w-3 h-3 text-[#858585]" />
+                            <span>{t.playerCount}</span>
                           </Link>
-                          <button
-                            onClick={() => openEditModal(t)}
-                            className="p-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white transition-colors"
-                            title="Edit Team"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTeam(t.slug, t.name)}
-                            className="p-1.5 rounded bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 text-red-400 transition-colors"
-                            title="Delete Team"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        {/* ACTIONS */}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openBanModal(t)}
+                              className={`px-2.5 py-1.5 rounded border text-[11px] font-bold transition-colors flex items-center gap-1 ${
+                                ban.isBanned
+                                  ? "bg-red-950/40 border-red-800 text-red-300 hover:bg-red-900/60"
+                                  : "bg-[#141414] border-[#222222] text-[#858585] hover:text-white hover:border-white"
+                              }`}
+                            >
+                              <ShieldAlert className="w-3.5 h-3.5" />
+                              <span>{ban.isBanned ? "Ban Active" : "Ban Status"}</span>
+                            </button>
+                            <Link
+                              href={`/admin/teams/${t.id}`}
+                              className="px-2.5 py-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white text-[11px] font-semibold transition-colors"
+                            >
+                              Roster
+                            </Link>
+                            <button
+                              onClick={() => openEditModal(t)}
+                              className="p-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white transition-colors"
+                              title="Edit Team"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTeam(t.slug, t.name)}
+                              className="p-1.5 rounded bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 text-red-400 transition-colors"
+                              title="Delete Team"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -254,7 +333,6 @@ export default function AdminTeamsPage() {
               </h3>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
-                {/* Team Name */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Team Name *
@@ -269,7 +347,6 @@ export default function AdminTeamsPage() {
                   />
                 </div>
 
-                {/* Tag */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Tag *
@@ -284,7 +361,6 @@ export default function AdminTeamsPage() {
                   />
                 </div>
 
-                {/* Logo Upload */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Team Logo (PNG / JPG / SVG / WEBP)
@@ -310,7 +386,6 @@ export default function AdminTeamsPage() {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Description
@@ -348,6 +423,108 @@ export default function AdminTeamsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Manage Disqualification / Ban */}
+        {isBanModalOpen && banTargetTeam && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setIsBanModalOpen(false)}
+                className="absolute top-4 right-4 text-[#858585] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 border-b border-[#222222] pb-3 mb-4">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+                <h3 className="text-base font-black text-white uppercase tracking-wider">
+                  DISQUALIFICATION FOR {banTargetTeam.name.toUpperCase()}
+                </h3>
+              </div>
+
+              <div className="space-y-4">
+                {/* Presets */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-2">
+                    Ban Duration Presets
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "3 Days", days: 3 },
+                      { label: "7 Days", days: 7 },
+                      { label: "14 Days", days: 14 },
+                      { label: "30 Days", days: 30 },
+                      { label: "60 Days", days: 60 },
+                      { label: "Permanent", days: "permanent" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setBanDurationDays(preset.days as any)}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
+                          banDurationDays === preset.days
+                            ? "bg-red-900/60 border-red-500 text-white"
+                            : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                    Reason for Disqualification *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rule 3.1 Violation / Cheating"
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-4 border-t border-[#222222] gap-3">
+                  {banTargetTeam.isDisqualified ? (
+                    <button
+                      type="button"
+                      disabled={banSubmitting}
+                      onClick={() => handleBanSubmit("UNBAN")}
+                      className="px-4 py-2 bg-emerald-950/60 border border-emerald-800 text-emerald-300 rounded-lg text-xs font-bold uppercase hover:bg-emerald-900 transition-colors"
+                    >
+                      LIFT BAN (UNBAN)
+                    </button>
+                  ) : (
+                    <div></div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsBanModalOpen(false)}
+                      className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-lg text-xs font-semibold text-[#858585] hover:text-white transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      type="button"
+                      disabled={banSubmitting}
+                      onClick={() => handleBanSubmit("DISQUALIFY")}
+                      className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-extrabold uppercase transition-colors"
+                    >
+                      APPLY BAN
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
