@@ -1,0 +1,65 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Team {
+  id          String           @id @default(uuid())
+  name        String
+  tag         String
+  slug        String           @unique
+  tier        String           // T1, T2, T3
+  logoUrl     String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  memberships TeamMembership[]
+  activityLogs ActivityLog[]
+}
+
+model Player {
+  id          String           @id @default(uuid())
+  nickname    String
+  slug        String           @unique
+  avatarUrl   String?
+  defaultRole String?          // Captain, AWPer, Rifler, IGL, Entry, Support, Coach
+  steamUrl    String?
+  faceitUrl   String?
+  discordUrl  String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  memberships TeamMembership[]
+}
+
+model TeamMembership {
+  id        String    @id @default(uuid())
+  teamId    String
+  playerId  String
+  role      String    // Captain, AWPer, Rifler, IGL, Entry, Support, Coach
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  status    String    @default("ACTIVE") // ACTIVE or FORMER
+
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@index([playerId])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  teamId      String?
+  teamName    String?
+  description String
+  timestamp   DateTime @default(now())
+
+  team        Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+}

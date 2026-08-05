@@ -1,0 +1,551 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AdminLayout } from "@/components/AdminLayout";
+import { ArrowLeft, Plus, Edit, UserMinus, User, X, RefreshCw, Check, Crown } from "lucide-react";
+import Link from "next/link";
+
+interface RosterMember {
+  membershipId: string;
+  id: string;
+  nickname: string;
+  slug: string;
+  avatarUrl?: string;
+  role: string;
+  steamUrl?: string;
+  faceitUrl?: string;
+  joinedAt: string;
+  leftAt?: string;
+}
+
+interface TeamData {
+  id: string;
+  name: string;
+  tag: string;
+  slug: string;
+  tier?: string;
+  logoUrl: string;
+  description?: string;
+  activeRoster: RosterMember[];
+  formerPlayers: RosterMember[];
+}
+
+interface FreePlayer {
+  id: string;
+  nickname: string;
+  defaultRole: string;
+}
+
+export default function AdminRosterManagementPage({ params }: { params: { id: string } }) {
+  const [team, setTeam] = useState<TeamData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [allPlayers, setAllPlayers] = useState<FreePlayer[]>([]);
+
+  // Modals
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [editingMembership, setEditingMembership] = useState<RosterMember | null>(null);
+
+  // Form states
+  const [addMode, setAddMode] = useState<"existing" | "new">("existing");
+  const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [newNickname, setNewNickname] = useState("");
+  const [isCaptain, setIsCaptain] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState("");
+
+  const fetchTeamAndPlayers = async () => {
+    setLoading(true);
+    try {
+      const [teamRes, playersRes] = await Promise.all([
+        fetch(`/api/teams/${params.id}`).then((r) => r.json()),
+        fetch("/api/players").then((r) => r.json()),
+      ]);
+
+      if (teamRes.success) {
+        setTeam(teamRes.team);
+      }
+      if (playersRes.success) {
+        setAllPlayers(playersRes.players);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamAndPlayers();
+  }, [params.id]);
+
+  const handleAddPlayerToRoster = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalError("");
+    setSubmitting(true);
+
+    try {
+      let targetPlayerId = selectedPlayerId;
+      const assignedRole = isCaptain ? "CAPTAIN" : "PLAYER";
+
+      // If creating a brand new player
+      if (addMode === "new") {
+        const formData = new FormData();
+        formData.append("nickname", newNickname);
+        formData.append("role", assignedRole);
+
+        const pRes = await fetch("/api/players", {
+          method: "POST",
+          body: formData,
+        });
+        const pData = await pRes.json();
+
+        if (!pData.success) {
+          setModalError(pData.error || "Failed to create player");
+          setSubmitting(false);
+          return;
+        }
+        targetPlayerId = pData.player.id;
+      }
+
+      // Add player to team roster via /api/rosters
+      const res = await fetch("/api/rosters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ADD_PLAYER",
+          teamId: team?.id,
+          playerId: targetPlayerId,
+          role: assignedRole,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsAddModalOpen(false);
+        fetchTeamAndPlayers();
+      } else {
+        setModalError(data.error || "Failed to add player to roster");
+      }
+    } catch (err) {
+      setModalError("Request failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateRoleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMembership) return;
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/rosters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "UPDATE_ROLE",
+          membershipId: editingMembership.membershipId,
+          role: isCaptain ? "CAPTAIN" : "PLAYER",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsRoleModalOpen(false);
+        fetchTeamAndPlayers();
+      } else {
+        alert(data.error || "Failed to update role");
+      }
+    } catch (err) {
+      alert("Failed to update role");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRemoveFromRoster = async (membershipId: string, nickname: string) => {
+    if (!confirm(`Remove ${nickname} from ${team?.name} active roster? Player will be moved to Former Players.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/rosters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REMOVE_PLAYER",
+          membershipId,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        fetchTeamAndPlayers();
+      } else {
+        alert(data.error || "Failed to remove player");
+      }
+    } catch (err) {
+      alert("Failed to remove player");
+    }
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="py-20 text-center text-[#858585] flex flex-col items-center gap-3">
+          <RefreshCw className="w-6 h-6 animate-spin" />
+          <span className="text-xs uppercase font-semibold">Loading team roster...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!team) {
+    return (
+      <AdminLayout>
+        <div className="py-12 text-center">
+          <p className="text-white font-bold mb-4">Team not found.</p>
+          <Link href="/admin/teams" className="px-4 py-2 bg-white text-black font-bold text-xs rounded">
+            Back to Teams
+          </Link>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Back Link */}
+        <Link href="/admin/teams" className="inline-flex items-center gap-2 text-xs font-semibold text-[#858585] hover:text-white transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Teams List
+        </Link>
+
+        {/* Team Banner */}
+        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#222222] p-2 flex items-center justify-center">
+              <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                  {team.name}
+                </h2>
+              </div>
+              <p className="text-xs text-[#858585] uppercase tracking-widest font-mono mt-0.5">
+                TAG: {team.tag}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setAddMode("existing");
+              setSelectedPlayerId("");
+              setNewNickname("");
+              setIsCaptain(false);
+              setModalError("");
+              setIsAddModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>ADD PLAYER TO ROSTER</span>
+          </button>
+        </div>
+
+        {/* Active Roster Table */}
+        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              ACTIVE ROSTER ({team.activeRoster.length})
+            </h3>
+          </div>
+
+          {team.activeRoster.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">PLAYER</th>
+                    <th className="px-6 py-4">STATUS</th>
+                    <th className="px-6 py-4">JOINED</th>
+                    <th className="px-6 py-4 text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1A1A1A]">
+                  {team.activeRoster.map((m) => {
+                    const isCap = m.role.toUpperCase() === "CAPTAIN";
+
+                    return (
+                      <tr key={m.membershipId} className="hover:bg-[#0E0E0E] transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center">
+                              {m.avatarUrl ? (
+                                <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-4 h-4 text-[#858585]" />
+                              )}
+                            </div>
+                            <Link href={`/players/${m.slug}`} className="font-bold text-white hover:underline text-sm">
+                              {m.nickname}
+                            </Link>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          {isCap ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[10px]">
+                              <Crown className="w-3 h-3" />
+                              <span>CAPTAIN</span>
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#858585] text-[10px]">
+                              Player
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 font-mono text-[#858585]">
+                          {new Date(m.joinedAt).toLocaleDateString()}
+                        </td>
+
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingMembership(m);
+                                setIsCaptain(isCap);
+                                setIsRoleModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white text-[11px] font-semibold transition-colors flex items-center gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              <span>Status</span>
+                            </button>
+                            <button
+                              onClick={() => handleRemoveFromRoster(m.membershipId, m.nickname)}
+                              className="px-2.5 py-1.5 rounded bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 text-red-400 text-[11px] font-semibold transition-colors flex items-center gap-1"
+                            >
+                              <UserMinus className="w-3 h-3" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-12 text-center text-[#858585]">
+              No active players in this roster.
+            </div>
+          )}
+        </div>
+
+        {/* Former Players List */}
+        {team.formerPlayers.length > 0 && (
+          <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden mt-8">
+            <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#858585] uppercase tracking-wider">
+                FORMER PLAYERS ({team.formerPlayers.length})
+              </h3>
+            </div>
+            <div className="divide-y divide-[#1A1A1A]">
+              {team.formerPlayers.map((m) => (
+                <div key={m.membershipId} className="px-6 py-3 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-white">{m.nickname}</span>
+                    {m.role.toUpperCase() === "CAPTAIN" && (
+                      <span className="text-[10px] text-amber-400 font-bold uppercase">(Former Captain)</span>
+                    )}
+                  </div>
+                  <span className="font-mono text-[10px] text-[#858585]">
+                    {m.leftAt ? `Left: ${new Date(m.leftAt).toLocaleDateString()}` : "Former"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Add Player to Roster */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="absolute top-4 right-4 text-[#858585] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-lg font-black text-white uppercase tracking-wider mb-4 border-b border-[#222222] pb-3">
+                ADD PLAYER TO {team.name.toUpperCase()} ROSTER
+              </h3>
+
+              {/* Mode Toggle */}
+              <div className="flex items-center bg-[#050505] border border-[#222222] rounded-lg p-1 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setAddMode("existing")}
+                  className={`flex-1 py-1.5 text-xs font-bold uppercase rounded ${
+                    addMode === "existing" ? "bg-[#222222] text-white" : "text-[#858585]"
+                  }`}
+                >
+                  Select Existing Player
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddMode("new")}
+                  className={`flex-1 py-1.5 text-xs font-bold uppercase rounded ${
+                    addMode === "new" ? "bg-[#222222] text-white" : "text-[#858585]"
+                  }`}
+                >
+                  Create New Player
+                </button>
+              </div>
+
+              <form onSubmit={handleAddPlayerToRoster} className="space-y-4">
+                {addMode === "existing" ? (
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Choose Registered Player *
+                    </label>
+                    <select
+                      required
+                      value={selectedPlayerId}
+                      onChange={(e) => setSelectedPlayerId(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    >
+                      <option value="">-- Select a player --</option>
+                      {allPlayers.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nickname}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Player Nickname *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Player6"
+                      value={newNickname}
+                      onChange={(e) => setNewNickname(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    />
+                  </div>
+                )}
+
+                {/* Captain Checkbox */}
+                <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
+                    <label htmlFor="rosterCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
+                      Assign as Team Captain (Капитан)
+                    </label>
+                  </div>
+                  <input
+                    id="rosterCaptainCheck"
+                    type="checkbox"
+                    checked={isCaptain}
+                    onChange={(e) => setIsCaptain(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {modalError && (
+                  <p className="text-xs font-semibold text-red-400 bg-red-950/40 p-2 rounded text-center">
+                    {modalError}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#222222]">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-lg text-xs font-semibold text-[#858585] hover:text-white transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-white text-black rounded-lg text-xs font-extrabold tracking-wider uppercase hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                  >
+                    {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    <span>ADD TO ROSTER</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Change Role / Captain status */}
+        {isRoleModalOpen && editingMembership && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setIsRoleModalOpen(false)}
+                className="absolute top-4 right-4 text-[#858585] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-base font-black text-white uppercase tracking-wider mb-4 border-b border-[#222222] pb-3">
+                EDIT STATUS FOR {editingMembership.nickname.toUpperCase()}
+              </h3>
+
+              <form onSubmit={handleUpdateRoleSubmit} className="space-y-4">
+                <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
+                    <label htmlFor="editCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
+                      Team Captain (Капитан)
+                    </label>
+                  </div>
+                  <input
+                    id="editCaptainCheck"
+                    type="checkbox"
+                    checked={isCaptain}
+                    onChange={(e) => setIsCaptain(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#222222]">
+                  <button
+                    type="button"
+                    onClick={() => setIsRoleModalOpen(false)}
+                    className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-lg text-xs font-semibold text-[#858585] hover:text-white transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-white text-black rounded-lg text-xs font-extrabold uppercase hover:bg-neutral-200 transition-colors"
+                  >
+                    SAVE STATUS
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}

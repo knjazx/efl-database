@@ -1,0 +1,175 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { saveUploadedFile } from "@/lib/upload";
+import { cookies } from "next/headers";
+
+function isAuthorized() {
+  const cookieStore = cookies();
+  const sessionToken = cookieStore.get("efl_admin_session");
+  return sessionToken?.value === "authenticated_efl_admin";
+}
+
+export async function GET(req: Request, { params }: { params: { slug: string } }) {
+  try {
+    const { slug } = params;
+
+    // Search by slug or by ID
+    const team = await prisma.team.findFirst({
+      where: {
+        OR: [{ slug: slug }, { id: slug }],
+      },
+      include: {
+        memberships: {
+          include: {
+            player: true,
+          },
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
+    }
+
+    const activeRoster = team.memberships
+      .filter((m) => m.status === "ACTIVE")
+      .map((m) => ({
+        membershipId: m.id,
+        id: m.player.id,
+        nickname: m.player.nickname,
+        slug: m.player.slug,
+        avatarUrl: m.player.avatarUrl,
+        role: m.role || m.player.defaultRole || "PLAYER",
+        steamUrl: m.player.steamUrl,
+        faceitUrl: m.player.faceitUrl,
+        discordUrl: m.player.discordUrl,
+        joinedAt: m.joinedAt,
+      }));
+
+    const formerPlayers = team.memberships
+      .filter((m) => m.status === "FORMER")
+      .map((m) => ({
+        membershipId: m.id,
+        id: m.player.id,
+        nickname: m.player.nickname,
+        slug: m.player.slug,
+        avatarUrl: m.player.avatarUrl,
+        role: m.role || m.player.defaultRole || "PLAYER",
+        steamUrl: m.player.steamUrl,
+        faceitUrl: m.player.faceitUrl,
+        discordUrl: m.player.discordUrl,
+        joinedAt: m.joinedAt,
+        leftAt: m.leftAt,
+      }));
+
+    return NextResponse.json({
+      success: true,
+      team: {
+        id: team.id,
+        name: team.name,
+        tag: team.tag,
+        slug: team.slug,
+        tier: team.tier,
+        logoUrl: team.logoUrl,
+        description: team.description,
+        createdAt: team.createdAt,
+        activeRoster,
+        formerPlayers,
+      },
+    });
+  } catch (error) {
+    console.error("GET /api/teams/[slug] error:", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch team profile" }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request, { params }: { params: { slug: string } }) {
+  if (!isAuthorized()) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { slug } = params;
+    const formData = await req.formData();
+    const name = formData.get("name") as string;
+    const tag = formData.get("tag") as string;
+    const tier = formData.get("tier") as string;
+    const description = formData.get("description") as string;
+    const logoFile = formData.get("logo") as File | null;
+
+    const existingTeam = await prisma.team.findFirst({
+      where: { OR: [{ slug: slug }, { id: slug }] },
+    });
+
+    if (!existingTeam) {
+      return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
+    }
+
+    let logoUrl = existingTeam.logoUrl;
+    if (logoFile && logoFile.size > 0) {
+      logoUrl = await saveUploadedFile(logoFile, "logos");
+    }
+
+    const updatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+    const updatedTeam = await prisma.team.update({
+      where: { id: existingTeam.id },
+      data: {
+        name,
+        tag: tag.toUpperCase(),
+        slug: updatedSlug,
+        tier,
+        logoUrl,
+        description,
+      },
+    });
+
+    // Record activity log
+    await prisma.activityLog.create({
+      data: {
+        teamId: updatedTeam.id,
+        teamName: updatedTeam.name,
+        description: `Team details updated (${updatedTeam.tag}, ${updatedTeam.tier})`,
+      },
+    });
+
+    return NextResponse.json({ success: true, team: updatedTeam });
+  } catch (error: any) {
+    console.error("PUT /api/teams/[slug] error:", error);
+    return NextResponse.json({ success: false, error: error.message || "Failed to update team" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request, { params }: { params: { slug: string } }) {
+  if (!isAuthorized()) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { slug } = params;
+    const existingTeam = await prisma.team.findFirst({
+      where: { OR: [{ slug: slug }, { id: slug }] },
+    });
+
+    if (!existingTeam) {
+      return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
+    }
+
+    await prisma.team.delete({
+      where: { id: existingTeam.id },
+    });
+
+    // Record activity log
+    await prisma.activityLog.create({
+      data: {
+        description: `Team "${existingTeam.name}" deleted from EFL database`,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/teams/[slug] error:", error);
+    return NextResponse.json({ success: false, error: "Failed to delete team" }, { status: 500 });
+  }
+}
