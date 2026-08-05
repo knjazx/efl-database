@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { ArrowLeft, Plus, Edit, UserMinus, User, X, RefreshCw, Check, Crown, Shield } from "lucide-react";
+import { ArrowLeft, Plus, Edit, UserMinus, User, X, RefreshCw, Check, Crown, Search, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
 import { formatRosterRole } from "@/lib/roles";
 
@@ -49,7 +49,8 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
 
   // Form states
   const [addMode, setAddMode] = useState<"existing" | "new">("existing");
-  const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [newNickname, setNewNickname] = useState("");
   const [baseRole, setBaseRole] = useState<"CORE" | "SUBSTITUTE" | "COACH">("CORE");
   const [isCaptain, setIsCaptain] = useState(false);
@@ -82,6 +83,29 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
     fetchTeamAndPlayers();
   }, [params.id]);
 
+  // Filter out players already in active roster
+  const activeRosterPlayerIds = new Set(team?.activeRoster.map((m) => m.id) || []);
+  const availablePlayers = allPlayers.filter((p) => !activeRosterPlayerIds.has(p.id));
+
+  // Filter available players by search query
+  const filteredAvailablePlayers = availablePlayers.filter((p) =>
+    p.nickname.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const togglePlayerSelection = (playerId: string) => {
+    setSelectedPlayerIds((prev) =>
+      prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedPlayerIds.length === filteredAvailablePlayers.length) {
+      setSelectedPlayerIds([]);
+    } else {
+      setSelectedPlayerIds(filteredAvailablePlayers.map((p) => p.id));
+    }
+  };
+
   const constructRoleString = () => {
     if (isCaptain) {
       return `CAPTAIN:${baseRole}`;
@@ -95,11 +119,16 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
     setSubmitting(true);
 
     try {
-      let targetPlayerId = selectedPlayerId;
       const assignedRole = constructRoleString();
 
-      // If creating a brand new player
+      // If creating a brand new single player
       if (addMode === "new") {
+        if (!newNickname.trim()) {
+          setModalError("Please enter player nickname");
+          setSubmitting(false);
+          return;
+        }
+
         const formData = new FormData();
         formData.append("nickname", newNickname);
         formData.append("role", assignedRole);
@@ -115,26 +144,51 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
           setSubmitting(false);
           return;
         }
-        targetPlayerId = pData.player.id;
-      }
 
-      const res = await fetch("/api/rosters", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "ADD_PLAYER",
-          teamId: team?.id,
-          playerId: targetPlayerId,
-          role: assignedRole,
-        }),
-      });
+        const res = await fetch("/api/rosters", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "ADD_PLAYER",
+            teamId: team?.id,
+            playerId: pData.player.id,
+            role: assignedRole,
+          }),
+        });
 
-      const data = await res.json();
-      if (data.success) {
-        setIsAddModalOpen(false);
-        fetchTeamAndPlayers();
+        const data = await res.json();
+        if (data.success) {
+          setIsAddModalOpen(false);
+          fetchTeamAndPlayers();
+        } else {
+          setModalError(data.error || "Failed to add player to roster");
+        }
       } else {
-        setModalError(data.error || "Failed to add player to roster");
+        // Multi-select existing players batch add
+        if (selectedPlayerIds.length === 0) {
+          setModalError("Select at least one player to add");
+          setSubmitting(false);
+          return;
+        }
+
+        const res = await fetch("/api/rosters", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "ADD_PLAYER",
+            teamId: team?.id,
+            playerIds: selectedPlayerIds,
+            role: assignedRole,
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setIsAddModalOpen(false);
+          fetchTeamAndPlayers();
+        } else {
+          setModalError(data.error || "Failed to add players to roster");
+        }
       }
     } catch (err) {
       setModalError("Request failed");
@@ -252,7 +306,8 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
           <button
             onClick={() => {
               setAddMode("existing");
-              setSelectedPlayerId("");
+              setSelectedPlayerIds([]);
+              setSearchQuery("");
               setNewNickname("");
               setBaseRole("CORE");
               setIsCaptain(false);
@@ -262,7 +317,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
             className="flex items-center gap-2 px-4 py-2.5 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>ADD PLAYER TO ROSTER</span>
+            <span>ADD PLAYERS TO ROSTER</span>
           </button>
         </div>
 
@@ -395,10 +450,10 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
           </div>
         )}
 
-        {/* Modal: Add Player to Roster */}
+        {/* Modal: Add Player(s) to Roster */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -407,9 +462,10 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
               </button>
 
               <h3 className="text-lg font-black text-white uppercase tracking-wider mb-4 border-b border-[#222222] pb-3">
-                ADD PLAYER TO {team.name.toUpperCase()} ROSTER
+                ADD PLAYERS TO {team.name.toUpperCase()}
               </h3>
 
+              {/* Mode Toggle */}
               <div className="flex items-center bg-[#050505] border border-[#222222] rounded-lg p-1 mb-4">
                 <button
                   type="button"
@@ -418,7 +474,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                     addMode === "existing" ? "bg-[#222222] text-white" : "text-[#858585]"
                   }`}
                 >
-                  Select Existing Player
+                  Select Registered Players ({availablePlayers.length})
                 </button>
                 <button
                   type="button"
@@ -431,25 +487,72 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                 </button>
               </div>
 
-              <form onSubmit={handleAddPlayerToRoster} className="space-y-4">
+              <form onSubmit={handleAddPlayerToRoster} className="space-y-4 flex-1 overflow-hidden flex flex-col">
                 {addMode === "existing" ? (
-                  <div>
-                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
-                      Choose Registered Player *
-                    </label>
-                    <select
-                      required
-                      value={selectedPlayerId}
-                      onChange={(e) => setSelectedPlayerId(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
-                    >
-                      <option value="">-- Select a player --</option>
-                      {allPlayers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nickname}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="flex-1 flex flex-col min-h-0 space-y-3">
+                    {/* Search & Select All Header */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="relative flex-1">
+                        <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#858585]" />
+                        <input
+                          type="text"
+                          placeholder="Search player nickname..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 bg-[#050505] border border-[#222222] rounded-lg text-xs text-white focus:outline-none focus:border-white"
+                        />
+                      </div>
+
+                      {filteredAvailablePlayers.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleSelectAll}
+                          className="px-2.5 py-1.5 bg-[#141414] border border-[#222222] hover:border-white rounded-lg text-[11px] font-bold text-[#858585] hover:text-white transition-colors"
+                        >
+                          {selectedPlayerIds.length === filteredAvailablePlayers.length ? "Deselect All" : "Select All"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Multi-Select Player Checkbox List */}
+                    <div className="flex-1 overflow-y-auto bg-[#050505] border border-[#222222] rounded-xl p-2 space-y-1 min-h-[160px] max-h-[220px]">
+                      {filteredAvailablePlayers.length > 0 ? (
+                        filteredAvailablePlayers.map((p) => {
+                          const isSelected = selectedPlayerIds.includes(p.id);
+
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => togglePlayerSelection(p.id)}
+                              className={`p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all border ${
+                                isSelected
+                                  ? "bg-white/10 border-white text-white font-bold"
+                                  : "border-transparent text-[#858585] hover:bg-[#101010] hover:text-white"
+                              }`}
+                            >
+                              <span className="text-xs">{p.nickname}</span>
+                              {isSelected ? (
+                                <CheckSquare className="w-4 h-4 text-white" />
+                              ) : (
+                                <Square className="w-4 h-4 text-[#444444]" />
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-8 text-center text-xs text-[#858585]">
+                          {availablePlayers.length === 0
+                            ? "All registered players are already in this team's roster."
+                            : "No players found matching your search."}
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedPlayerIds.length > 0 && (
+                      <p className="text-[11px] font-bold text-emerald-400">
+                        Selected: {selectedPlayerIds.length} player(s)
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -470,7 +573,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                 {/* Roster Role Selection */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
-                    Роль в составе (Roster Role) *
+                    Роль в составе для выбранных *
                   </label>
                   <select
                     value={baseRole}
@@ -483,22 +586,24 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   </select>
                 </div>
 
-                {/* Captain Checkbox */}
-                <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
-                    <label htmlFor="rosterCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
-                      Назначить капитаном (Team Captain)
-                    </label>
+                {/* Captain Checkbox (only for single player / new) */}
+                {addMode === "new" || selectedPlayerIds.length === 1 ? (
+                  <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
+                      <label htmlFor="rosterCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
+                        Назначить капитаном (Team Captain)
+                      </label>
+                    </div>
+                    <input
+                      id="rosterCaptainCheck"
+                      type="checkbox"
+                      checked={isCaptain}
+                      onChange={(e) => setIsCaptain(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 cursor-pointer"
+                    />
                   </div>
-                  <input
-                    id="rosterCaptainCheck"
-                    type="checkbox"
-                    checked={isCaptain}
-                    onChange={(e) => setIsCaptain(e.target.checked)}
-                    className="w-4 h-4 accent-amber-500 cursor-pointer"
-                  />
-                </div>
+                ) : null}
 
                 {modalError && (
                   <p className="text-xs font-semibold text-red-400 bg-red-950/40 p-2 rounded text-center">
@@ -544,7 +649,6 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
               </h3>
 
               <form onSubmit={handleUpdateRoleSubmit} className="space-y-4">
-                {/* Roster Role */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
                     Роль в составе *
@@ -560,7 +664,6 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   </select>
                 </div>
 
-                {/* Captain Checkbox */}
                 <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />

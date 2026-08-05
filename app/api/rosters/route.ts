@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 function isAuthorized() {
   const cookieStore = cookies();
   const sessionToken = cookieStore.get("efl_admin_session");
@@ -15,43 +17,52 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { action, teamId, playerId, membershipId, role } = body;
+    const { action, teamId, playerId, playerIds, membershipId, role } = body;
 
-    // Action 1: Add existing player to team
+    // Action 1: Add existing player(s) to team
     if (action === "ADD_PLAYER") {
-      if (!teamId || !playerId) {
-        return NextResponse.json({ success: false, error: "Missing teamId or playerId" }, { status: 400 });
+      if (!teamId) {
+        return NextResponse.json({ success: false, error: "Missing teamId" }, { status: 400 });
       }
 
-      // Check if player has any current active membership and mark as former
-      await prisma.teamMembership.updateMany({
-        where: { playerId, status: "ACTIVE" },
-        data: { status: "FORMER", leftAt: new Date() },
-      });
+      const idsToAdd: string[] = playerIds && Array.isArray(playerIds) ? playerIds : playerId ? [playerId] : [];
 
-      const player = await prisma.player.findUnique({ where: { id: playerId } });
+      if (idsToAdd.length === 0) {
+        return NextResponse.json({ success: false, error: "No players selected to add" }, { status: 400 });
+      }
+
       const team = await prisma.team.findUnique({ where: { id: teamId } });
 
-      const newMembership = await prisma.teamMembership.create({
-        data: {
-          teamId,
-          playerId,
-          role: role || player?.defaultRole || "PLAYER",
-          status: "ACTIVE",
-          joinedAt: new Date(),
-        },
-      });
+      for (const pId of idsToAdd) {
+        // Mark any current active membership elsewhere as FORMER
+        await prisma.teamMembership.updateMany({
+          where: { playerId: pId, status: "ACTIVE" },
+          data: { status: "FORMER", leftAt: new Date() },
+        });
 
-      // Record activity log
-      await prisma.activityLog.create({
-        data: {
-          teamId,
-          teamName: team?.name || "Team",
-          description: `Player "${player?.nickname}" joined roster as ${newMembership.role}`,
-        },
-      });
+        const player = await prisma.player.findUnique({ where: { id: pId } });
 
-      return NextResponse.json({ success: true, membership: newMembership });
+        const newMembership = await prisma.teamMembership.create({
+          data: {
+            teamId,
+            playerId: pId,
+            role: role || player?.defaultRole || "CORE",
+            status: "ACTIVE",
+            joinedAt: new Date(),
+          },
+        });
+
+        // Record activity log
+        await prisma.activityLog.create({
+          data: {
+            teamId,
+            teamName: team?.name || "Team",
+            description: `Player "${player?.nickname}" joined roster as ${newMembership.role}`,
+          },
+        });
+      }
+
+      return NextResponse.json({ success: true, count: idsToAdd.length });
     }
 
     // Action 2: Change player's role in team
