@@ -226,8 +226,8 @@ export default function AdminTeamsPage() {
                         {/* TEAM NAME & LOGO */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] p-1 flex items-center justify-center flex-shrink-0">
-                              <img src={t.logoUrl} alt={t.name} className="w-full h-full object-contain" />
+                            <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
+                              <img src={t.logoUrl} alt={t.name} className="w-full h-full object-cover" />
                             </div>
                             <div>
                               <Link href={`/teams/${t.slug}`} className="font-bold text-white hover:underline text-sm block">

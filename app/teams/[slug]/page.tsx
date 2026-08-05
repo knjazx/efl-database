@@ -247,11 +247,11 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
       <div className={`bg-[#0A0A0A] border rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 ${teamBan.isBanned ? "border-red-900/60" : "border-[#222222]"}`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Logo Container */}
-          <div className="w-28 h-28 relative bg-[#050505] border border-[#222222] rounded-xl p-4 flex items-center justify-center flex-shrink-0">
+          <div className="w-28 h-28 relative bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
             <img
               src={team.logoUrl}
               alt={`${team.name} Logo`}
-              className="w-full h-full object-contain filter drop-shadow-md"
+              className="w-full h-full object-cover filter drop-shadow-md"
             />
           </div>
 

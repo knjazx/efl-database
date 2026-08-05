@@ -39,25 +39,22 @@ export function TeamCard({
       >
         {/* Disqualification Banner */}
         {ban.isBanned && (
-          <div className="absolute top-2 left-2 right-2 bg-red-950/80 border border-red-800/80 rounded-md py-1 px-2 flex items-center justify-center gap-1 text-red-300 text-[10px] font-extrabold uppercase tracking-wider">
+          <div className="absolute top-2 left-2 right-2 bg-red-950/80 border border-red-800/80 rounded-md py-1 px-2 flex items-center justify-center gap-1 text-red-300 text-[10px] font-extrabold uppercase tracking-wider z-10">
             <AlertTriangle className="w-3 h-3 text-red-400 flex-shrink-0" />
             <span className="truncate">ДИСКВАЛИФИКАЦИЯ ({ban.remainingText})</span>
           </div>
         )}
 
-        {/* Team Logo Container */}
-        <div className={`w-24 h-24 my-4 relative flex items-center justify-center bg-[#050505] border rounded-xl p-3 group-hover:border-[#333333] transition-colors ${ban.isBanned ? "border-red-900/40" : "border-[#1A1A1A]"}`}>
+        {/* Team Logo Container (Full-bleed edge-to-edge frame) */}
+        <div className={`w-28 h-28 my-4 relative overflow-hidden rounded-xl bg-[#050505] border group-hover:border-white transition-all shadow-md ${ban.isBanned ? "border-red-900/40" : "border-[#222222]"}`}>
           <img
             src={logoUrl}
             alt={`${name} Logo`}
-            className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               (e.currentTarget as HTMLElement).style.display = "none";
             }}
           />
-          <div className="absolute inset-0 flex items-center justify-center font-bold text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            {tag}
-          </div>
         </div>
 
         {/* Team Name & Tag */}
