@@ -35,6 +35,10 @@ interface FreePlayer {
   id: string;
   nickname: string;
   defaultRole: string;
+  currentTeam?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export default function AdminRosterManagementPage({ params }: { params: { id: string } }) {
@@ -83,9 +87,8 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
     fetchTeamAndPlayers();
   }, [params.id]);
 
-  // Filter out players already in active roster
-  const activeRosterPlayerIds = new Set(team?.activeRoster.map((m) => m.id) || []);
-  const availablePlayers = allPlayers.filter((p) => !activeRosterPlayerIds.has(p.id));
+  // Filter to show ONLY Free Agents (players with no current team)
+  const availablePlayers = allPlayers.filter((p) => !p.currentTeam);
 
   // Filter available players by search query
   const filteredAvailablePlayers = availablePlayers.filter((p) =>
@@ -558,8 +561,8 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                       ) : (
                         <div className="p-8 text-center text-xs text-[#858585]">
                           {availablePlayers.length === 0
-                            ? "All registered players are already in this team's roster."
-                            : "No players found matching your search."}
+                            ? "Нет свободных игроков без команды (все игроки уже привязаны к командам)."
+                            : "Игроки по вашему запросу не найдены."}
                         </div>
                       )}
                     </div>
