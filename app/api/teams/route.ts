@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
+import { generateUniqueTeamSlug } from "@/lib/slug";
 
 export const revalidate = 2; // Cache on Vercel Edge CDN for 2s, background revalidate for instant loads
 
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
       logoUrl = await saveUploadedFile(logoFile, "logos");
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = await generateUniqueTeamSlug(name);
 
     const newTeam = await prisma.team.create({
       data: {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
+import { generateUniquePlayerSlug } from "@/lib/slug";
 
 export const revalidate = 2; // Cache on Vercel Edge CDN for 2s for instant loads
 
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       avatarUrl = await saveUploadedFile(avatarFile, "avatars");
     }
 
-    const slug = nickname.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = await generateUniquePlayerSlug(nickname);
 
     const newPlayer = await prisma.player.create({
       data: {
