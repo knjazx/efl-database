@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 function isAuthorized() {
   const cookieStore = cookies();
   const sessionToken = cookieStore.get("efl_admin_session");
