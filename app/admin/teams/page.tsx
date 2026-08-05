@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
+import { compressImage } from "@/lib/compressImage";
 
 interface TeamItem {
   id: string;
@@ -372,9 +373,10 @@ export default function AdminTeamsPage() {
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           if (e.target.files && e.target.files[0]) {
-                            setLogoFile(e.target.files[0]);
+                            const compressed = await compressImage(e.target.files[0]);
+                            setLogoFile(compressed);
                           }
                         }}
                         className="hidden"

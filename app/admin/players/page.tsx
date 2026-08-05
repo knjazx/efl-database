@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
+import { compressImage } from "@/lib/compressImage";
 
 interface PlayerItem {
   id: string;
@@ -445,9 +446,10 @@ export default function AdminPlayersPage() {
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           if (e.target.files && e.target.files[0]) {
-                            setAvatarFile(e.target.files[0]);
+                            const compressed = await compressImage(e.target.files[0]);
+                            setAvatarFile(compressed);
                           }
                         }}
                         className="hidden"
