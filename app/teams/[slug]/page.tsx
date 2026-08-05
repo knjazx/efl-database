@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
+import { formatRosterRole } from "@/lib/roles";
 
 interface PlayerMember {
   membershipId: string;
@@ -184,7 +185,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
       {team.activeRoster.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 mb-16">
           {team.activeRoster.map((player) => {
-            const isCaptain = player.role.toUpperCase() === "CAPTAIN";
+            const parsedRole = formatRosterRole(player.role);
             const playerBan = getBanStatus(player);
 
             return (
@@ -201,7 +202,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                 )}
 
                 <div>
-                  {/* Avatar & Captain Status */}
+                  {/* Avatar & Roles */}
                   <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">
                     <div className="w-20 h-20 relative bg-[#050505] border border-[#222222] group-hover:border-white rounded-xl mb-4 overflow-hidden flex items-center justify-center transition-colors">
                       {player.avatarUrl ? (
@@ -215,12 +216,28 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                       {player.nickname}
                     </h3>
 
-                    {isCaptain && (
-                      <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-[10px] font-bold tracking-widest text-amber-400 uppercase">
-                        <Crown className="w-3 h-3" />
-                        <span>CAPTAIN</span>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+                      {/* Roster Role Badge */}
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          parsedRole.baseRole === "CORE"
+                            ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
+                            : parsedRole.baseRole === "SUBSTITUTE"
+                            ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
+                            : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
+                        }`}
+                      >
+                        {parsedRole.label}
                       </span>
-                    )}
+
+                      {/* Captain Badge */}
+                      {parsedRole.isCaptain && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-[10px] font-bold tracking-widest text-amber-400 uppercase">
+                          <Crown className="w-3 h-3" />
+                          <span>Капитан</span>
+                        </span>
+                      )}
+                    </div>
                   </Link>
                 </div>
 
@@ -258,7 +275,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                     </span>
                   )}
 
-                  {isCaptain && player.discordUrl && (
+                  {parsedRole.isCaptain && player.discordUrl && (
                     <a
                       href={player.discordUrl.startsWith("http") ? player.discordUrl : `https://discord.com/users/${player.discordUrl}`}
                       target="_blank"

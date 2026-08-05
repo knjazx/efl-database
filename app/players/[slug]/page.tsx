@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, User, Shield, RefreshCw, Crown, AlertTriangle } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
+import { formatRosterRole } from "@/lib/roles";
 
 interface TeamRef {
   id: string;
@@ -89,7 +90,7 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
   }
 
   const activeRole = player.currentTeam?.role || player.defaultRole || "";
-  const isCaptain = activeRole.toUpperCase() === "CAPTAIN";
+  const parsedRole = formatRosterRole(activeRole);
   const playerBan = getBanStatus(player);
 
   return (
@@ -139,14 +140,28 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
               {player.nickname}
             </h1>
 
-            {isCaptain && (
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-6">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-6">
+              {/* Base Roster Role Badge */}
+              <span
+                className={`px-3 py-1 text-xs font-bold tracking-widest uppercase rounded border ${
+                  parsedRole.baseRole === "CORE"
+                    ? "bg-blue-950/40 border-blue-500/50 text-blue-400"
+                    : parsedRole.baseRole === "SUBSTITUTE"
+                    ? "bg-purple-950/40 border-purple-500/50 text-purple-400"
+                    : "bg-emerald-950/40 border-emerald-500/50 text-emerald-400"
+                }`}
+              >
+                {parsedRole.label}
+              </span>
+
+              {/* Captain Badge */}
+              {parsedRole.isCaptain && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950/40 border border-amber-500/50 text-amber-400 text-xs font-bold tracking-widest uppercase rounded">
                   <Crown className="w-4 h-4" />
-                  <span>CAPTAIN</span>
+                  <span>Капитан</span>
                 </span>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Current Team Status */}
             <div className="bg-[#050505] border border-[#222222] rounded-xl p-4 inline-block w-full sm:w-auto">
@@ -214,7 +229,7 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
           )}
 
           {/* Discord Button for Captains */}
-          {isCaptain && player.discordUrl && (
+          {parsedRole.isCaptain && player.discordUrl && (
             <a
               href={player.discordUrl.startsWith("http") ? player.discordUrl : `https://discord.com/users/${player.discordUrl}`}
               target="_blank"
