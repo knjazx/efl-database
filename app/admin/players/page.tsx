@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { compressImage } from "@/lib/compressImage";
@@ -31,6 +31,7 @@ interface PlayerItem {
 export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hidePlayersWithTeam, setHidePlayersWithTeam] = useState(false);
 
   // Edit/Add Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +55,6 @@ export default function AdminPlayersPage() {
   const [formError, setFormError] = useState("");
 
   const fetchPlayers = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/players");
       const data = await res.json();
@@ -154,6 +154,9 @@ export default function AdminPlayersPage() {
       const url = editingPlayer ? `/api/players/${editingPlayer.slug}` : "/api/players";
       const method = editingPlayer ? "PUT" : "POST";
 
+      // Optimistically close modal instantly
+      setIsModalOpen(false);
+
       const res = await fetch(url, {
         method,
         body: formData,
@@ -162,13 +165,12 @@ export default function AdminPlayersPage() {
       const data = await res.json();
 
       if (data.success) {
-        setIsModalOpen(false);
         fetchPlayers();
       } else {
-        setFormError(data.error || "Operation failed");
+        alert(data.error || "Operation failed");
       }
     } catch (err) {
-      setFormError("Network request failed");
+      alert("Network request failed");
     } finally {
       setSubmitting(false);
     }
@@ -192,6 +194,13 @@ export default function AdminPlayersPage() {
     }
   };
 
+  const displayedPlayers = players.filter((p) => {
+    if (hidePlayersWithTeam && p.currentTeam !== null) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -206,13 +215,32 @@ export default function AdminPlayersPage() {
             </p>
           </div>
 
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>ADD PLAYER</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Filter Toggle: Hide Players in Team */}
+            <button
+              onClick={() => setHidePlayersWithTeam(!hidePlayersWithTeam)}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 ${
+                hidePlayersWithTeam
+                  ? "bg-amber-950/40 border-amber-500/60 text-amber-300 shadow-md shadow-amber-950/30"
+                  : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white hover:border-white"
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>
+                {hidePlayersWithTeam
+                  ? "Скрыты игроки в командах (Показаны только Free Agents)"
+                  : "Скрыть игроков с командой"}
+              </span>
+            </button>
+
+            <button
+              onClick={openAddModal}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>ADD PLAYER</span>
+            </button>
+          </div>
         </div>
 
         {/* Players Table */}
@@ -222,7 +250,7 @@ export default function AdminPlayersPage() {
               <RefreshCw className="w-6 h-6 animate-spin" />
               <span className="text-xs font-semibold uppercase">Loading players database...</span>
             </div>
-          ) : players.length > 0 ? (
+          ) : displayedPlayers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
@@ -235,7 +263,7 @@ export default function AdminPlayersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1A1A1A]">
-                  {players.map((p) => {
+                  {displayedPlayers.map((p) => {
                     const activeRole = p.currentTeam?.role || p.defaultRole || "";
                     const playerIsCaptain = activeRole.toUpperCase() === "CAPTAIN";
                     const ban = getBanStatus(p);
@@ -369,7 +397,9 @@ export default function AdminPlayersPage() {
             </div>
           ) : (
             <div className="p-12 text-center text-[#858585]">
-              No players registered in the database.
+              {hidePlayersWithTeam
+                ? "Нет игроков без команды (все игроки уже состоят в командах)."
+                : "No players registered in the database."}
             </div>
           )}
         </div>

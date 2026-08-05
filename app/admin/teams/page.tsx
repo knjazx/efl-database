@@ -138,6 +138,9 @@ export default function AdminTeamsPage() {
       const url = editingTeam ? `/api/teams/${editingTeam.slug}` : "/api/teams";
       const method = editingTeam ? "PUT" : "POST";
 
+      // Optimistically close modal instantly
+      setIsModalOpen(false);
+
       const res = await fetch(url, {
         method,
         body: formData,
