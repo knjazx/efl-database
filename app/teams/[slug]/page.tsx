@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle, Shield, UserCheck, ShieldAlert } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
 import { formatRosterRole } from "@/lib/roles";
+import { TeamLogo } from "@/components/TeamLogo";
 
 interface PlayerMember {
   membershipId: string;
@@ -248,11 +249,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Logo Container */}
           <div className="w-28 h-28 relative bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-            <img
-              src={team.logoUrl}
-              alt={`${team.name} Logo`}
-              className="w-full h-full object-cover filter drop-shadow-md"
-            />
+            <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover filter drop-shadow-md" />
           </div>
 
           {/* Team Info */}

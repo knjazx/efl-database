@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { AlertTriangle } from "lucide-react";
+import { TeamLogo } from "@/components/TeamLogo";
 
 interface TeamCardProps {
   name: string;
@@ -45,16 +46,9 @@ export function TeamCard({
           </div>
         )}
 
-        {/* Team Logo Container (Full-bleed edge-to-edge frame) */}
+        {/* Team Logo Container */}
         <div className={`w-28 h-28 my-4 relative overflow-hidden rounded-xl bg-[#050505] border group-hover:border-white transition-all shadow-md ${ban.isBanned ? "border-red-900/40" : "border-[#222222]"}`}>
-          <img
-            src={logoUrl}
-            alt={`${name} Logo`}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              (e.currentTarget as HTMLElement).style.display = "none";
-            }}
-          />
+          <TeamLogo logoUrl={logoUrl} name={name} tag={tag} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
 
         {/* Team Name & Tag */}

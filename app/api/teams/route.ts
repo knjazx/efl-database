@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 2; // Cache on Vercel Edge CDN for 2s, background revalidate for instant loads
 
 function isAuthorized() {
   const cookieStore = cookies();
@@ -37,7 +37,14 @@ export async function GET() {
       createdAt: team.createdAt,
     }));
 
-    return NextResponse.json({ success: true, teams: formattedTeams });
+    return NextResponse.json(
+      { success: true, teams: formattedTeams },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=2, s-maxage=5, stale-while-revalidate=30",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/teams error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch teams" }, { status: 500 });
@@ -66,10 +73,6 @@ export async function POST(req: Request) {
       logoUrl = await saveUploadedFile(logoFile, "logos");
     }
 
-    if (!logoUrl) {
-      logoUrl = `/logos/${tag.toLowerCase()}.svg`;
-    }
-
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
     const newTeam = await prisma.team.create({
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
         tag: tag.toUpperCase(),
         slug,
         tier,
-        logoUrl,
+        logoUrl: logoUrl || "",
         description,
       },
     });

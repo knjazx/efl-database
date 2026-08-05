@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 2; // Cache on Vercel Edge CDN for 2s for instant loads
 
 function isAuthorized() {
   const cookieStore = cookies();
@@ -52,7 +52,14 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ success: true, players: formattedPlayers });
+    return NextResponse.json(
+      { success: true, players: formattedPlayers },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=2, s-maxage=5, stale-while-revalidate=30",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/players error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch players" }, { status: 500 });
