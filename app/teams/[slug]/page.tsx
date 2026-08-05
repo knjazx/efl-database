@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle } from "lucide-react";
+import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle, Shield, UserCheck, ShieldAlert } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
 import { formatRosterRole } from "@/lib/roles";
 
@@ -97,6 +97,123 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
 
   const teamBan = getBanStatus(team);
 
+  // Group roster into 3 distinct categories
+  const corePlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "CORE");
+  const substitutePlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "SUBSTITUTE");
+  const coachPlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "COACH");
+
+  const renderRosterGrid = (players: PlayerMember[]) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+      {players.map((player) => {
+        const parsedRole = formatRosterRole(player.role);
+        const playerBan = getBanStatus(player);
+
+        return (
+          <div
+            key={player.id}
+            className={`bg-[#0A0A0A] border rounded-xl p-5 transition-all flex flex-col justify-between group relative overflow-hidden ${
+              playerBan.isBanned ? "border-red-900/60 bg-red-950/10" : "border-[#222222] hover:border-[#444444]"
+            }`}
+          >
+            {playerBan.isBanned && (
+              <div className="mb-3 bg-red-950/80 border border-red-800 rounded py-1 px-2 text-center text-[10px] font-bold text-red-300 uppercase">
+                ДИСКВАЛИФИЦИРОВАН ({playerBan.remainingText})
+              </div>
+            )}
+
+            <div>
+              {/* Avatar & Roles */}
+              <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 relative bg-[#050505] border border-[#222222] group-hover:border-white rounded-xl mb-4 overflow-hidden flex items-center justify-center transition-colors">
+                  {player.avatarUrl ? (
+                    <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8 text-[#858585]" />
+                  )}
+                </div>
+
+                <h3 className="text-base font-bold text-white group-hover:text-white transition-colors">
+                  {player.nickname}
+                </h3>
+
+                <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+                  {/* Roster Role Badge */}
+                  <span
+                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      parsedRole.baseRole === "CORE"
+                        ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
+                        : parsedRole.baseRole === "SUBSTITUTE"
+                        ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
+                        : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
+                    }`}
+                  >
+                    {parsedRole.label}
+                  </span>
+
+                  {/* Captain Badge */}
+                  {parsedRole.isCaptain && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-[10px] font-bold tracking-widest text-amber-400 uppercase">
+                      <Crown className="w-3 h-3" />
+                      <span>Капитан</span>
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
+
+            {/* Steam & FACEIT & Discord Action Links */}
+            <div className="mt-6 pt-4 border-t border-[#181818] flex flex-wrap gap-2 text-center">
+              {player.steamUrl ? (
+                <a
+                  href={player.steamUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
+                >
+                  <span>Steam</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
+                  Steam —
+                </span>
+              )}
+
+              {player.faceitUrl ? (
+                <a
+                  href={player.faceitUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
+                >
+                  <span>FACEIT</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
+                  FACEIT —
+                </span>
+              )}
+
+              {parsedRole.isCaptain && player.discordUrl && (
+                <a
+                  href={player.discordUrl.startsWith("http") ? player.discordUrl : `https://discord.com/users/${player.discordUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-indigo-950/40 border border-indigo-500/40 hover:border-indigo-400 rounded text-[11px] font-semibold text-indigo-300 hover:text-white transition-colors"
+                  title={`Discord: ${player.discordUrl}`}
+                >
+                  <span>Discord ({player.discordUrl})</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* Back Link */}
@@ -166,142 +283,85 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
         </div>
       </div>
 
-      {/* Roster Section Header */}
-      <div className="mb-8 border-b border-[#222222] pb-4 flex items-center justify-between">
+      {/* Main Roster Container */}
+      <div className="space-y-12 mb-16">
+
+        {/* SECTION 1: ОСНОВНОЙ СОСТАВ (Core Roster) */}
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-white uppercase">
-            ROSTER
-          </h2>
-          <p className="text-xs text-[#858585] mt-1">
-            Active players representing {team.name} in official EFL matches.
-          </p>
+          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-blue-500 inline-block shadow-lg shadow-blue-500/50"></span>
+              <h2 className="text-xl font-black tracking-tight text-white uppercase">
+                ОСНОВНОЙ СОСТАВ ({corePlayers.length})
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-blue-400 bg-blue-950/40 border border-blue-500/30 px-3 py-1 rounded-md uppercase">
+              Starting Roster
+            </span>
+          </div>
+
+          {corePlayers.length > 0 ? (
+            renderRosterGrid(corePlayers)
+          ) : (
+            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
+              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
+                Нет игроков в основном составе
+              </p>
+            </div>
+          )}
         </div>
-        <span className="text-xs font-bold text-[#858585] bg-[#0A0A0A] border border-[#222222] px-3 py-1 rounded-md">
-          {team.activeRoster.length} ACTIVE
-        </span>
+
+        {/* SECTION 2: ЗАМЕНА (Substitutes) */}
+        <div>
+          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-purple-500 inline-block shadow-lg shadow-purple-500/50"></span>
+              <h2 className="text-xl font-black tracking-tight text-white uppercase">
+                ЗАМЕНА ({substitutePlayers.length})
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-purple-400 bg-purple-950/40 border border-purple-500/30 px-3 py-1 rounded-md uppercase">
+              Substitutes
+            </span>
+          </div>
+
+          {substitutePlayers.length > 0 ? (
+            renderRosterGrid(substitutePlayers)
+          ) : (
+            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
+              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
+                Запасные игроки отсутствуют
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 3: ТРЕНЕРСКИЙ ШТАБ (Coaches & Staff) */}
+        <div>
+          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-lg shadow-emerald-500/50"></span>
+              <h2 className="text-xl font-black tracking-tight text-white uppercase">
+                ТРЕНЕРСКИЙ ШТАБ ({coachPlayers.length})
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-md uppercase">
+              Coaches & Staff
+            </span>
+          </div>
+
+          {coachPlayers.length > 0 ? (
+            renderRosterGrid(coachPlayers)
+          ) : (
+            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
+              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
+                Тренеры не назначены
+              </p>
+            </div>
+          )}
+        </div>
+
       </div>
-
-      {/* Active Roster List */}
-      {team.activeRoster.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 mb-16">
-          {team.activeRoster.map((player) => {
-            const parsedRole = formatRosterRole(player.role);
-            const playerBan = getBanStatus(player);
-
-            return (
-              <div
-                key={player.id}
-                className={`bg-[#0A0A0A] border rounded-xl p-5 transition-all flex flex-col justify-between group relative overflow-hidden ${
-                  playerBan.isBanned ? "border-red-900/60 bg-red-950/10" : "border-[#222222] hover:border-[#444444]"
-                }`}
-              >
-                {playerBan.isBanned && (
-                  <div className="mb-3 bg-red-950/80 border border-red-800 rounded py-1 px-2 text-center text-[10px] font-bold text-red-300 uppercase">
-                    ДИСКВАЛИФИЦИРОВАН ({playerBan.remainingText})
-                  </div>
-                )}
-
-                <div>
-                  {/* Avatar & Roles */}
-                  <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 relative bg-[#050505] border border-[#222222] group-hover:border-white rounded-xl mb-4 overflow-hidden flex items-center justify-center transition-colors">
-                      {player.avatarUrl ? (
-                        <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-8 h-8 text-[#858585]" />
-                      )}
-                    </div>
-
-                    <h3 className="text-base font-bold text-white group-hover:text-white transition-colors">
-                      {player.nickname}
-                    </h3>
-
-                    <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
-                      {/* Roster Role Badge */}
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          parsedRole.baseRole === "CORE"
-                            ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
-                            : parsedRole.baseRole === "SUBSTITUTE"
-                            ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
-                            : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
-                        }`}
-                      >
-                        {parsedRole.label}
-                      </span>
-
-                      {/* Captain Badge */}
-                      {parsedRole.isCaptain && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-[10px] font-bold tracking-widest text-amber-400 uppercase">
-                          <Crown className="w-3 h-3" />
-                          <span>Капитан</span>
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-
-                {/* Steam & FACEIT & Discord Action Links */}
-                <div className="mt-6 pt-4 border-t border-[#181818] flex flex-wrap gap-2 text-center">
-                  {player.steamUrl ? (
-                    <a
-                      href={player.steamUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
-                    >
-                      <span>Steam</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
-                      Steam —
-                    </span>
-                  )}
-
-                  {player.faceitUrl ? (
-                    <a
-                      href={player.faceitUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
-                    >
-                      <span>FACEIT</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
-                      FACEIT —
-                    </span>
-                  )}
-
-                  {parsedRole.isCaptain && player.discordUrl && (
-                    <a
-                      href={player.discordUrl.startsWith("http") ? player.discordUrl : `https://discord.com/users/${player.discordUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-indigo-950/40 border border-indigo-500/40 hover:border-indigo-400 rounded text-[11px] font-semibold text-indigo-300 hover:text-white transition-colors"
-                      title={`Discord: ${player.discordUrl}`}
-                    >
-                      <span>Discord ({player.discordUrl})</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="p-12 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center mb-16">
-          <p className="text-xs font-bold text-white uppercase tracking-wider">
-            NO PLAYERS REGISTERED
-          </p>
-          <p className="text-xs text-[#858585] mt-1">
-            This team currently has no active players listed in the roster.
-          </p>
-        </div>
-      )}
 
       {/* Former Players Section */}
       {team.formerPlayers && team.formerPlayers.length > 0 && (

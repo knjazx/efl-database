@@ -279,6 +279,121 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
     );
   }
 
+  // Categorize roster members
+  const coreMembers = team.activeRoster.filter((m) => formatRosterRole(m.role).baseRole === "CORE");
+  const subMembers = team.activeRoster.filter((m) => formatRosterRole(m.role).baseRole === "SUBSTITUTE");
+  const coachMembers = team.activeRoster.filter((m) => formatRosterRole(m.role).baseRole === "COACH");
+
+  const renderAdminSectionTable = (title: string, colorDotClass: string, members: RosterMember[]) => (
+    <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+      <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className={`w-2.5 h-2.5 rounded-full ${colorDotClass}`}></span>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+            {title} ({members.length})
+          </h3>
+        </div>
+      </div>
+
+      {members.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-4">PLAYER</th>
+                <th className="px-6 py-4">ROSTER ROLE</th>
+                <th className="px-6 py-4">JOINED</th>
+                <th className="px-6 py-4 text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1A1A1A]">
+              {members.map((m) => {
+                const parsedRole = formatRosterRole(m.role);
+
+                return (
+                  <tr key={m.membershipId} className="hover:bg-[#0E0E0E] transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center">
+                          {m.avatarUrl ? (
+                            <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="w-4 h-4 text-[#858585]" />
+                          )}
+                        </div>
+                        <Link href={`/players/${m.slug}`} className="font-bold text-white hover:underline text-sm">
+                          {m.nickname}
+                        </Link>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {/* Base Role Badge */}
+                        <span
+                          className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            parsedRole.baseRole === "CORE"
+                              ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
+                              : parsedRole.baseRole === "SUBSTITUTE"
+                              ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
+                              : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
+                          }`}
+                        >
+                          {parsedRole.label}
+                        </span>
+
+                        {/* Captain Badge */}
+                        {parsedRole.isCaptain && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[10px]">
+                            <Crown className="w-3 h-3" />
+                            <span>Капитан</span>
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 font-mono text-[#858585]">
+                      {new Date(m.joinedAt).toLocaleDateString()}
+                    </td>
+
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingMembership(m);
+                            const parsed = formatRosterRole(m.role);
+                            setBaseRole(parsed.baseRole as any);
+                            setIsCaptain(parsed.isCaptain);
+                            setIsRoleModalOpen(true);
+                          }}
+                          className="px-2.5 py-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white text-[11px] font-semibold transition-colors flex items-center gap-1"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span>Role / Status</span>
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromRoster(m.membershipId, m.nickname)}
+                          className="px-2.5 py-1.5 rounded bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 text-red-400 text-[11px] font-semibold transition-colors flex items-center gap-1"
+                        >
+                          <UserMinus className="w-3 h-3" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="p-8 text-center text-xs text-[#858585]">
+          No players in this section.
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -321,110 +436,11 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
           </button>
         </div>
 
-        {/* Active Roster Table */}
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              ACTIVE ROSTER ({team.activeRoster.length})
-            </h3>
-          </div>
-
-          {team.activeRoster.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4">PLAYER</th>
-                    <th className="px-6 py-4">ROSTER ROLE</th>
-                    <th className="px-6 py-4">JOINED</th>
-                    <th className="px-6 py-4 text-right">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1A1A1A]">
-                  {team.activeRoster.map((m) => {
-                    const parsedRole = formatRosterRole(m.role);
-
-                    return (
-                      <tr key={m.membershipId} className="hover:bg-[#0E0E0E] transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center">
-                              {m.avatarUrl ? (
-                                <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-4 h-4 text-[#858585]" />
-                              )}
-                            </div>
-                            <Link href={`/players/${m.slug}`} className="font-bold text-white hover:underline text-sm">
-                              {m.nickname}
-                            </Link>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {/* Base Role Badge */}
-                            <span
-                              className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                parsedRole.baseRole === "CORE"
-                                  ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
-                                  : parsedRole.baseRole === "SUBSTITUTE"
-                                  ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
-                                  : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
-                              }`}
-                            >
-                              {parsedRole.label}
-                            </span>
-
-                            {/* Captain Badge */}
-                            {parsedRole.isCaptain && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[10px]">
-                                <Crown className="w-3 h-3" />
-                                <span>Капитан</span>
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4 font-mono text-[#858585]">
-                          {new Date(m.joinedAt).toLocaleDateString()}
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => {
-                                setEditingMembership(m);
-                                const parsed = formatRosterRole(m.role);
-                                setBaseRole(parsed.baseRole as any);
-                                setIsCaptain(parsed.isCaptain);
-                                setIsRoleModalOpen(true);
-                              }}
-                              className="px-2.5 py-1.5 rounded bg-[#141414] border border-[#222222] hover:border-white text-white text-[11px] font-semibold transition-colors flex items-center gap-1"
-                            >
-                              <Edit className="w-3 h-3" />
-                              <span>Role / Status</span>
-                            </button>
-                            <button
-                              onClick={() => handleRemoveFromRoster(m.membershipId, m.nickname)}
-                              className="px-2.5 py-1.5 rounded bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 text-red-400 text-[11px] font-semibold transition-colors flex items-center gap-1"
-                            >
-                              <UserMinus className="w-3 h-3" />
-                              <span>Remove</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-12 text-center text-[#858585]">
-              No active players in this roster.
-            </div>
-          )}
+        {/* 3 Categorized Roster Sections */}
+        <div className="space-y-6">
+          {renderAdminSectionTable("ОСНОВНОЙ СОСТАВ (CORE)", "bg-blue-500", coreMembers)}
+          {renderAdminSectionTable("ЗАМЕНА (SUBSTITUTE)", "bg-purple-500", subMembers)}
+          {renderAdminSectionTable("ТРЕНЕРСКИЙ ШТАБ (COACH)", "bg-emerald-500", coachMembers)}
         </div>
 
         {/* Former Players List */}
