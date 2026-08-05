@@ -174,10 +174,6 @@ export default function AdminDashboardPage() {
                 </>
               )}
             </button>
-
-            <p className="text-[10px] text-[#555555] text-center mt-4">
-              Password: <code className="text-[#858585]">eflknjazx</code>
-            </p>
           </form>
         </div>
       </div>
