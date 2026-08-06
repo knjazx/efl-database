@@ -32,8 +32,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Top Admin Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#222222]">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-[#141414] border border-[#222222]">
-            <Shield className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-lg bg-[#141414] border border-[#222222] overflow-hidden flex-shrink-0">
+            <img src="/efl-logo.png" alt="EFL Admin Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white tracking-wider uppercase">

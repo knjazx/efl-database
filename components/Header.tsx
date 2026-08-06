@@ -31,8 +31,8 @@ export function Header() {
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
         {/* Left: EFL Branding */}
         <Link href="/teams" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-[#0A0A0A] border border-[#222222] group-hover:border-[#444444] transition-colors flex items-center justify-center text-white font-black text-sm tracking-wider">
-            EFL
+          <div className="w-9 h-9 rounded-lg bg-[#0A0A0A] border border-[#222222] group-hover:border-[#444444] transition-colors flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src="/efl-logo.png" alt="EFL Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="text-white font-bold tracking-wider text-sm leading-tight group-hover:text-white transition-colors">

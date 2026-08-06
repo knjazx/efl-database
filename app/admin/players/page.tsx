@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter, Search } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { compressImage } from "@/lib/compressImage";
@@ -32,6 +32,7 @@ export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hidePlayersWithTeam, setHidePlayersWithTeam] = useState(false);
+  const [playerSearchQuery, setPlayerSearchQuery] = useState("");
 
   // Edit/Add Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -198,6 +199,14 @@ export default function AdminPlayersPage() {
     if (hidePlayersWithTeam && p.currentTeam !== null) {
       return false;
     }
+    if (playerSearchQuery.trim() !== "") {
+      const q = playerSearchQuery.toLowerCase();
+      const matchNickname = p.nickname.toLowerCase().includes(q);
+      const matchTeam = p.currentTeam
+        ? p.currentTeam.name.toLowerCase().includes(q) || p.currentTeam.tag.toLowerCase().includes(q)
+        : false;
+      return matchNickname || matchTeam;
+    }
     return true;
   });
 
@@ -216,6 +225,26 @@ export default function AdminPlayersPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Real-time Search by Nickname */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-[#858585] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Поиск по нику..."
+                value={playerSearchQuery}
+                onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                className="pl-9 pr-8 py-2 bg-[#050505] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors w-48 sm:w-60"
+              />
+              {playerSearchQuery && (
+                <button
+                  onClick={() => setPlayerSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858585] hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
             {/* Filter Toggle: Hide Players in Team */}
             <button
               onClick={() => setHidePlayersWithTeam(!hidePlayersWithTeam)}
@@ -228,7 +257,7 @@ export default function AdminPlayersPage() {
               <Filter className="w-3.5 h-3.5" />
               <span>
                 {hidePlayersWithTeam
-                  ? "Скрыты игроки в командах (Показаны только Free Agents)"
+                  ? "Скрыты игроки в командах"
                   : "Скрыть игроков с командой"}
               </span>
             </button>
