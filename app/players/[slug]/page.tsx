@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft, User, Shield, RefreshCw, Crown, AlertTriangle } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
 import { formatRosterRole } from "@/lib/roles";
@@ -42,12 +43,20 @@ interface PlayerProfile {
 }
 
 export default function PlayerProfilePage({ params }: { params: { slug: string } }) {
+  const routerParams = useParams();
+  const slug = (routerParams?.slug as string) || params?.slug || "";
+
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/players/${params.slug}`)
+    if (!slug || slug === "undefined") return;
+
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/players/${slug}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -61,7 +70,7 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
         setError("Failed to load player details");
       })
       .finally(() => setLoading(false));
-  }, [params.slug]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -125,12 +134,12 @@ export default function PlayerProfilePage({ params }: { params: { slug: string }
       {/* Main Profile Header Card */}
       <div className={`bg-[#0A0A0A] border rounded-2xl p-8 mb-8 ${playerBan.isBanned ? "border-red-900/60" : "border-[#222222]"}`}>
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
-          {/* Avatar */}
-          <div className="w-32 h-32 relative bg-[#050505] border border-[#222222] rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0">
+          {/* Avatar Container */}
+          <div className="w-28 h-28 rounded-2xl bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
             {player.avatarUrl ? (
               <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
             ) : (
-              <User className="w-12 h-12 text-[#858585]" />
+              <span className="text-3xl font-black text-white">{player.nickname.substring(0, 2).toUpperCase()}</span>
             )}
           </div>
 

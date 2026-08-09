@@ -4,7 +4,8 @@ import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 import { generateUniquePlayerSlug } from "@/lib/slug";
 
-export const revalidate = 2; // Cache on Vercel Edge CDN for 2s for instant loads
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function isAuthorized() {
   const cookieStore = cookies();
@@ -26,38 +27,46 @@ export async function GET() {
       orderBy: { nickname: "asc" },
     });
 
-    const formattedPlayers = players.map((player) => {
-      const activeMembership = player.memberships.find((m) => m.status === "ACTIVE");
-      return {
-        id: player.id,
-        nickname: player.nickname,
-        slug: player.slug,
-        avatarUrl: player.avatarUrl,
-        defaultRole: player.defaultRole || "PLAYER",
-        steamUrl: player.steamUrl,
-        faceitUrl: player.faceitUrl,
-        discordUrl: player.discordUrl,
-        isDisqualified: player.isDisqualified,
-        disqualifiedUntil: player.disqualifiedUntil,
-        disqualifyReason: player.disqualifyReason,
-        currentTeam: activeMembership
-          ? {
-              id: activeMembership.team.id,
-              name: activeMembership.team.name,
-              tag: activeMembership.team.tag,
-              slug: activeMembership.team.slug,
-              logoUrl: activeMembership.team.logoUrl,
-              role: activeMembership.role,
-            }
-          : null,
-      };
-    });
+    const seenPlayerNicks = new Set<string>();
+    const formattedPlayers = players
+      .filter((player) => {
+        const key = player.nickname.toLowerCase().trim();
+        if (seenPlayerNicks.has(key)) return false;
+        seenPlayerNicks.add(key);
+        return true;
+      })
+      .map((player) => {
+        const activeMembership = player.memberships.find((m) => m.status === "ACTIVE");
+        return {
+          id: player.id,
+          nickname: player.nickname,
+          slug: player.slug,
+          avatarUrl: player.avatarUrl,
+          defaultRole: player.defaultRole || "PLAYER",
+          steamUrl: player.steamUrl,
+          faceitUrl: player.faceitUrl,
+          discordUrl: player.discordUrl,
+          isDisqualified: player.isDisqualified,
+          disqualifiedUntil: player.disqualifiedUntil,
+          disqualifyReason: player.disqualifyReason,
+          currentTeam: activeMembership
+            ? {
+                id: activeMembership.team.id,
+                name: activeMembership.team.name,
+                tag: activeMembership.team.tag,
+                slug: activeMembership.team.slug,
+                logoUrl: activeMembership.team.logoUrl,
+                role: activeMembership.role,
+              }
+            : null,
+        };
+      });
 
     return NextResponse.json(
       { success: true, players: formattedPlayers },
       {
         headers: {
-          "Cache-Control": "public, max-age=2, s-maxage=5, stale-while-revalidate=30",
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         },
       }
     );
@@ -79,19 +88,19 @@ export async function POST(req: Request) {
     const steamUrl = (formData.get("steamUrl") as string) || "";
     const faceitUrl = (formData.get("faceitUrl") as string) || "";
     const discordUrl = ((formData.get("discordUrl") as string) || "").trim();
-    const avatarFile = formData.get("avatar") as File | null;
-    let avatarUrl = (formData.get("avatarUrl") as string) || "";
     const teamId = (formData.get("teamId") as string) || "";
+    const avatarFile = formData.get("avatar") as File | null;
 
     if (!nickname) {
       return NextResponse.json({ success: false, error: "Nickname is required" }, { status: 400 });
     }
 
+    const slug = await generateUniquePlayerSlug(nickname);
+
+    let avatarUrl: string | undefined = undefined;
     if (avatarFile && avatarFile.size > 0) {
       avatarUrl = await saveUploadedFile(avatarFile, "avatars");
     }
-
-    const slug = await generateUniquePlayerSlug(nickname);
 
     const newPlayer = await prisma.player.create({
       data: {

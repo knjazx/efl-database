@@ -65,13 +65,7 @@ async function main() {
     fs.writeFileSync(path.join(logosDir, `${tag.toLowerCase()}.svg`), svg);
   }
 
-  // Clear existing
-  await prisma.activityLog.deleteMany({});
-  await prisma.teamMembership.deleteMany({});
-  await prisma.player.deleteMany({});
-  await prisma.team.deleteMany({});
-
-  // 1. Create Teams
+  // 1. Create/Upsert Teams
   const teamsData = [
     {
       name: "NPC",
@@ -79,6 +73,7 @@ async function main() {
       slug: "npc",
       tier: "T1",
       logoUrl: "/logos/npc.svg",
+      frameStyle: "GOLD",
       description: "Premier Counter-Strike 2 squad competing at the top tier of Electronic Future League.",
     },
     {
@@ -87,6 +82,7 @@ async function main() {
       slug: "apex-predators",
       tier: "T1",
       logoUrl: "/logos/apex.svg",
+      frameStyle: "SILVER",
       description: "Dominant European tactical lineup known for hyper-aggressive opening duels.",
     },
     {
@@ -95,6 +91,7 @@ async function main() {
       slug: "fatum-esports",
       tier: "T2",
       logoUrl: "/logos/fatum.svg",
+      frameStyle: "COPPER",
       description: "Rising force in the EFL T2 circuit featuring top CIS talents.",
     },
     {
@@ -102,7 +99,8 @@ async function main() {
       tag: "WOLVES",
       slug: "cyber-wolves",
       tier: "T1",
-      logoUrl: "/logos/cyber-wolves",
+      logoUrl: "/logos/wolves.svg",
+      frameStyle: "NEON",
       description: "Strategic powerhouse with disciplined tactical play execution.",
     },
     {
@@ -111,6 +109,7 @@ async function main() {
       slug: "quantum-gaming",
       tier: "T2",
       logoUrl: "/logos/qtm.svg",
+      frameStyle: "CRIMSON",
       description: "Fast-paced firepower lineup pushing the bounds of modern CS2 tactics.",
     },
     {
@@ -119,6 +118,7 @@ async function main() {
       slug: "astral-void",
       tier: "T3",
       logoUrl: "/logos/void.svg",
+      frameStyle: "NONE",
       description: "Promising academy division honing the next generation of esports pros.",
     },
   ];
@@ -126,8 +126,10 @@ async function main() {
   const createdTeams: Record<string, any> = {};
 
   for (const t of teamsData) {
-    const team = await prisma.team.create({
-      data: t,
+    const team = await prisma.team.upsert({
+      where: { slug: t.slug },
+      update: { frameStyle: t.frameStyle },
+      create: t,
     });
     createdTeams[t.tag] = team;
   }
@@ -182,15 +184,14 @@ async function main() {
   ];
 
   for (const p of playersData) {
-    const avatarSvg = generateAvatarSvg(p.nickname);
-    const avatarPath = `/avatars/${p.slug}.svg`;
-    fs.writeFileSync(path.join(avatarsDir, `${p.slug}.svg`), avatarSvg);
-
-    const player = await prisma.player.create({
-      data: {
+    const player = await prisma.player.upsert({
+      where: { slug: p.slug },
+      update: {
+        defaultRole: p.role,
+      },
+      create: {
         nickname: p.nickname,
         slug: p.slug,
-        avatarUrl: avatarPath,
         defaultRole: p.role,
         steamUrl: p.steam,
         faceitUrl: p.faceit,
@@ -199,15 +200,21 @@ async function main() {
 
     const targetTeam = createdTeams[p.teamTag];
     if (targetTeam) {
-      await prisma.teamMembership.create({
-        data: {
-          teamId: targetTeam.id,
-          playerId: player.id,
-          role: p.role,
-          status: p.former ? "FORMER" : "ACTIVE",
-          leftAt: p.leftAt || null,
-        },
+      const existingMem = await prisma.teamMembership.findFirst({
+        where: { teamId: targetTeam.id, playerId: player.id },
       });
+
+      if (!existingMem) {
+        await prisma.teamMembership.create({
+          data: {
+            teamId: targetTeam.id,
+            playerId: player.id,
+            role: p.role,
+            status: p.former ? "FORMER" : "ACTIVE",
+            leftAt: p.leftAt || null,
+          },
+        });
+      }
     }
   }
 

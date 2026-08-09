@@ -4,7 +4,8 @@ import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 import { generateUniqueTeamSlug } from "@/lib/slug";
 
-export const revalidate = 2; // Cache on Vercel Edge CDN for 2s, background revalidate for instant loads
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function isAuthorized() {
   const cookieStore = cookies();
@@ -23,26 +24,39 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    const formattedTeams = teams.map((team) => ({
-      id: team.id,
-      name: team.name,
-      tag: team.tag,
-      slug: team.slug,
-      tier: team.tier,
-      logoUrl: team.logoUrl,
-      description: team.description,
-      isDisqualified: team.isDisqualified,
-      disqualifiedUntil: team.disqualifiedUntil,
-      disqualifyReason: team.disqualifyReason,
-      playerCount: team.memberships.length,
-      createdAt: team.createdAt,
-    }));
+    const seenTeamNames = new Set<string>();
+    const formattedTeams = teams
+      .filter((team) => {
+        const key = team.name.toLowerCase().replace(/[^a-z0-9]/g, "") || team.tag.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (seenTeamNames.has(key)) return false;
+        seenTeamNames.add(key);
+        return true;
+      })
+      .map((team) => ({
+        id: team.id,
+        name: team.name,
+        tag: team.tag,
+        slug: team.slug,
+        tier: team.tier || "TIER 1",
+        logoUrl: team.logoUrl,
+        description: team.description,
+        frameStyle: team.frameStyle || "NONE",
+        points: team.points || 0,
+        wins: team.wins || 0,
+        losses: team.losses || 0,
+        matchesPlayed: team.matchesPlayed || 0,
+        isDisqualified: team.isDisqualified,
+        disqualifiedUntil: team.disqualifiedUntil,
+        disqualifyReason: team.disqualifyReason,
+        playerCount: team.memberships.length,
+        createdAt: team.createdAt,
+      }));
 
     return NextResponse.json(
       { success: true, teams: formattedTeams },
       {
         headers: {
-          "Cache-Control": "public, max-age=2, s-maxage=5, stale-while-revalidate=30",
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         },
       }
     );
@@ -63,6 +77,7 @@ export async function POST(req: Request) {
     const tag = formData.get("tag") as string;
     const tier = (formData.get("tier") as string) || "T1";
     const description = formData.get("description") as string;
+    const frameStyle = (formData.get("frameStyle") as string) || "NONE";
     const logoFile = formData.get("logo") as File | null;
     let logoUrl = (formData.get("logoUrl") as string) || "";
 
@@ -84,6 +99,7 @@ export async function POST(req: Request) {
         tier,
         logoUrl: logoUrl || "",
         description,
+        frameStyle,
       },
     });
 

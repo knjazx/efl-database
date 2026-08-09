@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Zap, Trophy } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { compressImage } from "@/lib/compressImage";
@@ -12,8 +12,10 @@ interface TeamItem {
   name: string;
   tag: string;
   slug: string;
+  tier?: string;
   logoUrl: string;
   description: string;
+  frameStyle?: string;
   playerCount: number;
   isDisqualified?: boolean;
   disqualifiedUntil?: Date | string | null;
@@ -23,6 +25,12 @@ interface TeamItem {
 export default function AdminTeamsPage() {
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Bulk Import Modal State
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkRawText, setBulkRawText] = useState("");
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkError, setBulkError] = useState("");
 
   // Edit/Add Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,10 +43,20 @@ export default function AdminTeamsPage() {
   const [banReason, setBanReason] = useState("");
   const [banSubmitting, setBanSubmitting] = useState(false);
 
+  // Rankings & Stats Modal State
+  const [isRankingsModalOpen, setIsRankingsModalOpen] = useState(false);
+  const [rankingTeam, setRankingTeam] = useState<any | null>(null);
+  const [rankingTier, setRankingTier] = useState("TIER 1");
+  const [rankingPoints, setRankingPoints] = useState(0);
+  const [rankingWins, setRankingWins] = useState(0);
+  const [rankingLosses, setRankingLosses] = useState(0);
+  const [rankingSubmitting, setRankingSubmitting] = useState(false);
+
   // Form Inputs
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
   const [description, setDescription] = useState("");
+  const [frameStyle, setFrameStyle] = useState("NONE");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -62,11 +80,38 @@ export default function AdminTeamsPage() {
     fetchTeams();
   }, []);
 
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBulkError("");
+    setBulkSubmitting(true);
+
+    try {
+      const res = await fetch("/api/teams/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText: bulkRawText }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsBulkModalOpen(false);
+        setBulkRawText("");
+        fetchTeams();
+      } else {
+        setBulkError(data.error || "Bulk import failed");
+      }
+    } catch (err) {
+      setBulkError("Network request failed");
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
+
   const openAddModal = () => {
     setEditingTeam(null);
     setName("");
     setTag("");
     setDescription("");
+    setFrameStyle("NONE");
     setLogoFile(null);
     setFormError("");
     setIsModalOpen(true);
@@ -77,6 +122,7 @@ export default function AdminTeamsPage() {
     setName(team.name);
     setTag(team.tag);
     setDescription(team.description || "");
+    setFrameStyle(team.frameStyle || "NONE");
     setLogoFile(null);
     setFormError("");
     setIsModalOpen(true);
@@ -130,6 +176,7 @@ export default function AdminTeamsPage() {
       formData.append("tag", tag);
       formData.append("tier", "T1");
       formData.append("description", description);
+      formData.append("frameStyle", frameStyle);
 
       if (logoFile) {
         formData.append("logo", logoFile);
@@ -193,13 +240,26 @@ export default function AdminTeamsPage() {
             </p>
           </div>
 
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>ADD TEAM</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setBulkError("");
+                setIsBulkModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#141414] border border-[#333333] hover:border-white text-white font-extrabold text-xs tracking-wider uppercase rounded-xl transition-colors"
+            >
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <span>МАССОВЫЙ ИМПОРТ</span>
+            </button>
+
+            <button
+              onClick={openAddModal}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white text-black font-extrabold text-xs tracking-wider uppercase rounded-xl hover:bg-neutral-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>ADD TEAM</span>
+            </button>
+          </div>
         </div>
 
         {/* Teams Table */}
@@ -216,6 +276,7 @@ export default function AdminTeamsPage() {
                   <tr>
                     <th className="px-6 py-4">TEAM</th>
                     <th className="px-6 py-4">TAG</th>
+                    <th className="px-6 py-4">TIER</th>
                     <th className="px-6 py-4">STATUS</th>
                     <th className="px-6 py-4">PLAYERS</th>
                     <th className="px-6 py-4 text-right">ACTIONS</th>
@@ -224,6 +285,7 @@ export default function AdminTeamsPage() {
                 <tbody className="divide-y divide-[#1A1A1A]">
                   {teams.map((t) => {
                     const ban = getBanStatus(t);
+                    const normalizedTier = (t.tier || "TIER 1").toUpperCase();
 
                     return (
                       <tr key={t.id} className="hover:bg-[#0E0E0E] transition-colors">
@@ -244,6 +306,21 @@ export default function AdminTeamsPage() {
                         {/* TAG */}
                         <td className="px-6 py-4 font-mono font-bold text-[#858585]">
                           {t.tag}
+                        </td>
+
+                        {/* TIER */}
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-0.5 rounded border text-[10px] font-extrabold uppercase ${
+                              normalizedTier.includes("1")
+                                ? "bg-amber-950/40 border-amber-500/50 text-amber-300"
+                                : normalizedTier.includes("2")
+                                ? "bg-purple-950/40 border-purple-500/50 text-purple-300"
+                                : "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
+                            }`}
+                          >
+                            {normalizedTier.includes("1") ? "TIER 1" : normalizedTier.includes("2") ? "TIER 2" : "TIER 3"}
+                          </span>
                         </td>
 
                         {/* STATUS */}
@@ -275,6 +352,22 @@ export default function AdminTeamsPage() {
                         {/* ACTIONS */}
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setRankingTeam(t);
+                                setRankingTier(t.tier || "TIER 1");
+                                setRankingPoints((t as any).points || 0);
+                                setRankingWins((t as any).wins || 0);
+                                setRankingLosses((t as any).losses || 0);
+                                setIsRankingsModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded border border-[#333333] bg-[#181818] hover:bg-[#252525] text-amber-300 font-bold text-[11px] transition-colors flex items-center gap-1"
+                              title="Редактировать очками и Тир"
+                            >
+                              <Trophy className="w-3 h-3 text-amber-400" />
+                              <span>Рейтинг</span>
+                            </button>
+
                             <button
                               onClick={() => openBanModal(t)}
                               className={`px-2.5 py-1.5 rounded border text-[11px] font-bold transition-colors flex items-center gap-1 ${
@@ -389,6 +482,25 @@ export default function AdminTeamsPage() {
                       {logoFile ? logoFile.name : editingTeam ? "Keep current logo" : "No file chosen"}
                     </span>
                   </div>
+                </div>
+
+                {/* Frame Style Selection */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                    Frame Style (Рамка команды)
+                  </label>
+                  <select
+                    value={frameStyle}
+                    onChange={(e) => setFrameStyle(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                  >
+                    <option value="NONE">Стандартная рамка (Обычный темный border)</option>
+                    <option value="GOLD">🥇 Золотая рамка (Glowing Gold Frame)</option>
+                    <option value="SILVER">🥈 Серебряная рамка (Glowing Silver Frame)</option>
+                    <option value="COPPER">🥉 Медная рамка (Glowing Copper Frame)</option>
+                    <option value="NEON">⚡ Неоновая рамка (Cyan Neon Frame)</option>
+                    <option value="CRIMSON">🔴 Багровая рамка (Crimson Glow Frame)</option>
+                  </select>
                 </div>
 
                 <div>
@@ -530,6 +642,191 @@ export default function AdminTeamsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        {/* Modal: Bulk Import Teams */}
+        {isBulkModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setIsBulkModalOpen(false)}
+                className="absolute top-4 right-4 text-[#858585] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 border-b border-[#222222] pb-3 mb-4">
+                <Zap className="w-5 h-5 text-yellow-400" />
+                <h3 className="text-base font-black text-white uppercase tracking-wider">
+                  МАССОВЫЙ ИМПОРТ КОМАНД (БЫСТРАЯ ВСТАВКА)
+                </h3>
+              </div>
+
+              <form onSubmit={handleBulkSubmit} className="space-y-4">
+                <p className="text-xs text-[#858585]">
+                  Вставьте список команд (по одной на строчку). Можно указывать: <br />
+                  <code className="text-white">Название команды | TAG | T1 | GOLD</code>
+                </p>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                    Список команд (по строке на команду)
+                  </label>
+                  <textarea
+                    rows={10}
+                    required
+                    placeholder="Например:&#10;NaVi | NAVI | T1 | GOLD&#10;Cloud9 | C9 | T1 | SILVER&#10;Virtus.pro | VP | T1 | COPPER&#10;Team Spirit | TS | T1 | NEON&#10;FaZe Clan | FAZE | T1 | CRIMSON"
+                    value={bulkRawText}
+                    onChange={(e) => setBulkRawText(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-xs font-mono text-white focus:outline-none focus:border-white resize-none"
+                  />
+                </div>
+
+                {bulkError && (
+                  <p className="text-xs font-semibold text-red-400 bg-red-950/40 p-2 rounded text-center">
+                    {bulkError}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#222222]">
+                  <button
+                    type="button"
+                    onClick={() => setIsBulkModalOpen(false)}
+                    className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-lg text-xs font-semibold text-[#858585] hover:text-white transition-colors"
+                  >
+                    ОТМЕНА
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={bulkSubmitting}
+                    className="px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-black rounded-lg text-xs font-extrabold tracking-wider uppercase transition-colors flex items-center gap-2"
+                  >
+                    {bulkSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                    <span>ИМПОРТИРОВАТЬ ВСЕ</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT RANKINGS & STATS MODAL */}
+        {isRankingsModalOpen && rankingTeam && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
+              <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
+                <div>
+                  <h2 className="text-lg font-black text-white uppercase tracking-tight">Редактирование рейтинга</h2>
+                  <p className="text-xs text-amber-400 font-bold uppercase">{rankingTeam.name}</p>
+                </div>
+                <button onClick={() => setIsRankingsModalOpen(false)} className="text-[#858585] hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setRankingSubmitting(true);
+                  try {
+                    const res = await fetch("/api/admin/rankings", {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        teamId: rankingTeam.id,
+                        tier: rankingTier,
+                        points: rankingPoints,
+                        wins: rankingWins,
+                        losses: rankingLosses,
+                        matchesPlayed: rankingWins + rankingLosses,
+                      }),
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                      setIsRankingsModalOpen(false);
+                      setRankingTeam(null);
+                      fetchTeams();
+                    } else {
+                      alert(data.error || "Ошибка сохранения");
+                    }
+                  } catch (err) {
+                    alert("Ошибка подключения к серверу");
+                  } finally {
+                    setRankingSubmitting(false);
+                  }
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div>
+                  <label className="block text-[#858585] font-bold uppercase mb-1.5">Дивизион (Tier)</label>
+                  <select
+                    value={rankingTier}
+                    onChange={(e) => setRankingTier(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white focus:outline-none focus:border-white"
+                  >
+                    <option value="TIER 1">TIER 1 (Высший дивизион)</option>
+                    <option value="TIER 2">TIER 2 (Претенденты)</option>
+                    <option value="TIER 3">TIER 3 (Контендеры)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[#858585] font-bold uppercase mb-1.5">Очки рейтинга (PTS)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={rankingPoints}
+                    onChange={(e) => setRankingPoints(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white font-mono font-bold focus:outline-none focus:border-white"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#858585] font-bold uppercase mb-1.5">Победы (W)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={rankingWins}
+                      onChange={(e) => setRankingWins(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white font-mono font-bold focus:outline-none focus:border-white"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[#858585] font-bold uppercase mb-1.5">Поражения (L)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={rankingLosses}
+                      onChange={(e) => setRankingLosses(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white font-mono font-bold focus:outline-none focus:border-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#1F1F1F]">
+                  <button
+                    type="button"
+                    onClick={() => setIsRankingsModalOpen(false)}
+                    className="px-4 py-2 bg-[#141414] border border-[#222222] rounded-xl text-[#858585] hover:text-white font-bold uppercase"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={rankingSubmitting}
+                    className="px-5 py-2 bg-amber-400 text-black font-extrabold uppercase rounded-xl hover:bg-amber-300 transition-colors shadow-lg"
+                  >
+                    {rankingSubmitting ? "Сохранение..." : "Сохранить"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

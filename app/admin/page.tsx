@@ -223,19 +223,19 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl p-6 flex items-center justify-between">
+          <Link href="/admin/matches" className="bg-[#0A0A0A] border border-[#222222] hover:border-amber-400 rounded-xl p-6 flex items-center justify-between transition-colors group">
             <div>
-              <span className="text-[10px] font-bold text-[#858585] uppercase tracking-widest block mb-1">
-                ACTIVE ROSTERS
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                МАТЧИ И РАСПИСАНИЕ
               </span>
-              <span className="text-4xl font-black text-white font-mono">
-                {loadingStats ? "-" : stats.activeRostersCount}
+              <span className="text-sm font-extrabold text-white uppercase group-hover:text-amber-400 transition-colors">
+                Управление матчами &rarr;
               </span>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#141414] border border-[#222222] flex items-center justify-center text-white">
+            <div className="w-12 h-12 rounded-xl bg-amber-950/40 border border-amber-500/40 flex items-center justify-center text-amber-400">
               <Trophy className="w-6 h-6" />
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Recent Changes Log */}

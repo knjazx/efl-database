@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, User, Upload, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter, Search } from "lucide-react";
+import { Plus, Edit, Trash2, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter, Search } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
-import { compressImage } from "@/lib/compressImage";
 
 interface PlayerItem {
   id: string;
@@ -51,7 +50,6 @@ export default function AdminPlayersPage() {
   const [steamUrl, setSteamUrl] = useState("");
   const [faceitUrl, setFaceitUrl] = useState("");
   const [discordUrl, setDiscordUrl] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -80,7 +78,6 @@ export default function AdminPlayersPage() {
     setSteamUrl("https://steamcommunity.com");
     setFaceitUrl("https://www.faceit.com");
     setDiscordUrl("");
-    setAvatarFile(null);
     setFormError("");
     setIsModalOpen(true);
   };
@@ -93,7 +90,6 @@ export default function AdminPlayersPage() {
     setSteamUrl(player.steamUrl || "");
     setFaceitUrl(player.faceitUrl || "");
     setDiscordUrl(player.discordUrl || "");
-    setAvatarFile(null);
     setFormError("");
     setIsModalOpen(true);
   };
@@ -147,10 +143,6 @@ export default function AdminPlayersPage() {
       formData.append("steamUrl", steamUrl);
       formData.append("faceitUrl", faceitUrl);
       formData.append("discordUrl", isCaptain ? discordUrl : "");
-
-      if (avatarFile) {
-        formData.append("avatar", avatarFile);
-      }
 
       const url = editingPlayer ? `/api/players/${editingPlayer.slug}` : "/api/players";
       const method = editingPlayer ? "PUT" : "POST";
@@ -220,7 +212,7 @@ export default function AdminPlayersPage() {
               PLAYER MANAGEMENT
             </h2>
             <p className="text-xs text-[#858585] mt-1">
-              Create players, manage avatars, Captain status, Steam & FACEIT URLs, and disqualifications.
+              Create players, manage Captain status, Steam & FACEIT URLs, and disqualifications.
             </p>
           </div>
 
@@ -306,7 +298,7 @@ export default function AdminPlayersPage() {
                               {p.avatarUrl ? (
                                 <img src={p.avatarUrl} alt={p.nickname} className="w-full h-full object-cover" />
                               ) : (
-                                <User className="w-4 h-4 text-[#858585]" />
+                                <span className="text-[10px] font-bold text-white">{p.nickname.substring(0, 2).toUpperCase()}</span>
                               )}
                             </div>
                             <div className="flex items-center gap-2">
@@ -493,32 +485,6 @@ export default function AdminPlayersPage() {
                     />
                   </div>
                 )}
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
-                    Avatar Image
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <label className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-[#141414] border border-[#222222] hover:border-white rounded-lg text-xs font-semibold text-white transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span>Choose File</span>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                        onChange={async (e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            const compressed = await compressImage(e.target.files[0]);
-                            setAvatarFile(compressed);
-                          }
-                        }}
-                        className="hidden"
-                      />
-                    </label>
-                    <span className="text-xs text-[#858585] truncate">
-                      {avatarFile ? avatarFile.name : editingPlayer ? "Keep current avatar" : "No file chosen"}
-                    </span>
-                  </div>
-                </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">

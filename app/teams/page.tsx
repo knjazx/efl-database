@@ -19,11 +19,12 @@ export default function TeamsPage() {
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTierFilter, setSelectedTierFilter] = useState<string>("ALL");
 
   const fetchTeams = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/teams");
+      const res = await fetch("/api/teams", { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
         setTeams(data.teams);
@@ -40,6 +41,15 @@ export default function TeamsPage() {
   }, []);
 
   const filteredTeams = teams.filter((team) => {
+    // Tier Filter
+    if (selectedTierFilter !== "ALL") {
+      const teamTier = (team.tier || "TIER 1").toUpperCase().replace(/\s+/g, "");
+      const filterTier = selectedTierFilter.toUpperCase().replace(/\s+/g, "");
+      if (teamTier !== filterTier && !teamTier.includes(filterTier)) {
+        return false;
+      }
+    }
+
     return (
       team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       team.tag.toLowerCase().includes(searchQuery.toLowerCase())
@@ -89,6 +99,28 @@ export default function TeamsPage() {
         </div>
       </div>
 
+      {/* Tier Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2 mt-6 pb-2 border-b border-[#1A1A1A]">
+        {[
+          { id: "ALL", label: "ВСЕ ТИРЫ" },
+          { id: "TIER1", label: "🥇 TIER 1" },
+          { id: "TIER2", label: "🥈 TIER 2" },
+          { id: "TIER3", label: "🥉 TIER 3" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedTierFilter(tab.id)}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+              selectedTierFilter === tab.id
+                ? "bg-white text-black"
+                : "bg-[#0A0A0A] border border-[#222222] text-[#858585] hover:text-white hover:border-[#444444]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Grid Content */}
       <div className="mt-8">
         {loading ? (
@@ -104,9 +136,10 @@ export default function TeamsPage() {
                 name={team.name}
                 tag={team.tag}
                 slug={team.slug}
-                tier={team.tier || ""}
+                tier={team.tier || "TIER 1"}
                 logoUrl={team.logoUrl}
                 playerCount={team.playerCount}
+                frameStyle={team.frameStyle}
                 isDisqualified={team.isDisqualified}
                 disqualifiedUntil={team.disqualifiedUntil}
                 disqualifyReason={team.disqualifyReason}

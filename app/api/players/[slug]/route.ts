@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function isAuthorized() {
   const cookieStore = cookies();
   const sessionToken = cookieStore.get("efl_admin_session");
@@ -11,11 +14,24 @@ function isAuthorized() {
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   try {
-    const { slug } = params;
+    let rawSlug = params.slug || "";
+    try {
+      rawSlug = decodeURIComponent(rawSlug);
+      if (rawSlug.includes("%")) {
+        rawSlug = decodeURIComponent(rawSlug);
+      }
+    } catch (e) {}
 
-    const player = await prisma.player.findFirst({
+    const decodedSlug = rawSlug.trim();
+    const cleanQuery = decodedSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    let player = await prisma.player.findFirst({
       where: {
-        OR: [{ slug: slug }, { id: slug }],
+        OR: [
+          { slug: { equals: decodedSlug, mode: "insensitive" } },
+          { nickname: { equals: decodedSlug, mode: "insensitive" } },
+          { id: decodedSlug },
+        ],
       },
       include: {
         memberships: {
@@ -26,6 +42,26 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         },
       },
     });
+
+    if (!player) {
+      const allPlayers = await prisma.player.findMany({
+        include: {
+          memberships: {
+            include: {
+              team: true,
+            },
+            orderBy: { joinedAt: "desc" },
+          },
+        },
+      });
+
+      player =
+        allPlayers.find((p) => {
+          const cSlug = p.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const cNick = p.nickname.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return cSlug === cleanQuery || cNick === cleanQuery || p.id === decodedSlug;
+        }) || null;
+    }
 
     if (!player) {
       return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
@@ -67,7 +103,6 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
               tag: activeMembership.team.tag,
               slug: activeMembership.team.slug,
               logoUrl: activeMembership.team.logoUrl,
-              tier: activeMembership.team.tier,
               role: activeMembership.role,
               joinedAt: activeMembership.joinedAt,
             }

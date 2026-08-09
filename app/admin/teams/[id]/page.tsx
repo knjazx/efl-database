@@ -317,11 +317,11 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   <tr key={m.membershipId} className="hover:bg-[#0E0E0E] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
                           {m.avatarUrl ? (
                             <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
                           ) : (
-                            <User className="w-4 h-4 text-[#858585]" />
+                            <span className="text-[10px] font-bold text-white">{m.nickname.substring(0, 2).toUpperCase()}</span>
                           )}
                         </div>
                         <Link href={`/players/${m.slug}`} className="font-bold text-white hover:underline text-sm">

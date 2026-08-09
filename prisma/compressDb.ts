@@ -19,20 +19,7 @@ async function main() {
     }
   }
 
-  const players = await prisma.player.findMany();
-  let playerCount = 0;
-  for (const player of players) {
-    if (player.avatarUrl && player.avatarUrl.length > 100000) {
-      console.log(`Resetting oversized avatar string for player ${player.nickname} (length: ${player.avatarUrl.length})...`);
-      await prisma.player.update({
-        where: { id: player.id },
-        data: { avatarUrl: "" },
-      });
-      playerCount++;
-    }
-  }
-
-  console.log(`Cleanup complete! Reset ${teamCount} oversized team logos and ${playerCount} oversized player avatars.`);
+  console.log(`Cleanup complete! Reset ${teamCount} oversized team logos.`);
 }
 
 main()

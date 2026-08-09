@@ -13,9 +13,14 @@ model Team {
   name              String
   tag               String
   slug              String           @unique
-  tier              String           // T1, T2, T3
+  tier              String           @default("TIER 1") // TIER 1, TIER 2, TIER 3
   logoUrl           String
   description       String?
+  frameStyle        String           @default("NONE") // NONE, GOLD, SILVER, COPPER, NEON, CRIMSON
+  points            Int              @default(0)
+  wins              Int              @default(0)
+  losses            Int              @default(0)
+  matchesPlayed     Int              @default(0)
   isDisqualified    Boolean          @default(false)
   disqualifiedUntil DateTime?
   disqualifyReason  String?
@@ -24,6 +29,8 @@ model Team {
 
   memberships  TeamMembership[]
   activityLogs ActivityLog[]
+  matchesAsA   Match[]          @relation("TeamAMatches")
+  matchesAsB   Match[]          @relation("TeamBMatches")
 }
 
 model Player {
@@ -68,4 +75,26 @@ model ActivityLog {
   timestamp   DateTime @default(now())
 
   team        Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+}
+
+model Match {
+  id          String    @id @default(uuid())
+  teamAId     String
+  teamBId     String
+  scoreA      Int       @default(0)
+  scoreB      Int       @default(0)
+  status      String    @default("SCHEDULED") // SCHEDULED, LIVE, FINISHED, CANCELLED
+  scheduledAt DateTime
+  finishedAt  DateTime?
+  bestOf      Int       @default(1) // 1 for BO1, 3 for BO3, 5 for BO5
+  tier        String    @default("TIER 1")
+  winnerId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  teamA       Team      @relation("TeamAMatches", fields: [teamAId], references: [id], onDelete: Cascade)
+  teamB       Team      @relation("TeamBMatches", fields: [teamBId], references: [id], onDelete: Cascade)
+
+  @@index([teamAId])
+  @@index([teamBId])
 }

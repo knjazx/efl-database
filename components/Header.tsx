@@ -16,7 +16,7 @@ export function Header() {
       .then((data) => setIsAdmin(data.authenticated))
       .catch(() => setIsAdmin(false));
 
-    fetch("/api/teams")
+    fetch("/api/teams", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.teams)) {
@@ -31,14 +31,14 @@ export function Header() {
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
         {/* Left: EFL Branding */}
         <Link href="/teams" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-[#0A0A0A] border border-[#222222] group-hover:border-[#444444] transition-colors flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img src="/efl-logo.png" alt="EFL Logo" className="w-full h-full object-cover" />
+          <div className="h-10 px-2 rounded-lg bg-[#0A0A0A] border border-[#222222] group-hover:border-[#444444] transition-colors flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src="/efl-logo.jpg" alt="EFL Logo" className="h-7 w-auto object-contain" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-white font-bold tracking-wider text-sm leading-tight group-hover:text-white transition-colors">
+          <div className="hidden sm:flex flex-col">
+            <span className="text-white font-black tracking-wider text-sm leading-tight group-hover:text-white transition-colors">
               EFL
             </span>
-            <span className="text-[#858585] text-[10px] tracking-widest font-medium uppercase">
+            <span className="text-[#858585] text-[9px] tracking-widest font-semibold uppercase">
               ELECTRONIC FUTURE LEAGUE
             </span>
           </div>
@@ -61,6 +61,48 @@ export function Header() {
               </span>
             )}
             {(pathname.startsWith("/teams") || pathname === "/") && (
+              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
+            )}
+          </Link>
+
+          <Link
+            href="/players"
+            className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
+              pathname.startsWith("/players")
+                ? "text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            <span>PLAYERS</span>
+            {pathname.startsWith("/players") && (
+              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
+            )}
+          </Link>
+
+          <Link
+            href="/rankings"
+            className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
+              pathname.startsWith("/rankings")
+                ? "text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            <span>РЕЙТИНГ</span>
+            {pathname.startsWith("/rankings") && (
+              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
+            )}
+          </Link>
+
+          <Link
+            href="/matches"
+            className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
+              pathname.startsWith("/matches")
+                ? "text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            <span>МАТЧИ</span>
+            {pathname.startsWith("/matches") && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
             )}
           </Link>

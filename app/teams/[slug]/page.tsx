@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, ExternalLink, User, ArrowLeft, RefreshCw, Crown, AlertTriangle, Shield, UserCheck, ShieldAlert } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Download, ExternalLink, ArrowLeft, RefreshCw, Crown, AlertTriangle, Shield, UserCheck, ShieldAlert, Sparkles } from "lucide-react";
 import { getBanStatus } from "@/lib/disqualification";
 import { formatRosterRole } from "@/lib/roles";
 import { TeamLogo } from "@/components/TeamLogo";
+import { getFrameStyles } from "@/components/TeamCard";
 
 interface PlayerMember {
   membershipId: string;
@@ -29,8 +31,10 @@ interface TeamDetail {
   name: string;
   tag: string;
   slug: string;
+  tier?: string;
   logoUrl: string;
   description?: string;
+  frameStyle?: string;
   isDisqualified?: boolean;
   disqualifiedUntil?: Date | string | null;
   disqualifyReason?: string | null;
@@ -39,26 +43,42 @@ interface TeamDetail {
 }
 
 export default function TeamProfilePage({ params }: { params: { slug: string } }) {
+  const routerParams = useParams();
+  const slug = (routerParams?.slug as string) || params?.slug || "";
+
   const [team, setTeam] = useState<TeamDetail | null>(null);
+  const [teamMatches, setTeamMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/teams/${params.slug}`)
+    if (!slug || slug === "undefined") return;
+
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/teams/${slug}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && data.team) {
           setTeam(data.team);
+          // Fetch match history for this team
+          fetch(`/api/matches?teamId=${data.team.id}`, { cache: "no-store" })
+            .then((r) => r.json())
+            .then((mRes) => {
+              if (mRes.success) setTeamMatches(mRes.matches || []);
+            })
+            .catch((e) => console.error("Failed to load team matches:", e));
         } else {
           setError(data.error || "Team not found");
         }
       })
       .catch((err) => {
-        console.error("Error fetching team profile:", err);
-        setError("Failed to load team details");
+        console.error("Failed to fetch team profile:", err);
+        setError("Failed to fetch team profile");
       })
       .finally(() => setLoading(false));
-  }, [params.slug]);
+  }, [slug]);
 
   const handleDownloadLogo = () => {
     if (!team?.logoUrl) return;
@@ -123,17 +143,17 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
             )}
 
             <div>
-              {/* Avatar & Roles */}
+              {/* Player Avatar & Name & Roles */}
               <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 relative bg-[#050505] border border-[#222222] group-hover:border-white rounded-xl mb-4 overflow-hidden flex items-center justify-center transition-colors">
+                <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#222222] overflow-hidden mb-3 flex items-center justify-center flex-shrink-0 group-hover:border-amber-400/60 transition-colors">
                   {player.avatarUrl ? (
                     <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-8 h-8 text-[#858585]" />
+                    <span className="text-lg font-black text-white">{player.nickname.substring(0, 2).toUpperCase()}</span>
                   )}
                 </div>
 
-                <h3 className="text-base font-bold text-white group-hover:text-white transition-colors">
+                <h3 className="text-base font-black text-white group-hover:text-amber-400 transition-colors tracking-tight">
                   {player.nickname}
                 </h3>
 
@@ -245,40 +265,69 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
       )}
 
       {/* Hero / Header Section */}
-      <div className={`bg-[#0A0A0A] border rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 ${teamBan.isBanned ? "border-red-900/60" : "border-[#222222]"}`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          {/* Logo Container */}
-          <div className="w-28 h-28 relative bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-            <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover filter drop-shadow-md" />
-          </div>
-
-          {/* Team Info */}
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight uppercase mb-1">
-              {team.name}
-            </h1>
-            <p className="text-sm font-semibold text-[#858585] tracking-widest uppercase mb-3">
-              TAG: {team.tag}
-            </p>
-            {team.description && (
-              <p className="text-xs text-[#858585] max-w-2xl leading-relaxed">
-                {team.description}
-              </p>
+      {(() => {
+        const frame = getFrameStyles(team.frameStyle);
+        return (
+          <div className={`rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 relative overflow-hidden border ${
+            teamBan.isBanned ? "border-red-900/60 bg-red-950/10" : frame.cardClass
+          }`}>
+            {!teamBan.isBanned && frame.label && (
+              <div className={`absolute top-4 right-4 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 ${frame.badgeClass}`}>
+                <Sparkles className={`w-3.5 h-3.5 ${frame.iconColor}`} />
+                <span>{frame.label}</span>
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* Download Logo Action Button */}
-        <div className="flex-shrink-0 w-full md:w-auto">
-          <button
-            onClick={handleDownloadLogo}
-            className="w-full md:w-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-[#141414] border border-[#222222] hover:border-white hover:bg-[#1A1A1A] text-xs font-bold tracking-wider text-white transition-all uppercase"
-          >
-            <Download className="w-4 h-4 text-white" />
-            <span>DOWNLOAD LOGO</span>
-          </button>
-        </div>
-      </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              {/* Logo Container */}
+              <div className={`w-28 h-28 relative bg-[#050505] border rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 ${
+                teamBan.isBanned ? "border-red-900/40" : frame.logoBorder
+              }`}>
+                <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover filter drop-shadow-md" />
+              </div>
+
+              {/* Team Info */}
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight uppercase mb-1">
+                  {team.name}
+                </h1>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-semibold text-[#858585] tracking-widest uppercase">
+                    TAG: {team.tag}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded border text-[10px] font-extrabold uppercase ${
+                      (team.tier || "TIER 1").toUpperCase().includes("1")
+                        ? "bg-amber-950/40 border-amber-500/50 text-amber-300"
+                        : (team.tier || "TIER 1").toUpperCase().includes("2")
+                        ? "bg-purple-950/40 border-purple-500/50 text-purple-300"
+                        : "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
+                    }`}
+                  >
+                    {(team.tier || "TIER 1").toUpperCase().includes("1") ? "TIER 1" : (team.tier || "TIER 1").toUpperCase().includes("2") ? "TIER 2" : "TIER 3"}
+                  </span>
+                </div>
+                {team.description && (
+                  <p className="text-xs text-[#858585] max-w-2xl leading-relaxed">
+                    {team.description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Download Logo Action Button */}
+            <div className="flex-shrink-0 w-full md:w-auto">
+              <button
+                onClick={handleDownloadLogo}
+                className="w-full md:w-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-[#141414] border border-[#222222] hover:border-white hover:bg-[#1A1A1A] text-xs font-bold tracking-wider text-white transition-all uppercase"
+              >
+                <Download className="w-4 h-4 text-white" />
+                <span>DOWNLOAD LOGO</span>
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Main Roster Container */}
       <div className="space-y-12 mb-16">
@@ -360,6 +409,88 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
 
       </div>
 
+      {/* RECENT MATCHES SECTION */}
+      {teamMatches.length > 0 && (
+        <div className="mt-12">
+          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+              <h3 className="text-lg font-black text-white uppercase tracking-wider">
+                ПОСЛЕДНИЕ МАТЧИ ({teamMatches.length})
+              </h3>
+            </div>
+            <Link href="/matches" className="text-xs text-amber-400 font-bold uppercase hover:underline">
+              Все матчи &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teamMatches.slice(0, 5).map((match) => {
+              const isTeamA = match.teamAId === team.id;
+              const opponent = isTeamA ? match.teamB : match.teamA;
+              const myScore = isTeamA ? match.scoreA : match.scoreB;
+              const oppScore = isTeamA ? match.scoreB : match.scoreA;
+              const isFinished = match.status === "FINISHED";
+              const isWin = isFinished && myScore > oppScore;
+              const isLoss = isFinished && oppScore > myScore;
+
+              const dateObj = new Date(match.scheduledAt);
+              const formattedDate = dateObj.toLocaleDateString("ru-RU", { day: "2-digit", month: "short" });
+
+              return (
+                <div
+                  key={match.id}
+                  className={`bg-[#0A0A0A] border rounded-xl p-4 flex flex-col justify-between gap-3 ${
+                    isWin
+                      ? "border-emerald-800/50 bg-emerald-950/10"
+                      : isLoss
+                      ? "border-red-900/50 bg-red-950/10"
+                      : "border-[#1F1F1F]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-mono border-b border-[#1A1A1A] pb-2">
+                    <span className="text-[#858585]">{formattedDate} &bull; BO{match.bestOf}</span>
+                    {isFinished ? (
+                      <span
+                        className={`px-2 py-0.5 rounded font-black text-[9px] uppercase ${
+                          isWin ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-red-950 text-red-400 border border-red-800"
+                        }`}
+                      >
+                        {isWin ? "WIN" : isLoss ? "LOSS" : "DRAW"}
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[9px] font-extrabold uppercase">
+                        UPCOMING
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Opponent Logo & Name */}
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-10 h-10 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                        <TeamLogo logoUrl={opponent.logoUrl} name={opponent.name} tag={opponent.tag} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <span className="text-[10px] text-[#858585] font-mono uppercase block">vs {opponent.tag}</span>
+                        <span className="font-extrabold text-white text-xs uppercase truncate block">
+                          {opponent.name}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Score */}
+                    <div className="font-mono text-sm font-black px-2.5 py-1 bg-[#141414] border border-[#222222] rounded-lg text-white">
+                      {isFinished ? `${myScore} : ${oppScore}` : "VS"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Former Players Section */}
       {team.formerPlayers && team.formerPlayers.length > 0 && (
         <div className="mt-12">
@@ -383,11 +514,11 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                     {player.avatarUrl ? (
                       <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-5 h-5 text-[#858585]" />
+                      <span className="text-xs font-bold text-white">{player.nickname.substring(0, 2).toUpperCase()}</span>
                     )}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-white group-hover:text-white transition-colors">
+                    <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
                       {player.nickname}
                     </h4>
                   </div>

@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function isAuthorized() {
   const cookieStore = cookies();
   const sessionToken = cookieStore.get("efl_admin_session");
@@ -11,11 +14,25 @@ function isAuthorized() {
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   try {
-    const { slug } = params;
+    let rawSlug = params.slug || "";
+    try {
+      rawSlug = decodeURIComponent(rawSlug);
+      if (rawSlug.includes("%")) {
+        rawSlug = decodeURIComponent(rawSlug);
+      }
+    } catch (e) {}
 
-    const team = await prisma.team.findFirst({
+    const decodedSlug = rawSlug.trim();
+    const cleanQuery = decodedSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    let team = await prisma.team.findFirst({
       where: {
-        OR: [{ slug: slug }, { id: slug }],
+        OR: [
+          { slug: { equals: decodedSlug, mode: "insensitive" } },
+          { tag: { equals: decodedSlug, mode: "insensitive" } },
+          { name: { equals: decodedSlug, mode: "insensitive" } },
+          { id: decodedSlug },
+        ],
       },
       include: {
         memberships: {
@@ -28,17 +45,37 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     });
 
     if (!team) {
+      const allTeams = await prisma.team.findMany({
+        include: {
+          memberships: {
+            include: {
+              player: true,
+            },
+            orderBy: { joinedAt: "asc" },
+          },
+        },
+      });
+
+      team =
+        allTeams.find((t) => {
+          const cSlug = t.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const cTag = t.tag.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const cName = t.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return cSlug === cleanQuery || cTag === cleanQuery || cName === cleanQuery || t.id === decodedSlug;
+        }) || null;
+    }
+
+    if (!team) {
       return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
     }
 
     const activeRoster = team.memberships
-      .filter((m) => m.status === "ACTIVE")
+      .filter((m) => m.status === "ACTIVE" && m.player)
       .map((m) => ({
         membershipId: m.id,
         id: m.player.id,
         nickname: m.player.nickname,
         slug: m.player.slug,
-        avatarUrl: m.player.avatarUrl,
         role: m.role || m.player.defaultRole || "PLAYER",
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
@@ -50,13 +87,12 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       }));
 
     const formerPlayers = team.memberships
-      .filter((m) => m.status === "FORMER")
+      .filter((m) => m.status === "FORMER" && m.player)
       .map((m) => ({
         membershipId: m.id,
         id: m.player.id,
         nickname: m.player.nickname,
         slug: m.player.slug,
-        avatarUrl: m.player.avatarUrl,
         role: m.role || m.player.defaultRole || "PLAYER",
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
@@ -78,6 +114,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         tier: team.tier,
         logoUrl: team.logoUrl,
         description: team.description,
+        frameStyle: team.frameStyle || "NONE",
         isDisqualified: team.isDisqualified,
         disqualifiedUntil: team.disqualifiedUntil,
         disqualifyReason: team.disqualifyReason,
@@ -104,6 +141,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
     const tag = formData.get("tag") as string;
     const tier = (formData.get("tier") as string) || "T1";
     const description = formData.get("description") as string;
+    const frameStyle = formData.get("frameStyle") as string;
     const logoFile = formData.get("logo") as File | null;
 
     const existingTeam = await prisma.team.findFirst({
@@ -130,6 +168,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
         tier,
         logoUrl,
         description,
+        ...(frameStyle ? { frameStyle } : {}),
       },
     });
 
