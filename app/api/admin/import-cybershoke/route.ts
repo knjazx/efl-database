@@ -164,7 +164,7 @@ export async function POST(req: Request) {
       try {
         const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
         const { stdout } = await execFilePromise("python", [pythonScript, targetInput], {
-          timeout: 20000,
+          timeout: 120000,
           env: { ...process.env, PATH: `C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;${process.env.PATH}` },
         });
 
