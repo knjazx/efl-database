@@ -26,7 +26,21 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { matchUrl, action, teamAId, teamBId, scoreA, scoreB, bestOf, tier } = body;
+    const {
+      matchUrl,
+      action,
+      teamAId,
+      teamBId,
+      scoreA,
+      scoreB,
+      bestOf,
+      tier,
+      clientTeam1Players,
+      clientTeam2Players,
+      clientScoreA,
+      clientScoreB,
+      rawText,
+    } = body;
 
     // Handle Confirmation Phase
     if (action === "CONFIRM") {
@@ -38,8 +52,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Команды не могут совпадать" }, { status: 400 });
       }
 
-      const sA = Number(scoreA) || 0;
-      const sB = Number(scoreB) || 0;
+      const sA = Number(scoreA) ?? 0;
+      const sB = Number(scoreB) ?? 0;
       let winnerId: string | null = null;
       if (sA > sB) winnerId = teamAId;
       else if (sB > sA) winnerId = teamBId;
@@ -99,64 +113,61 @@ export async function POST(req: Request) {
     }
 
     // Handle Fetch & Parse Phase
-    if (!matchUrl) {
-      return NextResponse.json({ success: false, error: "Укажите ссылку на матч Cybershoke" }, { status: 400 });
-    }
+    let rawScoreA = clientScoreA !== undefined ? Number(clientScoreA) : 13;
+    let rawScoreB = clientScoreB !== undefined ? Number(clientScoreB) : 9;
+    let team1Players: string[] = Array.isArray(clientTeam1Players) ? clientTeam1Players : [];
+    let team2Players: string[] = Array.isArray(clientTeam2Players) ? clientTeam2Players : [];
+    const matchId = matchUrl ? extractCybershokeMatchId(matchUrl) : "DEMO_PARSED";
 
-    const matchId = extractCybershokeMatchId(matchUrl);
-    if (!matchId) {
-      return NextResponse.json({ success: false, error: "Не удалось извлечь ID матча из ссылки" }, { status: 400 });
-    }
-
-    let rawScoreA = 13;
-    let rawScoreB = 9;
-    let team1Players: string[] = [];
-    let team2Players: string[] = [];
-
-    // Fetch Cybershoke match page / API
-    try {
-      const cyRes = await fetch(`https://cybershoke.net/api/matches/${matchId}`, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      });
-
-      if (cyRes.ok) {
-        const data = await cyRes.json();
-        if (data && data.match) {
-          rawScoreA = data.match.team1_score ?? data.match.score_team1 ?? 13;
-          rawScoreB = data.match.team2_score ?? data.match.score_team2 ?? 9;
-
-          if (Array.isArray(data.match.team1_players)) {
-            team1Players = data.match.team1_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
-          }
-          if (Array.isArray(data.match.team2_players)) {
-            team2Players = data.match.team2_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
-          }
-        }
-      } else {
-        // Fallback webpage HTML parse
-        const htmlRes = await fetch(`https://cybershoke.net/match/${matchId}`, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          },
-        });
-
-        if (htmlRes.ok) {
-          const htmlText = await htmlRes.text();
-          // Score regex parse e.g. 13 : 9 or 16-12
-          const scoreMatch = htmlText.match(/(\d{1,2})\s*[:\-]\s*(\d{1,2})/i);
-          if (scoreMatch) {
-            rawScoreA = parseInt(scoreMatch[1], 10);
-            rawScoreB = parseInt(scoreMatch[2], 10);
-          }
-        }
+    // If raw text or demo parse text was provided, parse scores & nicknames from it!
+    if (rawText && typeof rawText === "string") {
+      const scoreMatch = rawText.match(/(\d{1,2})\s*[:\-]\s*(\d{1,2})/);
+      if (scoreMatch) {
+        rawScoreA = parseInt(scoreMatch[1], 10);
+        rawScoreB = parseInt(scoreMatch[2], 10);
       }
-    } catch (err) {
-      console.warn("Cybershoke live fetch warning, using fallback parser:", err);
+
+      // Extract all word tokens / nicks from raw text
+      const tokens = rawText
+        .split(/[\s,;:|\n\r]+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 3 && !/^\d+$/.test(t));
+
+      if (team1Players.length === 0) team1Players = tokens;
     }
 
-    // Query DB Teams & Players to match compositions
+    // Try server-side fetch if matchUrl provided and client didn't supply players
+    if (matchUrl && team1Players.length === 0 && team2Players.length === 0) {
+      try {
+        const parsedId = extractCybershokeMatchId(matchUrl);
+        if (parsedId) {
+          const cyRes = await fetch(`https://cybershoke.net/api/matches/${parsedId}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            },
+          });
+
+          if (cyRes.ok) {
+            const data = await cyRes.json();
+            if (data && data.match) {
+              rawScoreA = data.match.team1_score ?? data.match.score_team1 ?? rawScoreA;
+              rawScoreB = data.match.team2_score ?? data.match.score_team2 ?? rawScoreB;
+
+              if (Array.isArray(data.match.team1_players)) {
+                team1Players = data.match.team1_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
+              }
+              if (Array.isArray(data.match.team2_players)) {
+                team2Players = data.match.team2_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Cybershoke API fetch warning:", err);
+      }
+    }
+
+    // Query DB Teams & Players to match compositions accurately
     const allTeams = await prisma.team.findMany({
       include: {
         memberships: {
@@ -166,47 +177,65 @@ export async function POST(req: Request) {
       },
     });
 
-    let detectedTeamA = allTeams[0] || null;
-    let detectedTeamB = allTeams[1] || null;
+    let detectedTeamA: any = null;
+    let detectedTeamB: any = null;
     let matchedCountA = 0;
     let matchedCountB = 0;
 
-    // Roster Overlap Matcher function
-    if (team1Players.length > 0) {
-      let maxVotesA = 0;
-      for (const t of allTeams) {
-        let votes = 0;
-        for (const m of t.memberships) {
-          const nick = m.player.nickname.toLowerCase();
-          if (team1Players.some((pName) => pName.toLowerCase().includes(nick) || nick.includes(pName.toLowerCase()))) {
-            votes++;
-          }
-        }
-        if (votes > maxVotesA) {
-          maxVotesA = votes;
-          detectedTeamA = t;
-          matchedCountA = votes;
-        }
+    // Roster Overlap Matcher for Team 1
+    let maxVotesA = 0;
+    for (const t of allTeams) {
+      let votes = 0;
+      for (const m of t.memberships) {
+        const pNick = m.player.nickname.toLowerCase().trim();
+        const pSteam = (m.player.steamUrl || "").toLowerCase().trim();
+
+        // Check if player is present in team1Players or rawText
+        const isMatched =
+          team1Players.some((p) => {
+            const lowP = String(p).toLowerCase().trim();
+            return lowP === pNick || lowP.includes(pNick) || pNick.includes(lowP) || (pSteam && lowP.includes(pSteam));
+          }) ||
+          (rawText && rawText.toLowerCase().includes(pNick));
+
+        if (isMatched) votes++;
+      }
+      if (votes > maxVotesA) {
+        maxVotesA = votes;
+        detectedTeamA = t;
+        matchedCountA = votes;
       }
     }
 
-    if (team2Players.length > 0) {
-      let maxVotesB = 0;
-      for (const t of allTeams) {
-        if (detectedTeamA && t.id === detectedTeamA.id) continue;
-        let votes = 0;
-        for (const m of t.memberships) {
-          const nick = m.player.nickname.toLowerCase();
-          if (team2Players.some((pName) => pName.toLowerCase().includes(nick) || nick.includes(pName.toLowerCase()))) {
-            votes++;
-          }
-        }
-        if (votes > maxVotesB) {
-          maxVotesB = votes;
-          detectedTeamB = t;
-          matchedCountB = votes;
-        }
+    // Roster Overlap Matcher for Team 2
+    let maxVotesB = 0;
+    for (const t of allTeams) {
+      if (detectedTeamA && t.id === detectedTeamA.id) continue;
+      let votes = 0;
+      for (const m of t.memberships) {
+        const pNick = m.player.nickname.toLowerCase().trim();
+        const pSteam = (m.player.steamUrl || "").toLowerCase().trim();
+
+        const isMatched =
+          team2Players.some((p) => {
+            const lowP = String(p).toLowerCase().trim();
+            return lowP === pNick || lowP.includes(pNick) || pNick.includes(lowP) || (pSteam && lowP.includes(pSteam));
+          }) ||
+          (rawText && rawText.toLowerCase().includes(pNick));
+
+        if (isMatched) votes++;
       }
+      if (votes > maxVotesB) {
+        maxVotesB = votes;
+        detectedTeamB = t;
+        matchedCountB = votes;
+      }
+    }
+
+    // Fallback default teams if none matched
+    if (!detectedTeamA) detectedTeamA = allTeams[0] || null;
+    if (!detectedTeamB) {
+      detectedTeamB = allTeams.find((t) => t.id !== detectedTeamA?.id) || allTeams[1] || null;
     }
 
     return NextResponse.json({

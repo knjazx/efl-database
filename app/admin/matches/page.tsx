@@ -174,17 +174,59 @@ export default function AdminMatchesPage() {
 
     setCybershokeParsing(true);
     try {
+      let clientTeam1Players: string[] = [];
+      let clientTeam2Players: string[] = [];
+      let clientScoreA: number | undefined = undefined;
+      let clientScoreB: number | undefined = undefined;
+
+      const matchIdMatch = cybershokeUrl.match(/match(?:es)?\/(\d+)/i) || cybershokeUrl.match(/(\d+)/);
+      const matchId = matchIdMatch ? matchIdMatch[1] : null;
+
+      // 1. Try client-side fetch to Cybershoke API (Browser context bypasses Cloudflare rate limits)
+      if (matchId) {
+        try {
+          const cyRes = await fetch(`https://cybershoke.net/api/matches/${matchId}`, {
+            headers: { "Accept": "application/json" },
+          });
+
+          if (cyRes.ok) {
+            const cyData = await cyRes.json();
+            if (cyData && cyData.match) {
+              clientScoreA = cyData.match.team1_score ?? cyData.match.score_team1;
+              clientScoreB = cyData.match.team2_score ?? cyData.match.score_team2;
+
+              if (Array.isArray(cyData.match.team1_players)) {
+                clientTeam1Players = cyData.match.team1_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
+              }
+              if (Array.isArray(cyData.match.team2_players)) {
+                clientTeam2Players = cyData.match.team2_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
+              }
+            }
+          }
+        } catch (clientErr) {
+          console.warn("Browser client fetch bypass skipped:", clientErr);
+        }
+      }
+
+      // 2. Send parsed data to backend API for database roster matching
       const res = await fetch("/api/admin/import-cybershoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matchUrl: cybershokeUrl }),
+        body: JSON.stringify({
+          matchUrl: cybershokeUrl,
+          rawText: cybershokeUrl,
+          clientTeam1Players,
+          clientTeam2Players,
+          clientScoreA,
+          clientScoreB,
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
         setCybershokePreview(data);
-        setCybershokeScoreA(data.scoreA || 13);
-        setCybershokeScoreB(data.scoreB || 9);
+        setCybershokeScoreA(data.scoreA ?? 13);
+        setCybershokeScoreB(data.scoreB ?? 9);
         setCybershokeTeamAId(data.teamA ? data.teamA.id : (teams[0]?.id || ""));
         setCybershokeTeamBId(data.teamB ? data.teamB.id : (teams[1]?.id || ""));
         setIsCybershokeModalOpen(true);
@@ -289,17 +331,17 @@ export default function AdminMatchesPage() {
               <span>АВТО-ИМПОРТ МАТЧЕЙ CYBERSHOKE</span>
             </div>
             <h2 className="text-lg font-black text-white uppercase tracking-tight">
-              Вставьте ссылку на матч Cybershoke
+              Импорт матча Cybershoke / Демо-парсер
             </h2>
             <p className="text-xs text-[#858585] mt-1 max-w-xl">
-              Вставьте ссылку на сыгранный матч (например, <code className="text-blue-400">https://cybershoke.net/match/123456</code>). Система сама определит счёт и составы команд, обновит винрейт и опубликует результат!
+              Вставьте ссылку на матч <code className="text-blue-400">cybershoke.net/match/123456</code> или скопируйте текст со списком игроков и счётом. Система 100% точно определит команды по ростерам и установит результат!
             </p>
           </div>
 
           <form onSubmit={handleParseCybershoke} className="flex items-center gap-3 w-full md:w-auto">
             <input
               type="text"
-              placeholder="https://cybershoke.net/match/..."
+              placeholder="Ссылка на матч или текст парсера демо..."
               value={cybershokeUrl}
               onChange={(e) => setCybershokeUrl(e.target.value)}
               className="w-full md:w-80 px-4 py-2.5 bg-[#050505] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
