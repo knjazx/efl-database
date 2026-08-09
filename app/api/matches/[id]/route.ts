@@ -108,6 +108,48 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     const matchId = params.id;
 
+    // Fetch match before deletion to check if stats need rollback
+    const existingMatch = await prisma.match.findUnique({
+      where: { id: matchId },
+      include: { teamA: true, teamB: true },
+    });
+
+    if (!existingMatch) {
+      return NextResponse.json({ success: false, error: "Match not found" }, { status: 404 });
+    }
+
+    // Rollback team stats if this was a finished match with a winner
+    if (existingMatch.status === "FINISHED" && existingMatch.winnerId) {
+      const winnerTeamId = existingMatch.winnerId;
+      const loserTeamId = winnerTeamId === existingMatch.teamAId ? existingMatch.teamBId : existingMatch.teamAId;
+
+      // Rollback winner stats: wins - 1, points - 3, matchesPlayed - 1
+      await prisma.team.update({
+        where: { id: winnerTeamId },
+        data: {
+          wins: { decrement: 1 },
+          points: { decrement: 3 },
+          matchesPlayed: { decrement: 1 },
+        },
+      });
+
+      // Rollback loser stats: losses - 1, matchesPlayed - 1
+      await prisma.team.update({
+        where: { id: loserTeamId },
+        data: {
+          losses: { decrement: 1 },
+          matchesPlayed: { decrement: 1 },
+        },
+      });
+
+      // Log the rollback
+      await prisma.activityLog.create({
+        data: {
+          description: `Матч удалён (статистика откачена): ${existingMatch.teamA.name} [${existingMatch.scoreA}:${existingMatch.scoreB}] ${existingMatch.teamB.name}`,
+        },
+      });
+    }
+
     await prisma.match.delete({
       where: { id: matchId },
     });

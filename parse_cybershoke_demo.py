@@ -107,7 +107,8 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
         if p_df is not None and len(p_df) > 0:
             for idx, row in p_df.iterrows():
                 name = row.get("name")
-                t_num = row.get("team_num")
+                # demoparser2 uses 'team_number' (not 'team_num')
+                t_num = row.get("team_number", row.get("team_num"))
                 if name and isinstance(name, str) and name.strip() and "GOTV" not in name.upper():
                     clean_name = name.strip()
                     if clean_name not in all_players:
@@ -123,36 +124,71 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
         group_A = all_players[:5]
         group_B = all_players[5:]
 
-    # 2. Calculate Exact MR12 Half-based Scores from Round End Events
+    # 2. Calculate Exact MR12 Half-based Scores from Round End Events (excluding knife/warmup rounds)
     score_A = 0
     score_B = 0
     round_counter = 0
 
-    available_events = []
+    # Determine official match start tick (after knife round & warmup)
+    match_start_tick = 0
     try:
-        available_events = parser.list_game_events()
+        df_ms = parser.parse_event("round_announce_match_start")
+        if df_ms is not None and len(df_ms) > 0 and "tick" in df_ms.columns:
+            match_start_tick = int(df_ms["tick"].max())
     except Exception:
-        available_events = ["round_end", "round_officially_ended"]
+        pass
 
-    round_end_name = None
-    for r_name in ("round_end", "round_officially_ended", "cs_win_panel_round"):
-        if r_name in available_events:
-            round_end_name = r_name
-            break
+    # Fetch player deaths to detect pure knife rounds if needed
+    df_kills = None
+    try:
+        df_kills = parser.parse_event("player_death")
+    except Exception:
+        pass
 
-    if round_end_name:
+    round_end_names = ["round_end", "round_officially_ended", "cs_win_panel_round"]
+
+    for round_end_name in round_end_names:
         try:
             df = parser.parse_event(round_end_name)
-            if df is not None and len(df) > 0:
+            if df is not None and len(df) > 0 and "winner" in df.columns:
+                prev_tick = 0
                 for idx, row in df.iterrows():
-                    w_str = str(row.get("winner", "")).strip().upper()
+                    r_tick = row.get("tick", 0)
+                    w_raw = row.get("winner")
+
+                    # Skip NaN / None values (e.g. warmup round 0)
+                    try:
+                        import math
+                        if w_raw is None or (isinstance(w_raw, float) and math.isnan(w_raw)):
+                            prev_tick = r_tick
+                            continue
+                    except (TypeError, ValueError):
+                        pass
+
+                    w_str = str(w_raw).strip().upper()
                     if w_str not in ("2", "3", "CT", "T"):
+                        prev_tick = r_tick
                         continue
+
+                    # Exclude warmup / knife rounds occurring before official match_start_tick
+                    if match_start_tick > 0 and r_tick <= match_start_tick:
+                        prev_tick = r_tick
+                        continue
+
+                    # Exclude rounds where all kills are knife/world kills
+                    if df_kills is not None and hasattr(df_kills, "columns") and "weapon" in df_kills.columns:
+                        kills_in_round = df_kills[(df_kills["tick"] >= prev_tick) & (df_kills["tick"] <= r_tick)]
+                        weapons = [str(w).lower() for w in kills_in_round["weapon"]]
+                        if len(weapons) > 0 and all("knife" in w or "bayonet" in w or w == "world" for w in weapons):
+                            prev_tick = r_tick
+                            continue
+
                     round_counter += 1
                     is_ct_win = w_str in ("3", "CT")
                     is_t_win = w_str in ("2", "T")
 
-                    # MR12 format: rounds 1-12 Team 1 is CT, Team 2 is T. Rounds 13+ sides swap!
+                    # MR12 format: rounds 1-12 Team A is CT, Team B is T.
+                    # Rounds 13+ sides swap: Team A becomes T, Team B becomes CT.
                     if round_counter <= 12:
                         if is_ct_win:
                             score_A += 1
@@ -163,8 +199,14 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
                             score_A += 1
                         elif is_ct_win:
                             score_B += 1
+
+                    prev_tick = r_tick
+
+                # If we successfully parsed rounds, stop trying other event names
+                if round_counter > 0:
+                    break
         except Exception:
-            pass
+            continue
 
     return {
         "success": True,

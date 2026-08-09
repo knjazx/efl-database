@@ -5,7 +5,7 @@ import { execFile } from "child_process";
 import path from "path";
 import util from "util";
 import fs from "fs";
-import tempfile from "os";
+import os from "os";
 
 const execFilePromise = util.promisify(execFile);
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       if (file) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const tempDir = tempfile.tmpdir();
+        const tempDir = os.tmpdir();
         uploadedFilePath = path.join(tempDir, `upload_${Date.now()}_${file.name}`);
         fs.writeFileSync(uploadedFilePath, buffer);
       }
@@ -246,21 +246,29 @@ export async function POST(req: Request) {
     let detectedTeamB: any = null;
     let matchedCountA = 0;
     let matchedCountB = 0;
+    let matchedNamesA: string[] = [];
+    let matchedNamesB: string[] = [];
+
     // Roster Overlap Matcher for Team 1
     let maxVotesA = 0;
     for (const t of allTeams) {
       let votes = 0;
+      const names: string[] = [];
       for (const m of t.memberships) {
         const isMatched =
           team1Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
           (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
 
-        if (isMatched) votes++;
+        if (isMatched) {
+          votes++;
+          names.push(m.player.nickname);
+        }
       }
       if (votes > maxVotesA) {
         maxVotesA = votes;
         detectedTeamA = t;
         matchedCountA = votes;
+        matchedNamesA = names;
       }
     }
 
@@ -269,17 +277,22 @@ export async function POST(req: Request) {
     for (const t of allTeams) {
       if (detectedTeamA && t.id === detectedTeamA.id) continue;
       let votes = 0;
+      const names: string[] = [];
       for (const m of t.memberships) {
         const isMatched =
           team2Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
           (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
 
-        if (isMatched) votes++;
+        if (isMatched) {
+          votes++;
+          names.push(m.player.nickname);
+        }
       }
       if (votes > maxVotesB) {
         maxVotesB = votes;
         detectedTeamB = t;
         matchedCountB = votes;
+        matchedNamesB = names;
       }
     }
 
@@ -291,11 +304,13 @@ export async function POST(req: Request) {
       matchId,
       scoreA: rawScoreA,
       scoreB: rawScoreB,
+      team1Players,
+      team2Players,
       teamA: detectedTeamA
-        ? { id: detectedTeamA.id, name: detectedTeamA.name, tag: detectedTeamA.tag, logoUrl: detectedTeamA.logoUrl, matchedPlayers: matchedCountA }
+        ? { id: detectedTeamA.id, name: detectedTeamA.name, tag: detectedTeamA.tag, logoUrl: detectedTeamA.logoUrl, matchedPlayers: matchedCountA, matchedNames: matchedNamesA }
         : null,
       teamB: detectedTeamB
-        ? { id: detectedTeamB.id, name: detectedTeamB.name, tag: detectedTeamB.tag, logoUrl: detectedTeamB.logoUrl, matchedPlayers: matchedCountB }
+        ? { id: detectedTeamB.id, name: detectedTeamB.name, tag: detectedTeamB.tag, logoUrl: detectedTeamB.logoUrl, matchedPlayers: matchedCountB, matchedNames: matchedNamesB }
         : null,
       availableTeams: allTeams.map((t) => ({ id: t.id, name: t.name, tag: t.tag, logoUrl: t.logoUrl })),
     });

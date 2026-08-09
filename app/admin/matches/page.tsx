@@ -396,7 +396,7 @@ export default function AdminMatchesPage() {
             <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] hover:bg-[#202020] text-amber-300 font-extrabold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 flex-shrink-0 shadow-lg">
               <input
                 type="file"
-                accept=".dem,.bz2"
+                accept=".dem,.bz2,.zip"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -717,14 +717,14 @@ export default function AdminMatchesPage() {
       {/* CYBERSHOKE MATCH PREVIEW MODAL */}
       {isCybershokeModalOpen && cybershokePreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-6">
+          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
               <div>
                 <span className="text-[10px] font-mono font-bold text-blue-400 uppercase tracking-widest block">
-                  CYBERSHOKE MATCH MATCHING
+                  CYBERSHOKE DEMO PARSER
                 </span>
                 <h2 className="text-lg font-black text-white uppercase tracking-tight">
-                  Проверка распознанного матча #{cybershokePreview.matchId}
+                  Результат матча #{cybershokePreview.matchId}
                 </h2>
               </div>
               <button onClick={() => setIsCybershokeModalOpen(false)} className="text-[#858585] hover:text-white">
@@ -732,61 +732,64 @@ export default function AdminMatchesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleConfirmCybershoke} className="space-y-5 text-xs">
-              {/* Warning notice if zero matches */}
-              {(!cybershokePreview.teamA || cybershokePreview.teamA.matchedPlayers === 0) &&
-                (!cybershokePreview.teamB || cybershokePreview.teamB.matchedPlayers === 0) && (
-                  <div className="bg-amber-950/40 border border-amber-500/50 p-3 rounded-xl text-[11px] text-amber-200 space-y-2">
-                    <p className="font-bold flex items-center gap-1.5 text-amber-400">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Вставьте вывод демо-парсера / никнеймы игроков для 100% авто-подбора</span>
-                    </p>
-                    <p className="text-[10px] text-[#A3A3A3]">
-                      Сервер Cybershoke запросил проверку браузера. Скопируйте текст из вашего парсера демо или список никнеймов ниже, чтобы система моментально определила команды:
-                    </p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Вставьте никнеймы или текст демо..."
-                        value={cybershokeUrl}
-                        onChange={(e) => setCybershokeUrl(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-[#050505] border border-[#333333] rounded-lg text-white text-[11px] focus:outline-none focus:border-amber-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleParseCybershoke}
-                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold rounded-lg text-[10px] uppercase flex-shrink-0"
-                      >
-                        Пересчитать
-                      </button>
-                    </div>
-                  </div>
-                )}
-
+            <form onSubmit={handleConfirmCybershoke} className="space-y-4 text-xs">
               {/* Score Display */}
-              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-4">
-                <div className="flex flex-col items-center">
+              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-6">
+                <div className="flex flex-col items-center gap-1">
                   <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт A</span>
                   <input
                     type="number"
                     min={0}
                     value={cybershokeScoreA}
                     onChange={(e) => setCybershokeScoreA(Number(e.target.value))}
-                    className="w-16 py-1 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-lg text-white"
+                    className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
                   />
                 </div>
-                <span className="text-xl font-black text-white font-mono">:</span>
-                <div className="flex flex-col items-center">
+                <span className="text-2xl font-black text-[#444444] font-mono mt-4">:</span>
+                <div className="flex flex-col items-center gap-1">
                   <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт B</span>
                   <input
                     type="number"
                     min={0}
                     value={cybershokeScoreB}
                     onChange={(e) => setCybershokeScoreB(Number(e.target.value))}
-                    className="w-16 py-1 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-lg text-white"
+                    className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
                   />
                 </div>
               </div>
+
+              {/* Demo Players Display */}
+              {(cybershokePreview.team1Players?.length > 0 || cybershokePreview.team2Players?.length > 0) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Team 1 Players from Demo */}
+                  <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-3">
+                    <div className="text-[10px] font-mono font-bold text-blue-400 uppercase mb-2">
+                      Игроки из демки (Сторона A)
+                    </div>
+                    <ul className="space-y-1">
+                      {(cybershokePreview.team1Players || []).map((p: string, i: number) => (
+                        <li key={i} className="text-[11px] text-[#C0C0C0] font-mono truncate">
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Team 2 Players from Demo */}
+                  <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-3">
+                    <div className="text-[10px] font-mono font-bold text-blue-400 uppercase mb-2">
+                      Игроки из демки (Сторона B)
+                    </div>
+                    <ul className="space-y-1">
+                      {(cybershokePreview.team2Players || []).map((p: string, i: number) => (
+                        <li key={i} className="text-[11px] text-[#C0C0C0] font-mono truncate">
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
 
               {/* Team A selection */}
               <div>
@@ -794,10 +797,10 @@ export default function AdminMatchesPage() {
                   <span>Команда A</span>
                   {cybershokePreview.teamA && cybershokePreview.teamA.matchedPlayers > 0 ? (
                     <span className="text-emerald-400 text-[10px] font-bold">
-                      ✓ Совпало игроков: {cybershokePreview.teamA.matchedPlayers}
+                      ✓ Совпало: {cybershokePreview.teamA.matchedPlayers}
                     </span>
                   ) : (
-                    <span className="text-[#858585] text-[10px]">Выберите вручную или пересчитайте по тексту</span>
+                    <span className="text-[#858585] text-[10px]">Выберите вручную</span>
                   )}
                 </label>
                 <select
@@ -813,6 +816,16 @@ export default function AdminMatchesPage() {
                     </option>
                   ))}
                 </select>
+                {/* Show matched player names */}
+                {cybershokePreview.teamA?.matchedNames?.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {cybershokePreview.teamA.matchedNames.map((name: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 bg-emerald-950/50 border border-emerald-700/50 rounded text-[10px] font-mono text-emerald-300">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Team B selection */}
@@ -821,10 +834,10 @@ export default function AdminMatchesPage() {
                   <span>Команда B</span>
                   {cybershokePreview.teamB && cybershokePreview.teamB.matchedPlayers > 0 ? (
                     <span className="text-emerald-400 text-[10px] font-bold">
-                      ✓ Совпало игроков: {cybershokePreview.teamB.matchedPlayers}
+                      ✓ Совпало: {cybershokePreview.teamB.matchedPlayers}
                     </span>
                   ) : (
-                    <span className="text-[#858585] text-[10px]">Выберите вручную или пересчитайте по тексту</span>
+                    <span className="text-[#858585] text-[10px]">Выберите вручную</span>
                   )}
                 </label>
                 <select
@@ -840,6 +853,16 @@ export default function AdminMatchesPage() {
                     </option>
                   ))}
                 </select>
+                {/* Show matched player names */}
+                {cybershokePreview.teamB?.matchedNames?.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {cybershokePreview.teamB.matchedNames.map((name: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 bg-emerald-950/50 border border-emerald-700/50 rounded text-[10px] font-mono text-emerald-300">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Tier Selection */}
