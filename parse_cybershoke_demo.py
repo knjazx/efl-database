@@ -53,9 +53,25 @@ def find_url_in_json(data) -> str | None:
 
 def resolve_cybershoke_demo_and_cookies(match_id: str, original_url: str):
     cookies_dict = {}
-    demo_url = None
+    cdn_url = f"https://cdn-de-1.cybershoke.net/demos/{match_id}"
 
-    # Try DrissionPage Headless Chromium WAF Bypass
+    # 1. Fast Direct CDN Check
+    try:
+        req = urllib.request.Request(
+            cdn_url,
+            headers={
+                "User-Agent": DEFAULT_HEADERS["User-Agent"],
+                "Referer": f"https://cybershoke.net/ru/match/{match_id}"
+            }
+        )
+        resp = urllib.request.urlopen(req, timeout=5)
+        if resp.status == 200:
+            return cdn_url, cookies_dict
+    except Exception:
+        pass
+
+    # 2. Try DrissionPage Headless Chromium WAF Bypass fallback
+    demo_url = None
     try:
         from DrissionPage import ChromiumPage, ChromiumOptions
         options = ChromiumOptions()
@@ -90,7 +106,7 @@ def resolve_cybershoke_demo_and_cookies(match_id: str, original_url: str):
         sys.stderr.write(f"DrissionPage warning: {e}\n")
 
     if not demo_url:
-        demo_url = f"https://cdn-de-1.cybershoke.net/demos/{match_id}"
+        demo_url = cdn_url
 
     return demo_url, cookies_dict
 

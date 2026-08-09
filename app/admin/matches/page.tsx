@@ -734,6 +734,19 @@ export default function AdminMatchesPage() {
             </div>
 
             <form onSubmit={handleConfirmCybershoke} className="space-y-4 text-xs">
+              {/* Serverless Host Notice Banner if Python demoparser2 wasn't executed */}
+              {!cybershokePreview.demoParserAvailable && cybershokePreview.team1Players?.length === 0 && (
+                <div className="bg-amber-950/30 border border-amber-500/40 p-3 rounded-xl text-[11px] text-amber-200 space-y-1.5">
+                  <p className="font-bold flex items-center gap-1.5 text-amber-400">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Режим Vercel / Serverless Host</span>
+                  </p>
+                  <p className="text-[10px] text-[#C0C0C0]">
+                    На хостинге Vercel парсинг 160MB бинарных файлов `.dem` ограничен. Скопируйте никнеймы игроков или вывод бота в поле ниже и нажмите <strong>«Подписать»</strong> для мгновенного подбора команд! Или запустите проект на <code>localhost:3000</code>.
+                  </p>
+                </div>
+              )}
+
               {/* Score Display */}
               <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-6">
                 <div className="flex flex-col items-center gap-1">

@@ -184,6 +184,7 @@ export async function POST(req: Request) {
     let rawScoreB = clientScoreB !== undefined ? Number(clientScoreB) : 9;
     let team1Players: string[] = Array.isArray(clientTeam1Players) ? clientTeam1Players : [];
     let team2Players: string[] = Array.isArray(clientTeam2Players) ? clientTeam2Players : [];
+    let parsedSuccessfully = false;
     const matchId = matchUrl ? extractCybershokeMatchId(matchUrl) : "DEMO_PARSED";
 
     // 1. Try demoparser2 execution on uploaded file or match URL
@@ -196,7 +197,6 @@ export async function POST(req: Request) {
         : ["python3", "python", "/usr/bin/python3", "/usr/local/bin/python3"];
 
       const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
-      let parsedSuccessfully = false;
 
       for (const pyCmd of pythonCommands) {
         if (parsedSuccessfully) break;
@@ -319,6 +319,7 @@ export async function POST(req: Request) {
       scoreB: rawScoreB,
       team1Players,
       team2Players,
+      demoParserAvailable: parsedSuccessfully,
       teamA: detectedTeamA
         ? { id: detectedTeamA.id, name: detectedTeamA.name, tag: detectedTeamA.tag, logoUrl: detectedTeamA.logoUrl, matchedPlayers: matchedCountA, matchedNames: matchedNamesA }
         : null,
