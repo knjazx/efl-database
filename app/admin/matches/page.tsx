@@ -52,6 +52,18 @@ export default function AdminMatchesPage() {
   const [matchStatus, setMatchStatus] = useState<string>("FINISHED");
   const [scoreSubmitting, setScoreSubmitting] = useState(false);
 
+  // Cybershoke Importer State
+  const [cybershokeUrl, setCybershokeUrl] = useState("");
+  const [cybershokeParsing, setCybershokeParsing] = useState(false);
+  const [isCybershokeModalOpen, setIsCybershokeModalOpen] = useState(false);
+  const [cybershokePreview, setCybershokePreview] = useState<any | null>(null);
+  const [cybershokeTeamAId, setCybershokeTeamAId] = useState("");
+  const [cybershokeTeamBId, setCybershokeTeamBId] = useState("");
+  const [cybershokeScoreA, setCybershokeScoreA] = useState(13);
+  const [cybershokeScoreB, setCybershokeScoreB] = useState(9);
+  const [cybershokeTier, setCybershokeTier] = useState("TIER 3");
+  const [cybershokeSubmitting, setCybershokeSubmitting] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -156,6 +168,73 @@ export default function AdminMatchesPage() {
     }
   };
 
+  const handleParseCybershoke = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cybershokeUrl.trim()) return;
+
+    setCybershokeParsing(true);
+    try {
+      const res = await fetch("/api/admin/import-cybershoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matchUrl: cybershokeUrl }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setCybershokePreview(data);
+        setCybershokeScoreA(data.scoreA || 13);
+        setCybershokeScoreB(data.scoreB || 9);
+        setCybershokeTeamAId(data.teamA ? data.teamA.id : (teams[0]?.id || ""));
+        setCybershokeTeamBId(data.teamB ? data.teamB.id : (teams[1]?.id || ""));
+        setIsCybershokeModalOpen(true);
+      } else {
+        alert(data.error || "Не удалось распознать ссылку на матч");
+      }
+    } catch (err) {
+      alert("Ошибка подключения к серверу");
+    } finally {
+      setCybershokeParsing(false);
+    }
+  };
+
+  const handleConfirmCybershoke = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cybershokeTeamAId || !cybershokeTeamBId) {
+      alert("Выберите обе команды");
+      return;
+    }
+
+    setCybershokeSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/import-cybershoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CONFIRM",
+          teamAId: cybershokeTeamAId,
+          teamBId: cybershokeTeamBId,
+          scoreA: cybershokeScoreA,
+          scoreB: cybershokeScoreB,
+          tier: cybershokeTier,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsCybershokeModalOpen(false);
+        setCybershokeUrl("");
+        fetchData();
+      } else {
+        alert(data.error || "Ошибка публикации матча");
+      }
+    } catch (err) {
+      alert("Ошибка подключения к серверу");
+    } finally {
+      setCybershokeSubmitting(false);
+    }
+  };
+
   const handleDeleteMatch = async (matchId: string) => {
     if (!confirm("Вы уверены, что хотите удалить этот матч?")) return;
 
@@ -199,6 +278,47 @@ export default function AdminMatchesPage() {
           <Plus className="w-4 h-4" />
           <span>Запланировать матч</span>
         </button>
+      </div>
+
+      {/* CYBERSHOKE AUTO-IMPORTER BAR */}
+      <div className="bg-gradient-to-r from-[#0F172A] to-[#0A0A0A] border border-blue-500/30 rounded-2xl p-6 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-blue-950/60 border border-blue-800/60 text-[10px] font-mono font-bold text-blue-400 uppercase mb-2">
+              <Sparkles className="w-3 h-3 text-blue-400" />
+              <span>АВТО-ИМПОРТ МАТЧЕЙ CYBERSHOKE</span>
+            </div>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">
+              Вставьте ссылку на матч Cybershoke
+            </h2>
+            <p className="text-xs text-[#858585] mt-1 max-w-xl">
+              Вставьте ссылку на сыгранный матч (например, <code className="text-blue-400">https://cybershoke.net/match/123456</code>). Система сама определит счёт и составы команд, обновит винрейт и опубликует результат!
+            </p>
+          </div>
+
+          <form onSubmit={handleParseCybershoke} className="flex items-center gap-3 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="https://cybershoke.net/match/..."
+              value={cybershokeUrl}
+              onChange={(e) => setCybershokeUrl(e.target.value)}
+              className="w-full md:w-80 px-4 py-2.5 bg-[#050505] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
+              required
+            />
+            <button
+              type="submit"
+              disabled={cybershokeParsing}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 flex-shrink-0 shadow-lg"
+            >
+              {cybershokeParsing ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              <span>Распознать</span>
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Matches List */}
@@ -499,6 +619,135 @@ export default function AdminMatchesPage() {
                   className="px-5 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase hover:bg-emerald-400 transition-colors shadow-lg"
                 >
                   {scoreSubmitting ? "Сохранение..." : "Сохранить и подвести итоги"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CYBERSHOKE MATCH PREVIEW MODAL */}
+      {isCybershokeModalOpen && cybershokePreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-blue-400 uppercase tracking-widest block">
+                  CYBERSHOKE MATCH MATCHING
+                </span>
+                <h2 className="text-lg font-black text-white uppercase tracking-tight">
+                  Проверка распознанного матча #{cybershokePreview.matchId}
+                </h2>
+              </div>
+              <button onClick={() => setIsCybershokeModalOpen(false)} className="text-[#858585] hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmCybershoke} className="space-y-5 text-xs">
+              {/* Score Display */}
+              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт A</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={cybershokeScoreA}
+                    onChange={(e) => setCybershokeScoreA(Number(e.target.value))}
+                    className="w-16 py-1 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-lg text-white"
+                  />
+                </div>
+                <span className="text-xl font-black text-white font-mono">:</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт B</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={cybershokeScoreB}
+                    onChange={(e) => setCybershokeScoreB(Number(e.target.value))}
+                    className="w-16 py-1 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-lg text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Team A selection */}
+              <div>
+                <label className="block text-[#858585] font-bold uppercase mb-1.5 flex items-center justify-between">
+                  <span>Команда A</span>
+                  {cybershokePreview.teamA && (
+                    <span className="text-emerald-400 text-[10px]">
+                      Совпало игроков: {cybershokePreview.teamA.matchedPlayers}
+                    </span>
+                  )}
+                </label>
+                <select
+                  value={cybershokeTeamAId}
+                  onChange={(e) => setCybershokeTeamAId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white focus:outline-none focus:border-blue-400"
+                  required
+                >
+                  <option value="">-- Выберите Команду A --</option>
+                  {(cybershokePreview.availableTeams || teams).map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} [{t.tag}]
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Team B selection */}
+              <div>
+                <label className="block text-[#858585] font-bold uppercase mb-1.5 flex items-center justify-between">
+                  <span>Команда B</span>
+                  {cybershokePreview.teamB && (
+                    <span className="text-emerald-400 text-[10px]">
+                      Совпало игроков: {cybershokePreview.teamB.matchedPlayers}
+                    </span>
+                  )}
+                </label>
+                <select
+                  value={cybershokeTeamBId}
+                  onChange={(e) => setCybershokeTeamBId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white focus:outline-none focus:border-blue-400"
+                  required
+                >
+                  <option value="">-- Выберите Команду B --</option>
+                  {(cybershokePreview.availableTeams || teams).map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} [{t.tag}]
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tier Selection */}
+              <div>
+                <label className="block text-[#858585] font-bold uppercase mb-1.5">Дивизион (Tier)</label>
+                <select
+                  value={cybershokeTier}
+                  onChange={(e) => setCybershokeTier(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#141414] border border-[#222222] rounded-xl text-white focus:outline-none focus:border-blue-400"
+                >
+                  <option value="TIER 3">TIER 3 (По умолчанию)</option>
+                  <option value="TIER 2">TIER 2</option>
+                  <option value="TIER 1">TIER 1</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#1F1F1F]">
+                <button
+                  type="button"
+                  onClick={() => setIsCybershokeModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-[#141414] border border-[#222222] text-[#858585] hover:text-white font-bold uppercase"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="submit"
+                  disabled={cybershokeSubmitting}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black uppercase transition-colors shadow-lg flex items-center gap-2"
+                >
+                  {cybershokeSubmitting ? "Публикация..." : "Опубликовать и обновить винрейт"}
                 </button>
               </div>
             </form>
