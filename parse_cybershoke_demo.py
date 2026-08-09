@@ -55,7 +55,7 @@ def resolve_cybershoke_demo_and_cookies(match_id: str, original_url: str):
     cookies_dict = {}
     demo_url = None
 
-    # 1. Try DrissionPage Headless Chromium WAF Bypass
+    # Try DrissionPage Headless Chromium WAF Bypass
     try:
         from DrissionPage import ChromiumPage, ChromiumOptions
         options = ChromiumOptions()
@@ -97,31 +97,7 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
     raw_map = header.get("map_name", "") or "de_mirage"
     clean_map = raw_map.split("/")[-1].replace(".bsp", "").strip()
 
-    # 1. Detect Live Match Start tick (to filter out warmup/knife rounds)
-    match_start_tick = 0
-    available_events = []
-    try:
-        available_events = parser.list_game_events()
-    except Exception:
-        available_events = [
-            "round_end", "round_officially_ended", "cs_win_panel_round",
-            "round_announce_match_start", "begin_new_match"
-        ]
-
-    start_events = []
-    for ev_name in ("round_announce_match_start", "begin_new_match"):
-        if ev_name in available_events:
-            try:
-                df = parser.parse_event(ev_name)
-                if df is not None and len(df) > 0:
-                    start_events.extend(df.to_dict("records"))
-            except Exception:
-                pass
-
-    if start_events:
-        match_start_tick = max(int(e.get("tick", 0)) for e in start_events)
-
-    # 2. Extract Player Info & Teams
+    # 1. Extract Player Info & Teams
     group_A = []
     group_B = []
     all_players = []
@@ -147,9 +123,16 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
         group_A = all_players[:5]
         group_B = all_players[5:]
 
-    # 3. Calculate Scores from Round End Events (Filtered by live match start tick)
+    # 2. Calculate Exact MR12 Half-based Scores from Round End Events
     score_A = 0
     score_B = 0
+    round_counter = 0
+
+    available_events = []
+    try:
+        available_events = parser.list_game_events()
+    except Exception:
+        available_events = ["round_end", "round_officially_ended"]
 
     round_end_name = None
     for r_name in ("round_end", "round_officially_ended", "cs_win_panel_round"):
@@ -161,14 +144,25 @@ def parse_cs2_demo_file(demo_path: str, match_id: str) -> dict:
         try:
             df = parser.parse_event(round_end_name)
             if df is not None and len(df) > 0:
-                events = df.to_dict("records")
-                live_events = [e for e in events if int(e.get("tick", 0)) >= match_start_tick] if match_start_tick > 0 else events
-                for e in live_events:
-                    winner = e.get("winner")
-                    if winner == 2:
-                        score_A += 1
-                    elif winner == 3:
-                        score_B += 1
+                for idx, row in df.iterrows():
+                    w_str = str(row.get("winner", "")).strip().upper()
+                    if w_str not in ("2", "3", "CT", "T"):
+                        continue
+                    round_counter += 1
+                    is_ct_win = w_str in ("3", "CT")
+                    is_t_win = w_str in ("2", "T")
+
+                    # MR12 format: rounds 1-12 Team 1 is CT, Team 2 is T. Rounds 13+ sides swap!
+                    if round_counter <= 12:
+                        if is_ct_win:
+                            score_A += 1
+                        elif is_t_win:
+                            score_B += 1
+                    else:
+                        if is_t_win:
+                            score_A += 1
+                        elif is_ct_win:
+                            score_B += 1
         except Exception:
             pass
 
@@ -190,7 +184,6 @@ def process_and_parse(file_path: str, match_id: str) -> dict:
     temp_dir = tempfile.mkdtemp()
     try:
         if header_bytes.startswith(b"PK\x03\x04"):
-            # Zip archive
             zf = zipfile.ZipFile(file_path)
             dem_names = [name for name in zf.namelist() if name.endswith(".dem")]
             if not dem_names:
@@ -198,13 +191,11 @@ def process_and_parse(file_path: str, match_id: str) -> dict:
             dem_path = zf.extract(dem_names[0], temp_dir)
             return parse_cs2_demo_file(dem_path, match_id)
         elif header_bytes.startswith(b"BZ"):
-            # BZ2 archive
             dem_path = os.path.join(temp_dir, f"{match_id}.dem")
             with bz2.open(file_path, "rb") as bz_in, open(dem_path, "wb") as dem_out:
                 dem_out.write(bz_in.read())
             return parse_cs2_demo_file(dem_path, match_id)
         else:
-            # Raw .dem file
             return parse_cs2_demo_file(file_path, match_id)
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -223,7 +214,7 @@ def main():
         print(json.dumps({"error": "demoparser2 Python package not installed"}))
         sys.exit(1)
 
-    # 1. If input is a local file
+    # 1. Local file path
     if os.path.exists(input_val):
         res = process_and_parse(input_val, match_id)
         print(json.dumps(res))

@@ -26,6 +26,32 @@ function extractCybershokeMatchId(urlOrId: string): string | null {
   return match ? match[1] : null;
 }
 
+function cleanString(str: string): string {
+  return str.toLowerCase().replace(/[^a-z0-9а-яё]/gi, "").trim();
+}
+
+function matchesPlayer(demoPlayerName: string, dbPlayerNick: string, dbSteamUrl?: string | null): boolean {
+  const rawDemo = demoPlayerName.toLowerCase().trim();
+  const rawDb = dbPlayerNick.toLowerCase().trim();
+
+  if (rawDemo === rawDb) return true;
+
+  const cDemo = cleanString(demoPlayerName);
+  const cDb = cleanString(dbPlayerNick);
+
+  if (cDemo.length >= 3 && cDb.length >= 3) {
+    if (cDemo === cDb) return true;
+    if (cDemo.includes(cDb) || cDb.includes(cDemo)) return true;
+  }
+
+  if (dbSteamUrl) {
+    const cSteam = cleanString(dbSteamUrl);
+    if (cSteam.length >= 3 && (rawDemo.includes(cSteam) || cSteam.includes(rawDemo))) return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: Request) {
   if (!isAuthorized()) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
@@ -220,21 +246,14 @@ export async function POST(req: Request) {
     let detectedTeamB: any = null;
     let matchedCountA = 0;
     let matchedCountB = 0;
-
     // Roster Overlap Matcher for Team 1
     let maxVotesA = 0;
     for (const t of allTeams) {
       let votes = 0;
       for (const m of t.memberships) {
-        const pNick = m.player.nickname.toLowerCase().trim();
-        const pSteam = (m.player.steamUrl || "").toLowerCase().trim();
-
         const isMatched =
-          team1Players.some((p) => {
-            const lowP = String(p).toLowerCase().trim();
-            return lowP === pNick || lowP.includes(pNick) || pNick.includes(lowP) || (pSteam && lowP.includes(pSteam));
-          }) ||
-          (rawText && rawText.toLowerCase().includes(pNick));
+          team1Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
+          (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
 
         if (isMatched) votes++;
       }
@@ -251,15 +270,9 @@ export async function POST(req: Request) {
       if (detectedTeamA && t.id === detectedTeamA.id) continue;
       let votes = 0;
       for (const m of t.memberships) {
-        const pNick = m.player.nickname.toLowerCase().trim();
-        const pSteam = (m.player.steamUrl || "").toLowerCase().trim();
-
         const isMatched =
-          team2Players.some((p) => {
-            const lowP = String(p).toLowerCase().trim();
-            return lowP === pNick || lowP.includes(pNick) || pNick.includes(lowP) || (pSteam && lowP.includes(pSteam));
-          }) ||
-          (rawText && rawText.toLowerCase().includes(pNick));
+          team2Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
+          (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
 
         if (isMatched) votes++;
       }
