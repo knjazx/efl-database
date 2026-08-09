@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { execFile } from "child_process";
+import path from "path";
+import util from "util";
+
+const execFilePromise = util.promisify(execFile);
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -104,7 +109,7 @@ export async function POST(req: Request) {
         // Log activity
         await prisma.activityLog.create({
           data: {
-            description: `Импортирован матч: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
+            description: `Импортирован матч Cybershoke: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
           },
         });
       }
@@ -119,7 +124,35 @@ export async function POST(req: Request) {
     let team2Players: string[] = Array.isArray(clientTeam2Players) ? clientTeam2Players : [];
     const matchId = matchUrl ? extractCybershokeMatchId(matchUrl) : "DEMO_PARSED";
 
-    // If raw text or demo parse text was provided, parse scores & nicknames from it!
+    // 1. Try Python demoparser2 execution if matchUrl provided and client didn't supply full roster
+    if (matchUrl && (team1Players.length === 0 || team2Players.length === 0)) {
+      try {
+        const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
+        const pythonExec = "python";
+        const { stdout } = await execFilePromise(pythonExec, [pythonScript, matchUrl], {
+          timeout: 15000,
+          env: { ...process.env, PATH: `C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;${process.env.PATH}` },
+        });
+
+        if (stdout) {
+          const pyRes = JSON.parse(stdout.trim());
+          if (pyRes.success) {
+            rawScoreA = pyRes.scoreA ?? rawScoreA;
+            rawScoreB = pyRes.scoreB ?? rawScoreB;
+            if (Array.isArray(pyRes.team1Players) && pyRes.team1Players.length > 0) {
+              team1Players = pyRes.team1Players;
+            }
+            if (Array.isArray(pyRes.team2Players) && pyRes.team2Players.length > 0) {
+              team2Players = pyRes.team2Players;
+            }
+          }
+        }
+      } catch (pyErr) {
+        console.warn("Python demoparser2 execution skipped:", pyErr);
+      }
+    }
+
+    // 2. If raw text or demo parse text was provided, parse scores & nicknames from it
     if (rawText && typeof rawText === "string") {
       const scoreMatch = rawText.match(/(\d{1,2})\s*[:\-]\s*(\d{1,2})/);
       if (scoreMatch) {
