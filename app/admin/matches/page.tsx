@@ -687,6 +687,36 @@ export default function AdminMatchesPage() {
             </div>
 
             <form onSubmit={handleConfirmCybershoke} className="space-y-5 text-xs">
+              {/* Warning notice if zero matches */}
+              {(!cybershokePreview.teamA || cybershokePreview.teamA.matchedPlayers === 0) &&
+                (!cybershokePreview.teamB || cybershokePreview.teamB.matchedPlayers === 0) && (
+                  <div className="bg-amber-950/40 border border-amber-500/50 p-3 rounded-xl text-[11px] text-amber-200 space-y-2">
+                    <p className="font-bold flex items-center gap-1.5 text-amber-400">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Вставьте вывод демо-парсера / никнеймы игроков для 100% авто-подбора</span>
+                    </p>
+                    <p className="text-[10px] text-[#A3A3A3]">
+                      Сервер Cybershoke запросил проверку браузера. Скопируйте текст из вашего парсера демо или список никнеймов ниже, чтобы система моментально определила команды:
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Вставьте никнеймы или текст демо..."
+                        value={cybershokeUrl}
+                        onChange={(e) => setCybershokeUrl(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-[#050505] border border-[#333333] rounded-lg text-white text-[11px] focus:outline-none focus:border-amber-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleParseCybershoke}
+                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold rounded-lg text-[10px] uppercase flex-shrink-0"
+                      >
+                        Пересчитать
+                      </button>
+                    </div>
+                  </div>
+                )}
+
               {/* Score Display */}
               <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-4">
                 <div className="flex flex-col items-center">
@@ -716,10 +746,12 @@ export default function AdminMatchesPage() {
               <div>
                 <label className="block text-[#858585] font-bold uppercase mb-1.5 flex items-center justify-between">
                   <span>Команда A</span>
-                  {cybershokePreview.teamA && (
-                    <span className="text-emerald-400 text-[10px]">
-                      Совпало игроков: {cybershokePreview.teamA.matchedPlayers}
+                  {cybershokePreview.teamA && cybershokePreview.teamA.matchedPlayers > 0 ? (
+                    <span className="text-emerald-400 text-[10px] font-bold">
+                      ✓ Совпало игроков: {cybershokePreview.teamA.matchedPlayers}
                     </span>
+                  ) : (
+                    <span className="text-[#858585] text-[10px]">Выберите вручную или пересчитайте по тексту</span>
                   )}
                 </label>
                 <select
@@ -741,10 +773,12 @@ export default function AdminMatchesPage() {
               <div>
                 <label className="block text-[#858585] font-bold uppercase mb-1.5 flex items-center justify-between">
                   <span>Команда B</span>
-                  {cybershokePreview.teamB && (
-                    <span className="text-emerald-400 text-[10px]">
-                      Совпало игроков: {cybershokePreview.teamB.matchedPlayers}
+                  {cybershokePreview.teamB && cybershokePreview.teamB.matchedPlayers > 0 ? (
+                    <span className="text-emerald-400 text-[10px] font-bold">
+                      ✓ Совпало игроков: {cybershokePreview.teamB.matchedPlayers}
                     </span>
+                  ) : (
+                    <span className="text-[#858585] text-[10px]">Выберите вручную или пересчитайте по тексту</span>
                   )}
                 </label>
                 <select

@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       rawText,
     } = body;
 
-    // Handle Confirmation Phase
+    // Handle Confirmation & Publishing Phase
     if (action === "CONFIRM") {
       if (!teamAId || !teamBId) {
         return NextResponse.json({ success: false, error: "Выберите обе команды" }, { status: 400 });
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
         // Log activity
         await prisma.activityLog.create({
           data: {
-            description: `Импортирован матч Cybershoke: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
+            description: `Импортирован матч: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
           },
         });
       }
@@ -127,44 +127,12 @@ export async function POST(req: Request) {
         rawScoreB = parseInt(scoreMatch[2], 10);
       }
 
-      // Extract all word tokens / nicks from raw text
       const tokens = rawText
         .split(/[\s,;:|\n\r]+/)
         .map((t) => t.trim())
-        .filter((t) => t.length >= 3 && !/^\d+$/.test(t));
+        .filter((t) => t.length >= 2 && !/^\d+$/.test(t));
 
       if (team1Players.length === 0) team1Players = tokens;
-    }
-
-    // Try server-side fetch if matchUrl provided and client didn't supply players
-    if (matchUrl && team1Players.length === 0 && team2Players.length === 0) {
-      try {
-        const parsedId = extractCybershokeMatchId(matchUrl);
-        if (parsedId) {
-          const cyRes = await fetch(`https://cybershoke.net/api/matches/${parsedId}`, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
-          });
-
-          if (cyRes.ok) {
-            const data = await cyRes.json();
-            if (data && data.match) {
-              rawScoreA = data.match.team1_score ?? data.match.score_team1 ?? rawScoreA;
-              rawScoreB = data.match.team2_score ?? data.match.score_team2 ?? rawScoreB;
-
-              if (Array.isArray(data.match.team1_players)) {
-                team1Players = data.match.team1_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
-              }
-              if (Array.isArray(data.match.team2_players)) {
-                team2Players = data.match.team2_players.map((p: any) => p.name || p.nickname || p.steam_id || String(p));
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("Cybershoke API fetch warning:", err);
-      }
     }
 
     // Query DB Teams & Players to match compositions accurately
@@ -190,7 +158,6 @@ export async function POST(req: Request) {
         const pNick = m.player.nickname.toLowerCase().trim();
         const pSteam = (m.player.steamUrl || "").toLowerCase().trim();
 
-        // Check if player is present in team1Players or rawText
         const isMatched =
           team1Players.some((p) => {
             const lowP = String(p).toLowerCase().trim();
@@ -232,11 +199,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback default teams if none matched
-    if (!detectedTeamA) detectedTeamA = allTeams[0] || null;
-    if (!detectedTeamB) {
-      detectedTeamB = allTeams.find((t) => t.id !== detectedTeamA?.id) || allTeams[1] || null;
-    }
+    // Only set detected team if at least 1 player matched! Otherwise leave null so admin chooses manually!
+    if (matchedCountA === 0) detectedTeamA = null;
+    if (matchedCountB === 0) detectedTeamB = null;
 
     return NextResponse.json({
       success: true,
@@ -253,6 +218,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("POST /api/admin/import-cybershoke error:", error);
-    return NextResponse.json({ success: false, error: "Ошибка при распознавании матча Cybershoke" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Ошибка при распознавании матча" }, { status: 500 });
   }
 }
