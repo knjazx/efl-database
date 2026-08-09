@@ -13,7 +13,7 @@ model Team {
   name              String
   tag               String
   slug              String           @unique
-  tier              String           @default("TIER 1") // TIER 1, TIER 2, TIER 3
+  tier              String           @default("TIER 3") // TIER 1, TIER 2, TIER 3
   logoUrl           String
   description       String?
   frameStyle        String           @default("NONE") // NONE, GOLD, SILVER, COPPER, NEON, CRIMSON

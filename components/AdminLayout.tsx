@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Shield, Users, LogOut, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Shield, Users, LogOut, ArrowLeft, Trophy, Calendar } from "lucide-react";
 import { useState } from "react";
 
 interface AdminLayoutProps {
@@ -25,6 +25,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Teams", href: "/admin/teams", icon: Shield },
     { label: "Players", href: "/admin/players", icon: Users },
+    { label: "Rankings", href: "/admin/rankings", icon: Trophy },
+    { label: "Matches", href: "/admin/matches", icon: Calendar },
   ];
 
   return (

@@ -353,22 +353,6 @@ export default function AdminTeamsPage() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => {
-                                setRankingTeam(t);
-                                setRankingTier(t.tier || "TIER 1");
-                                setRankingPoints((t as any).points || 0);
-                                setRankingWins((t as any).wins || 0);
-                                setRankingLosses((t as any).losses || 0);
-                                setIsRankingsModalOpen(true);
-                              }}
-                              className="px-2.5 py-1.5 rounded border border-[#333333] bg-[#181818] hover:bg-[#252525] text-amber-300 font-bold text-[11px] transition-colors flex items-center gap-1"
-                              title="Редактировать очками и Тир"
-                            >
-                              <Trophy className="w-3 h-3 text-amber-400" />
-                              <span>Рейтинг</span>
-                            </button>
-
-                            <button
                               onClick={() => openBanModal(t)}
                               className={`px-2.5 py-1.5 rounded border text-[11px] font-bold transition-colors flex items-center gap-1 ${
                                 ban.isBanned
