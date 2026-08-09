@@ -34,6 +34,8 @@ function matchesPlayer(demoPlayerName: string, dbPlayerNick: string, dbSteamUrl?
   const rawDemo = demoPlayerName.toLowerCase().trim();
   const rawDb = dbPlayerNick.toLowerCase().trim();
 
+  if (rawDemo.startsWith("http") || rawDemo.includes("cybershoke")) return false;
+
   if (rawDemo === rawDb) return true;
 
   const cDemo = cleanString(demoPlayerName);
@@ -231,8 +233,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. If raw text or demo parse text was provided, parse scores & nicknames from it
-    if (rawText && typeof rawText === "string") {
+    // 2. If raw text or demo parse text was provided (and isn't just a raw URL), parse scores & nicknames from it
+    if (rawText && typeof rawText === "string" && !/^https?:\/\//i.test(rawText.trim())) {
       const scoreMatch = rawText.match(/(\d{1,2})\s*[:\-]\s*(\d{1,2})/);
       if (scoreMatch) {
         rawScoreA = parseInt(scoreMatch[1], 10);
@@ -242,7 +244,7 @@ export async function POST(req: Request) {
       const tokens = rawText
         .split(/[\s,;:|\n\r]+/)
         .map((t) => t.trim())
-        .filter((t) => t.length >= 2 && !/^\d+$/.test(t));
+        .filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !t.startsWith("http"));
 
       if (team1Players.length === 0) team1Players = tokens;
     }
@@ -270,9 +272,7 @@ export async function POST(req: Request) {
       let votes = 0;
       const names: string[] = [];
       for (const m of t.memberships) {
-        const isMatched =
-          team1Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
-          (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
+        const isMatched = team1Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl));
 
         if (isMatched) {
           votes++;
@@ -294,9 +294,7 @@ export async function POST(req: Request) {
       let votes = 0;
       const names: string[] = [];
       for (const m of t.memberships) {
-        const isMatched =
-          team2Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl)) ||
-          (rawText && matchesPlayer(rawText, m.player.nickname, m.player.steamUrl));
+        const isMatched = team2Players.some((p) => matchesPlayer(p, m.player.nickname, m.player.steamUrl));
 
         if (isMatched) {
           votes++;

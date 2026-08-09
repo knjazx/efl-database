@@ -240,12 +240,13 @@ export default function AdminMatchesPage() {
       }
 
       // 2. Send parsed data to backend API for database roster matching
+      const isUrl = /^https?:\/\//i.test(cybershokeUrl.trim());
       const res = await fetch("/api/admin/import-cybershoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           matchUrl: cybershokeUrl,
-          rawText: cybershokeUrl,
+          rawText: isUrl ? "" : cybershokeUrl,
           clientTeam1Players,
           clientTeam2Players,
           clientScoreA,
