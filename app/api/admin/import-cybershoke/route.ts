@@ -187,32 +187,47 @@ export async function POST(req: Request) {
     // 1. Try demoparser2 execution on uploaded file or match URL
     const targetInput = uploadedFilePath || matchUrl;
     if (targetInput) {
-      try {
-        const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
-        const { stdout } = await execFilePromise("python", [pythonScript, targetInput], {
-          timeout: 120000,
-          env: { ...process.env, PATH: `C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;${process.env.PATH}` },
-        });
+      const pythonCommands = process.env.PYTHON_PATH
+        ? [process.env.PYTHON_PATH]
+        : process.platform === "win32"
+        ? ["python", "python3", "C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"]
+        : ["python3", "python", "/usr/bin/python3", "/usr/local/bin/python3"];
 
-        if (stdout) {
-          const pyRes = JSON.parse(stdout.trim());
-          if (pyRes.success) {
-            rawScoreA = pyRes.scoreA ?? rawScoreA;
-            rawScoreB = pyRes.scoreB ?? rawScoreB;
-            if (Array.isArray(pyRes.team1Players) && pyRes.team1Players.length > 0) {
-              team1Players = pyRes.team1Players;
-            }
-            if (Array.isArray(pyRes.team2Players) && pyRes.team2Players.length > 0) {
-              team2Players = pyRes.team2Players;
+      const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
+      let parsedSuccessfully = false;
+
+      for (const pyCmd of pythonCommands) {
+        if (parsedSuccessfully) break;
+        try {
+          const { stdout } = await execFilePromise(pyCmd, [pythonScript, targetInput], {
+            timeout: 120000,
+            env: {
+              ...process.env,
+              PATH: `${process.env.PATH || ""};C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;/usr/bin;/usr/local/bin`,
+            },
+          });
+
+          if (stdout) {
+            const pyRes = JSON.parse(stdout.trim());
+            if (pyRes.success) {
+              rawScoreA = pyRes.scoreA ?? rawScoreA;
+              rawScoreB = pyRes.scoreB ?? rawScoreB;
+              if (Array.isArray(pyRes.team1Players) && pyRes.team1Players.length > 0) {
+                team1Players = pyRes.team1Players;
+              }
+              if (Array.isArray(pyRes.team2Players) && pyRes.team2Players.length > 0) {
+                team2Players = pyRes.team2Players;
+              }
+              parsedSuccessfully = true;
             }
           }
+        } catch (pyErr) {
+          console.warn(`Python execution attempt '${pyCmd}' failed:`, pyErr);
         }
-      } catch (pyErr) {
-        console.warn("demoparser2 execution skipped:", pyErr);
-      } finally {
-        if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
-          try { fs.unlinkSync(uploadedFilePath); } catch (e) {}
-        }
+      }
+
+      if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+        try { fs.unlinkSync(uploadedFilePath); } catch (e) {}
       }
     }
 

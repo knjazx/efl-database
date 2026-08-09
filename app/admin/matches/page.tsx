@@ -758,6 +758,32 @@ export default function AdminMatchesPage() {
                 </div>
               </div>
 
+              {/* Raw Text / Roster Paste Box for Manual / Serverless Fallback */}
+              <div className="bg-[#050505] p-3 rounded-xl border border-[#1A1A1A] space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono font-bold text-amber-400 uppercase">
+                  <span>Текст демки / Список никнеймов игроков</span>
+                  <span className="text-[#666666]">Для быстрых совпадений</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Вставьте никнеймы или вывод бота для моментального подбора..."
+                    value={cybershokeUrl}
+                    onChange={(e) => setCybershokeUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-[#141414] border border-[#222222] rounded-lg text-white text-[11px] focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleParseCybershoke}
+                    disabled={cybershokeParsing}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold rounded-lg text-[10px] uppercase flex-shrink-0 flex items-center gap-1"
+                  >
+                    {cybershokeParsing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    <span>Подписать</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Demo Players Display */}
               {(cybershokePreview.team1Players?.length > 0 || cybershokePreview.team2Players?.length > 0) && (
                 <div className="grid grid-cols-2 gap-3">

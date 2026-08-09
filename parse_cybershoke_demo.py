@@ -67,6 +67,11 @@ def resolve_cybershoke_demo_and_cookies(match_id: str, original_url: str):
             r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
             r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+            "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome-stable",
+            "/usr/bin/chromium",
+            "/usr/bin/chromium-browser",
+            "/snap/bin/chromium",
         ]:
             if os.path.exists(binary):
                 options.set_browser_path(binary)
