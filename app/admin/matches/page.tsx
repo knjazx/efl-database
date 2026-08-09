@@ -168,6 +168,37 @@ export default function AdminMatchesPage() {
     }
   };
 
+  const handleFileUploadDemo = async (file: File) => {
+    if (!file) return;
+
+    setCybershokeParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append("demoFile", file);
+
+      const res = await fetch("/api/admin/import-cybershoke", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setCybershokePreview(data);
+        setCybershokeScoreA(data.scoreA ?? 13);
+        setCybershokeScoreB(data.scoreB ?? 9);
+        setCybershokeTeamAId(data.teamA ? data.teamA.id : (teams[0]?.id || ""));
+        setCybershokeTeamBId(data.teamB ? data.teamB.id : (teams[1]?.id || ""));
+        setIsCybershokeModalOpen(true);
+      } else {
+        alert(data.error || "Не удалось распарсить файл демо");
+      }
+    } catch (err) {
+      alert("Ошибка загрузки файла демо");
+    } finally {
+      setCybershokeParsing(false);
+    }
+  };
+
   const handleParseCybershoke = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cybershokeUrl.trim()) return;
@@ -338,28 +369,43 @@ export default function AdminMatchesPage() {
             </p>
           </div>
 
-          <form onSubmit={handleParseCybershoke} className="flex items-center gap-3 w-full md:w-auto">
-            <input
-              type="text"
-              placeholder="Ссылка на матч или текст парсера демо..."
-              value={cybershokeUrl}
-              onChange={(e) => setCybershokeUrl(e.target.value)}
-              className="w-full md:w-80 px-4 py-2.5 bg-[#050505] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
-              required
-            />
-            <button
-              type="submit"
-              disabled={cybershokeParsing}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 flex-shrink-0 shadow-lg"
-            >
-              {cybershokeParsing ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              <span>Распознать</span>
-            </button>
-          </form>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <form onSubmit={handleParseCybershoke} className="flex items-center gap-3 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Ссылка на матч или текст демо..."
+                value={cybershokeUrl}
+                onChange={(e) => setCybershokeUrl(e.target.value)}
+                className="w-full sm:w-72 px-4 py-2.5 bg-[#050505] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
+                required
+              />
+              <button
+                type="submit"
+                disabled={cybershokeParsing}
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 flex-shrink-0 shadow-lg"
+              >
+                {cybershokeParsing ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                <span>Распознать</span>
+              </button>
+            </form>
+
+            <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] hover:bg-[#202020] text-amber-300 font-extrabold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 flex-shrink-0 shadow-lg">
+              <input
+                type="file"
+                accept=".dem,.bz2"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUploadDemo(file);
+                }}
+              />
+              <span>Загрузить .dem</span>
+            </label>
+          </div>
         </div>
       </div>
 

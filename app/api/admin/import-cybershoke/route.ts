@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { execFile } from "child_process";
 import path from "path";
 import util from "util";
+import fs from "fs";
+import tempfile from "os";
 
 const execFilePromise = util.promisify(execFile);
 
@@ -30,7 +32,35 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let body: any = {};
+    let uploadedFilePath: string | null = null;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("demoFile") as File | null;
+      if (file) {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const tempDir = tempfile.tmpdir();
+        uploadedFilePath = path.join(tempDir, `upload_${Date.now()}_${file.name}`);
+        fs.writeFileSync(uploadedFilePath, buffer);
+      }
+      body = {
+        action: formData.get("action")?.toString(),
+        matchUrl: formData.get("matchUrl")?.toString(),
+        teamAId: formData.get("teamAId")?.toString(),
+        teamBId: formData.get("teamBId")?.toString(),
+        scoreA: formData.get("scoreA")?.toString(),
+        scoreB: formData.get("scoreB")?.toString(),
+        bestOf: formData.get("bestOf")?.toString(),
+        tier: formData.get("tier")?.toString(),
+        rawText: formData.get("rawText")?.toString(),
+      };
+    } else {
+      body = await req.json();
+    }
+
     const {
       matchUrl,
       action,
@@ -109,9 +139,13 @@ export async function POST(req: Request) {
         // Log activity
         await prisma.activityLog.create({
           data: {
-            description: `Импортирован матч Cybershoke: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
+            description: `Импортирован матч Cybershoke/Demo: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
           },
         });
+      }
+
+      if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+        try { fs.unlinkSync(uploadedFilePath); } catch (e) {}
       }
 
       return NextResponse.json({ success: true, match: newMatch });
@@ -124,13 +158,13 @@ export async function POST(req: Request) {
     let team2Players: string[] = Array.isArray(clientTeam2Players) ? clientTeam2Players : [];
     const matchId = matchUrl ? extractCybershokeMatchId(matchUrl) : "DEMO_PARSED";
 
-    // 1. Try Python demoparser2 execution if matchUrl provided and client didn't supply full roster
-    if (matchUrl && (team1Players.length === 0 || team2Players.length === 0)) {
+    // 1. Try demoparser2 execution on uploaded file or match URL
+    const targetInput = uploadedFilePath || matchUrl;
+    if (targetInput) {
       try {
         const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
-        const pythonExec = "python";
-        const { stdout } = await execFilePromise(pythonExec, [pythonScript, matchUrl], {
-          timeout: 15000,
+        const { stdout } = await execFilePromise("python", [pythonScript, targetInput], {
+          timeout: 20000,
           env: { ...process.env, PATH: `C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;${process.env.PATH}` },
         });
 
@@ -148,7 +182,11 @@ export async function POST(req: Request) {
           }
         }
       } catch (pyErr) {
-        console.warn("Python demoparser2 execution skipped:", pyErr);
+        console.warn("demoparser2 execution skipped:", pyErr);
+      } finally {
+        if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+          try { fs.unlinkSync(uploadedFilePath); } catch (e) {}
+        }
       }
     }
 
@@ -232,7 +270,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Only set detected team if at least 1 player matched! Otherwise leave null so admin chooses manually!
     if (matchedCountA === 0) detectedTeamA = null;
     if (matchedCountB === 0) detectedTeamB = null;
 
@@ -251,6 +288,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("POST /api/admin/import-cybershoke error:", error);
-    return NextResponse.json({ success: false, error: "Ошибка при распознавании матча" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Ошибка при обработке файла демо или ссылки" }, { status: 500 });
   }
 }
