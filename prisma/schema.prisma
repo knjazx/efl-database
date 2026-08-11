@@ -89,6 +89,8 @@ model Match {
   bestOf      Int       @default(1) // 1 for BO1, 3 for BO3, 5 for BO5
   tier        String    @default("TIER 1")
   winnerId    String?
+  isForfeit   Boolean   @default(false)
+  forfeitReason String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

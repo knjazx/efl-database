@@ -19,7 +19,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const matchId = params.id;
     const body = await req.json();
-    const { scoreA, scoreB, status, bestOf, scheduledAt } = body;
+    const { scoreA, scoreB, status, bestOf, scheduledAt, isForfeit, forfeitReason } = body;
 
     const existingMatch = await prisma.match.findUnique({
       where: { id: matchId },
@@ -54,6 +54,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         scheduledAt: scheduledAt ? new Date(scheduledAt) : existingMatch.scheduledAt,
         finishedAt: nextStatus === "FINISHED" ? new Date() : existingMatch.finishedAt,
         winnerId,
+        isForfeit: typeof isForfeit === "boolean" ? isForfeit : existingMatch.isForfeit,
+        forfeitReason: forfeitReason !== undefined ? forfeitReason : existingMatch.forfeitReason,
       },
       include: {
         teamA: true,

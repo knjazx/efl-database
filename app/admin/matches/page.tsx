@@ -25,6 +25,8 @@ interface MatchItem {
   bestOf: number;
   tier: string;
   winnerId?: string;
+  isForfeit?: boolean;
+  forfeitReason?: string;
   teamA: TeamOption;
   teamB: TeamOption;
 }
@@ -50,6 +52,8 @@ export default function AdminMatchesPage() {
   const [scoreA, setScoreA] = useState<number>(0);
   const [scoreB, setScoreB] = useState<number>(0);
   const [matchStatus, setMatchStatus] = useState<string>("FINISHED");
+  const [scoreIsForfeit, setScoreIsForfeit] = useState(false);
+  const [scoreForfeitReason, setScoreForfeitReason] = useState("");
   const [scoreSubmitting, setScoreSubmitting] = useState(false);
 
   // Cybershoke Importer State
@@ -62,6 +66,8 @@ export default function AdminMatchesPage() {
   const [cybershokeScoreA, setCybershokeScoreA] = useState(13);
   const [cybershokeScoreB, setCybershokeScoreB] = useState(9);
   const [cybershokeTier, setCybershokeTier] = useState("TIER 3");
+  const [cybershokeIsForfeit, setCybershokeIsForfeit] = useState(false);
+  const [cybershokeForfeitReason, setCybershokeForfeitReason] = useState("");
   const [cybershokeSubmitting, setCybershokeSubmitting] = useState(false);
 
   const fetchData = async () => {
@@ -150,6 +156,8 @@ export default function AdminMatchesPage() {
           scoreA,
           scoreB,
           status: matchStatus,
+          isForfeit: scoreIsForfeit,
+          forfeitReason: scoreForfeitReason,
         }),
       });
 
@@ -291,6 +299,8 @@ export default function AdminMatchesPage() {
           scoreA: cybershokeScoreA,
           scoreB: cybershokeScoreB,
           tier: cybershokeTier,
+          isForfeit: cybershokeIsForfeit,
+          forfeitReason: cybershokeForfeitReason,
         }),
       });
 
@@ -694,6 +704,51 @@ export default function AdminMatchesPage() {
                 </select>
               </div>
 
+              {/* Quick Technical Forfeit (ТП) Controls */}
+              <div className="bg-[#050505] p-3 rounded-xl border border-red-900/30 space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono font-bold text-red-400 uppercase">
+                  <span>Техническое поражение (ТП)</span>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-[#C0C0C0] hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={scoreIsForfeit}
+                      onChange={(e) => setScoreIsForfeit(e.target.checked)}
+                      className="rounded border-[#333333] bg-[#141414] text-red-500 focus:ring-0"
+                    />
+                    <span>Пометить как ТП</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScoreA(0);
+                      setScoreB(13);
+                      setMatchStatus("FINISHED");
+                      setScoreIsForfeit(true);
+                      setScoreForfeitReason(`Техническое поражение команде ${selectedMatch.teamA.name}`);
+                    }}
+                    className="px-2.5 py-2 rounded-lg bg-red-950/50 border border-red-800/80 hover:bg-red-900/80 text-red-300 text-[10px] font-extrabold uppercase transition-colors text-center"
+                  >
+                    🔴 ТП Команде A (0:13)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScoreA(13);
+                      setScoreB(0);
+                      setMatchStatus("FINISHED");
+                      setScoreIsForfeit(true);
+                      setScoreForfeitReason(`Техническое поражение команде ${selectedMatch.teamB.name}`);
+                    }}
+                    className="px-2.5 py-2 rounded-lg bg-red-950/50 border border-red-800/80 hover:bg-red-900/80 text-red-300 text-[10px] font-extrabold uppercase transition-colors text-center"
+                  >
+                    🔴 ТП Команде B (13:0)
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
@@ -757,27 +812,60 @@ export default function AdminMatchesPage() {
               )}
 
               {/* Score Display */}
-              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex items-center justify-center gap-6">
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт A</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={cybershokeScoreA}
-                    onChange={(e) => setCybershokeScoreA(Number(e.target.value))}
-                    className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
-                  />
+              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex flex-col gap-3">
+                <div className="flex items-center justify-center gap-6">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт A</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={cybershokeScoreA}
+                      onChange={(e) => setCybershokeScoreA(Number(e.target.value))}
+                      className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
+                    />
+                  </div>
+                  <span className="text-2xl font-black text-[#444444] font-mono mt-4">:</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт B</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={cybershokeScoreB}
+                      onChange={(e) => setCybershokeScoreB(Number(e.target.value))}
+                      className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
+                    />
+                  </div>
                 </div>
-                <span className="text-2xl font-black text-[#444444] font-mono mt-4">:</span>
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт B</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={cybershokeScoreB}
-                    onChange={(e) => setCybershokeScoreB(Number(e.target.value))}
-                    className="w-16 py-1.5 bg-[#141414] border border-[#333333] rounded-lg text-center font-mono font-black text-xl text-white focus:border-blue-400 focus:outline-none"
-                  />
+
+                {/* Quick Forfeit (ТП) Buttons inside Preview Modal */}
+                <div className="pt-2 border-t border-[#181818] flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono font-bold text-red-400 uppercase">Тех. поражение:</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCybershokeScoreA(0);
+                        setCybershokeScoreB(13);
+                        setCybershokeIsForfeit(true);
+                        setCybershokeForfeitReason("Техническое поражение Команде A");
+                      }}
+                      className="px-2 py-1 rounded bg-red-950/60 border border-red-800/80 hover:bg-red-900 text-red-300 text-[10px] font-extrabold uppercase transition-colors"
+                    >
+                      🔴 ТП Команде A (0:13)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCybershokeScoreA(13);
+                        setCybershokeScoreB(0);
+                        setCybershokeIsForfeit(true);
+                        setCybershokeForfeitReason("Техническое поражение Команде B");
+                      }}
+                      className="px-2 py-1 rounded bg-red-950/60 border border-red-800/80 hover:bg-red-900 text-red-300 text-[10px] font-extrabold uppercase transition-colors"
+                    >
+                      🔴 ТП Команде B (13:0)
+                    </button>
+                  </div>
                 </div>
               </div>
 

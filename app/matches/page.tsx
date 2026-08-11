@@ -26,6 +26,8 @@ interface MatchItem {
   bestOf: number;
   tier: string;
   winnerId?: string;
+  isForfeit?: boolean;
+  forfeitReason?: string;
   teamA: MatchTeam;
   teamB: MatchTeam;
 }
@@ -254,9 +256,15 @@ export default function MatchesPage() {
                       >
                         {/* Header info */}
                         <div className="flex items-center justify-between border-b border-[#181818] pb-3 text-xs font-mono">
-                          <span className="px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 font-extrabold text-[10px]">
-                            ЗАВЕРШЕН (BO{match.bestOf})
-                          </span>
+                          {match.isForfeit ? (
+                            <span className="px-2 py-0.5 rounded bg-red-950/60 border border-red-800/80 text-red-400 font-black text-[10px] uppercase">
+                              ТЕХ. ПОРАЖЕНИЕ (ТП)
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 font-extrabold text-[10px]">
+                              ЗАВЕРШЕН (BO{match.bestOf})
+                            </span>
+                          )}
                           <span className="text-[#858585] text-[11px] font-bold">{formattedDate}</span>
                         </div>
 

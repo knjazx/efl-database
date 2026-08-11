@@ -121,6 +121,11 @@ export async function POST(req: Request) {
       if (sA > sB) winnerId = teamAId;
       else if (sB > sA) winnerId = teamBId;
 
+      const {
+        isForfeit,
+        forfeitReason,
+      } = body;
+
       const newMatch = await prisma.match.create({
         data: {
           teamAId,
@@ -133,6 +138,8 @@ export async function POST(req: Request) {
           bestOf: Number(bestOf) || 1,
           tier: tier || "TIER 3",
           winnerId,
+          isForfeit: Boolean(isForfeit),
+          forfeitReason: forfeitReason || null,
         },
         include: {
           teamA: true,
