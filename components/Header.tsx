@@ -30,7 +30,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full h-[76px] bg-[#050505]/90 backdrop-blur-md border-b border-[#222222]">
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
         {/* Left: EFL Branding */}
-        <Link href="/teams" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group">
           <div className="h-10 px-2 rounded-lg bg-[#0A0A0A] border border-[#222222] group-hover:border-[#444444] transition-colors flex items-center justify-center overflow-hidden flex-shrink-0">
             <img src="/efl-logo.jpg" alt="EFL Logo" className="h-7 w-auto object-contain" />
           </div>
@@ -45,11 +45,25 @@ export function Header() {
         </Link>
 
         {/* Center: Public Navigation */}
-        <nav className="flex items-center gap-8">
+        <nav className="flex items-center gap-6 sm:gap-8">
+          <Link
+            href="/"
+            className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
+              pathname === "/"
+                ? "text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            <span>ГЛАВНАЯ</span>
+            {pathname === "/" && (
+              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
+            )}
+          </Link>
+
           <Link
             href="/teams"
             className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
-              pathname.startsWith("/teams") || pathname === "/"
+              pathname.startsWith("/teams")
                 ? "text-white"
                 : "text-[#858585] hover:text-white"
             }`}
@@ -60,7 +74,7 @@ export function Header() {
                 {teamCount}
               </span>
             )}
-            {(pathname.startsWith("/teams") || pathname === "/") && (
+            {pathname.startsWith("/teams") && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
             )}
           </Link>
