@@ -19,6 +19,7 @@ interface RankedTeam {
   losses: number;
   matchesPlayed: number;
   playerCount: number;
+  activePlayers?: string[];
   isDisqualified?: boolean;
   disqualifiedUntil?: Date | string | null;
   disqualifyReason?: string | null;
@@ -57,7 +58,11 @@ export default function RankingsPage() {
       // Search Query Filter
       if (searchQuery.trim() !== "") {
         const q = searchQuery.toLowerCase();
-        return team.name.toLowerCase().includes(q) || team.tag.toLowerCase().includes(q);
+        return (
+          team.name.toLowerCase().includes(q) ||
+          team.tag.toLowerCase().includes(q) ||
+          (team.activePlayers && team.activePlayers.some((p) => p.toLowerCase().includes(q)))
+        );
       }
 
       return true;
@@ -206,9 +211,15 @@ export default function RankingsPage() {
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] font-mono text-[#858585] tracking-widest uppercase">
-                              [{team.tag}]
-                            </span>
+                            {team.activePlayers && team.activePlayers.length > 0 ? (
+                              <span className="text-[11px] font-medium text-[#858585] tracking-wide block truncate max-w-sm">
+                                {team.activePlayers.join(" • ")}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono text-[#666666] tracking-widest uppercase">
+                                [{team.tag}]
+                              </span>
+                            )}
                           </div>
                         </Link>
                       </td>

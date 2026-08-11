@@ -19,6 +19,10 @@ export async function GET() {
       include: {
         memberships: {
           where: { status: "ACTIVE" },
+          include: {
+            player: true,
+          },
+          orderBy: { joinedAt: "asc" },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -49,6 +53,9 @@ export async function GET() {
         disqualifiedUntil: team.disqualifiedUntil,
         disqualifyReason: team.disqualifyReason,
         playerCount: team.memberships.length,
+        activePlayers: team.memberships
+          .filter((m) => m.player)
+          .map((m) => m.player.nickname),
         createdAt: team.createdAt,
       }));
 
