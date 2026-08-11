@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Zap, Trophy } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Zap, Trophy, Search } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { compressImage } from "@/lib/compressImage";
@@ -25,6 +25,25 @@ interface TeamItem {
 export default function AdminTeamsPage() {
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTierFilter, setSelectedTierFilter] = useState("ALL");
+
+  const filteredTeams = teams.filter((t) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !query ||
+      t.name.toLowerCase().includes(query) ||
+      t.tag.toLowerCase().includes(query) ||
+      (t.description && t.description.toLowerCase().includes(query));
+
+    const matchesTier =
+      selectedTierFilter === "ALL" ||
+      (t.tier || "TIER 3").toUpperCase() === selectedTierFilter.toUpperCase();
+
+    return matchesSearch && matchesTier;
+  });
 
   // Bulk Import Modal State
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
@@ -265,6 +284,52 @@ export default function AdminTeamsPage() {
           </div>
         </div>
 
+        {/* Search & Tier Filters Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0A0A0A] border border-[#222222] p-4 rounded-xl">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-96">
+            <Search className="w-4 h-4 text-[#858585] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Поиск команды по названию или тегу..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-9 py-2 bg-[#141414] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#858585] hover:text-white"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Tier Filter Buttons & Count */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <span className="text-xs font-mono text-[#858585]">
+              Найдено: <strong className="text-white">{filteredTeams.length}</strong> из {teams.length}
+            </span>
+
+            <div className="flex items-center gap-1 bg-[#141414] border border-[#222222] p-1 rounded-xl">
+              {["ALL", "TIER 1", "TIER 2", "TIER 3"].map((tFilter) => (
+                <button
+                  key={tFilter}
+                  onClick={() => setSelectedTierFilter(tFilter)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono tracking-wider transition-colors ${
+                    selectedTierFilter === tFilter
+                      ? "bg-white text-black shadow-sm"
+                      : "text-[#858585] hover:text-white"
+                  }`}
+                >
+                  {tFilter === "ALL" ? "ВСЕ" : tFilter}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Teams Table */}
         <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
           {loading ? (
@@ -272,7 +337,7 @@ export default function AdminTeamsPage() {
               <RefreshCw className="w-6 h-6 animate-spin" />
               <span className="text-xs font-semibold uppercase">Loading teams database...</span>
             </div>
-          ) : teams.length > 0 ? (
+          ) : filteredTeams.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
@@ -286,7 +351,7 @@ export default function AdminTeamsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1A1A1A]">
-                  {teams.map((t) => {
+                  {filteredTeams.map((t) => {
                     const ban = getBanStatus(t);
                     const normalizedTier = (t.tier || "TIER 1").toUpperCase();
 
@@ -395,8 +460,23 @@ export default function AdminTeamsPage() {
               </table>
             </div>
           ) : (
-            <div className="p-12 text-center text-[#858585]">
-              No teams registered in the database.
+            <div className="p-12 text-center text-[#858585] space-y-3">
+              <p className="text-xs uppercase font-semibold">
+                {searchQuery || selectedTierFilter !== "ALL"
+                  ? `Команды не найдены по запросу "${searchQuery}"`
+                  : "Команды отсутствуют в базе данных"}
+              </p>
+              {(searchQuery || selectedTierFilter !== "ALL") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedTierFilter("ALL");
+                  }}
+                  className="px-4 py-1.5 rounded bg-[#141414] border border-[#222222] text-xs font-bold text-white hover:border-white transition-colors"
+                >
+                  Сбросить поиск и фильтры
+                </button>
+              )}
             </div>
           )}
         </div>
