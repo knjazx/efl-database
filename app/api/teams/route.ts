@@ -13,6 +13,22 @@ function isAuthorized() {
   return sessionToken?.value === "authenticated_efl_admin";
 }
 
+function isMainRosterPlayer(roleStr?: string | null): boolean {
+  if (!roleStr) return true;
+  const upper = roleStr.toUpperCase();
+  if (upper.includes("COACH") || upper.includes("ТРЕНЕР")) return false;
+  if (
+    upper.includes("SUB") ||
+    upper.includes("STANDIN") ||
+    upper.includes("BENCH") ||
+    upper.includes("RESERVE") ||
+    upper.includes("ЗАМЕНА")
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export async function GET() {
   try {
     const teams = await prisma.team.findMany({
@@ -54,7 +70,8 @@ export async function GET() {
         disqualifyReason: team.disqualifyReason,
         playerCount: team.memberships.length,
         activePlayers: team.memberships
-          .filter((m) => m.player)
+          .filter((m) => m.player && isMainRosterPlayer(m.role))
+          .slice(0, 5)
           .map((m) => m.player.nickname),
         createdAt: team.createdAt,
       }));
