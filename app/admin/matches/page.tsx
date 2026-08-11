@@ -734,15 +734,24 @@ export default function AdminMatchesPage() {
             </div>
 
             <form onSubmit={handleConfirmCybershoke} className="space-y-4 text-xs">
-              {/* Serverless Host Notice Banner if Python demoparser2 wasn't executed */}
-              {!cybershokePreview.demoParserAvailable && cybershokePreview.team1Players?.length === 0 && (
+              {/* Detection Status Banner */}
+              {cybershokePreview.teamA || cybershokePreview.teamB ? (
+                <div className="bg-emerald-950/30 border border-emerald-500/40 p-3 rounded-xl text-[11px] text-emerald-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold text-emerald-300">
+                      Матч и команды успешно распознаны! Нажмите «Опубликовать и обновить винрейт».
+                    </span>
+                  </div>
+                </div>
+              ) : (
                 <div className="bg-amber-950/30 border border-amber-500/40 p-3 rounded-xl text-[11px] text-amber-200 space-y-1.5">
                   <p className="font-bold flex items-center gap-1.5 text-amber-400">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Режим Vercel / Serverless Host</span>
+                    <span>Быстрый ввод матча</span>
                   </p>
                   <p className="text-[10px] text-[#C0C0C0]">
-                    На хостинге Vercel парсинг 160MB бинарных файлов `.dem` ограничен. Скопируйте никнеймы игроков или вывод бота в поле ниже и нажмите <strong>«Подписать»</strong> для мгновенного подбора команд! Или запустите проект на <code>localhost:3000</code>.
+                    Скопируйте никнеймы игроков или текст с сайта в поле ниже для автоматического подбора команд или выберите команды из списка вручную.
                   </p>
                 </div>
               )}
