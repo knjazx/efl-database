@@ -292,25 +292,65 @@ def main():
     temp_dir = tempfile.mkdtemp()
     temp_download = os.path.join(temp_dir, f"{match_id}_download")
 
-    try:
-        from curl_cffi import requests as cc_requests
-        cc_resp = cc_requests.get(
-            demo_url,
-            cookies=cookies,
-            headers={
-                "User-Agent": DEFAULT_HEADERS["User-Agent"],
-                "Referer": f"https://cybershoke.net/ru/match/{match_id}"
-            },
-            impersonate="chrome",
-            timeout=120
-        )
-        if cc_resp.status_code == 200 and len(cc_resp.content) > 10000:
-            with open(temp_download, "wb") as out_file:
-                out_file.write(cc_resp.content)
-        else:
-            print(json.dumps({"error": f"Не удалось скачать демку Cybershoke (HTTP {cc_resp.status_code})"}))
-            sys.exit(0)
+    downloaded = False
+    possible_urls = [
+        f"https://cdn-de-1.cybershoke.net/demos/{match_id}",
+        f"https://cdn-de-2.cybershoke.net/demos/{match_id}",
+        f"https://cdn-de-3.cybershoke.net/demos/{match_id}",
+    ]
+    if demo_url and demo_url not in possible_urls:
+        possible_urls.insert(0, demo_url)
 
+    for target_url in possible_urls:
+        if downloaded:
+            break
+        # 1. Try urllib streaming download
+        try:
+            req = urllib.request.Request(
+                target_url,
+                headers={
+                    "User-Agent": DEFAULT_HEADERS["User-Agent"],
+                    "Referer": f"https://cybershoke.net/ru/match/{match_id}"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                if resp.status == 200:
+                    with open(temp_download, "wb") as out_file:
+                        while chunk := resp.read(1024 * 1024):
+                            out_file.write(chunk)
+                    if os.path.exists(temp_download) and os.path.getsize(temp_download) > 10000:
+                        downloaded = True
+                        break
+        except Exception as e_url:
+            sys.stderr.write(f"urllib download failed for {target_url}: {e_url}\n")
+
+        # 2. Try curl_cffi fallback if urllib failed
+        if not downloaded:
+            try:
+                from curl_cffi import requests as cc_requests
+                cc_resp = cc_requests.get(
+                    target_url,
+                    cookies=cookies,
+                    headers={
+                        "User-Agent": DEFAULT_HEADERS["User-Agent"],
+                        "Referer": f"https://cybershoke.net/ru/match/{match_id}"
+                    },
+                    impersonate="chrome",
+                    timeout=60
+                )
+                if cc_resp.status_code == 200 and len(cc_resp.content) > 10000:
+                    with open(temp_download, "wb") as out_file:
+                        out_file.write(cc_resp.content)
+                    downloaded = True
+                    break
+            except Exception as e_cc:
+                sys.stderr.write(f"curl_cffi download failed for {target_url}: {e_cc}\n")
+
+    if not downloaded or not os.path.exists(temp_download) or os.path.getsize(temp_download) <= 10000:
+        print(json.dumps({"error": f"Не удалось скачать демку Cybershoke для матча #{match_id}"}))
+        sys.exit(0)
+
+    try:
         res = process_and_parse(temp_download, match_id)
         print(json.dumps(res))
     except Exception as e:
