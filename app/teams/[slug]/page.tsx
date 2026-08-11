@@ -456,7 +456,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                           isWin ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-red-950 text-red-400 border border-red-800"
                         }`}
                       >
-                        {isWin ? "WIN" : isLoss ? "LOSS" : "DRAW"}
+                        {match.isForfeit ? (isWin ? "WIN (ТП)" : "LOSS (ТП)") : isWin ? "WIN" : isLoss ? "LOSS" : "DRAW"}
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[9px] font-extrabold uppercase">

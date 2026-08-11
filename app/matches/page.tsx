@@ -273,9 +273,11 @@ export default function MatchesPage() {
                           {/* Team A */}
                           <Link
                             href={`/teams/${match.teamA.slug}`}
-                            className={`col-span-2 flex items-center gap-3 p-2 rounded-xl border transition-all ${
+                            className={`col-span-2 flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
                               isAWin
                                 ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                : match.isForfeit && isBWin
+                                ? "bg-red-950/20 border-red-800/60 text-red-200"
                                 : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
                             }`}
                           >
@@ -286,25 +288,40 @@ export default function MatchesPage() {
                               <span className="font-extrabold text-xs uppercase block truncate">
                                 {match.teamA.name}
                               </span>
-                              {isAWin && (
-                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest">WINNER</span>
-                              )}
+                              {match.isForfeit ? (
+                                isAWin ? (
+                                  <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                ) : (
+                                  <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                )
+                              ) : isAWin ? (
+                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
+                              ) : null}
                             </div>
                           </Link>
 
                           {/* Score Display */}
-                          <div className="col-span-1 flex items-center justify-center font-mono">
-                            <span className="px-3 py-1.5 rounded-lg bg-[#141414] border border-[#222222] text-sm font-black text-white tracking-widest shadow-md">
+                          <div className="col-span-1 flex flex-col items-center justify-center font-mono gap-1">
+                            <span className={`px-3 py-1.5 rounded-lg border text-sm font-black tracking-widest shadow-md ${
+                              match.isForfeit ? "bg-red-950/60 border-red-800 text-red-200" : "bg-[#141414] border-[#222222] text-white"
+                            }`}>
                               {match.scoreA} : {match.scoreB}
                             </span>
+                            {match.isForfeit && (
+                              <span className="text-[9px] font-mono font-bold text-red-400 uppercase">
+                                [ ТП ]
+                              </span>
+                            )}
                           </div>
 
                           {/* Team B */}
                           <Link
                             href={`/teams/${match.teamB.slug}`}
-                            className={`col-span-2 flex items-center justify-end text-right gap-3 p-2 rounded-xl border transition-all ${
+                            className={`col-span-2 flex items-center justify-end text-right gap-3 p-2.5 rounded-xl border transition-all ${
                               isBWin
                                 ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                : match.isForfeit && isAWin
+                                ? "bg-red-950/20 border-red-800/60 text-red-200"
                                 : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
                             }`}
                           >
@@ -312,15 +329,30 @@ export default function MatchesPage() {
                               <span className="font-extrabold text-xs uppercase block truncate">
                                 {match.teamB.name}
                               </span>
-                              {isBWin && (
-                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest">WINNER</span>
-                              )}
+                              {match.isForfeit ? (
+                                isBWin ? (
+                                  <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                ) : (
+                                  <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                )
+                              ) : isBWin ? (
+                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
+                              ) : null}
                             </div>
                             <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                               <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamB.name} tag={match.teamB.tag} className="w-full h-full object-cover" />
                             </div>
                           </Link>
                         </div>
+
+                        {/* Forfeit Reason Footer */}
+                        {match.isForfeit && (
+                          <div className="mt-2 pt-2 border-t border-[#181818] flex items-center justify-between text-[10px] font-mono">
+                            <span className="px-2 py-0.5 rounded bg-red-950/80 border border-red-800/60 text-red-300 font-bold uppercase truncate max-w-full">
+                              ⚠️ ТЕХ. ПОРАЖЕНИЕ: {match.forfeitReason || "Нарушение регламента лиги"}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

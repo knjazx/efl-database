@@ -485,9 +485,22 @@ export default function AdminMatchesPage() {
                       {/* Score & Status */}
                       <td className="px-6 py-4 text-center">
                         {m.status === "FINISHED" ? (
-                          <span className="px-3 py-1 bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 font-mono font-black rounded-lg text-xs">
-                            {m.scoreA} : {m.scoreB} (Завершен)
-                          </span>
+                          m.isForfeit ? (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="px-3 py-1 bg-red-950/80 border border-red-800 text-red-300 font-mono font-black rounded-lg text-xs">
+                                {m.scoreA} : {m.scoreB} (ТП)
+                              </span>
+                              {m.forfeitReason && (
+                                <span className="text-[10px] text-red-400 font-medium truncate max-w-[140px]" title={m.forfeitReason}>
+                                  {m.forfeitReason}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="px-3 py-1 bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 font-mono font-black rounded-lg text-xs">
+                              {m.scoreA} : {m.scoreB} (Завершен)
+                            </span>
+                          )
                         ) : (
                           <span className="px-2.5 py-1 bg-amber-950/40 border border-amber-500/50 text-amber-300 font-mono font-bold rounded-lg text-[11px]">
                             Запланирован
