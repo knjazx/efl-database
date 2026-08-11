@@ -428,6 +428,7 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
             {teamMatches.slice(0, 5).map((match) => {
               const isTeamA = match.teamAId === team.id;
               const opponent = isTeamA ? match.teamB : match.teamA;
+              const opponentName = isTeamA ? (match.teamCustomNameB || match.teamB?.name || "Неизвестная команда") : (match.teamCustomNameA || match.teamA?.name || "Неизвестная команда");
               const myScore = isTeamA ? match.scoreA : match.scoreB;
               const oppScore = isTeamA ? match.scoreB : match.scoreA;
               const isFinished = match.status === "FINISHED";
@@ -469,12 +470,12 @@ export default function TeamProfilePage({ params }: { params: { slug: string } }
                     {/* Opponent Logo & Name */}
                     <div className="flex items-center gap-3 overflow-hidden">
                       <div className="w-10 h-10 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
-                        <TeamLogo logoUrl={opponent.logoUrl} name={opponent.name} tag={opponent.tag} className="w-full h-full object-cover" />
+                        <TeamLogo logoUrl={opponent?.logoUrl || ""} name={opponentName} tag={opponent?.tag || "GUEST"} className="w-full h-full object-cover" />
                       </div>
                       <div className="overflow-hidden">
-                        <span className="text-[10px] text-[#858585] font-mono uppercase block">vs {opponent.tag}</span>
+                        <span className="text-[10px] text-[#858585] font-mono uppercase block">vs {opponent?.tag || "GUEST"}</span>
                         <span className="font-extrabold text-white text-xs uppercase truncate block">
-                          {opponent.name}
+                          {opponentName}
                         </span>
                       </div>
                     </div>

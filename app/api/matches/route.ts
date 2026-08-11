@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { ensureUnknownTeam } from "@/lib/unknownTeam";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,6 +14,7 @@ function isAuthorized() {
 
 export async function GET(req: Request) {
   try {
+    await ensureUnknownTeam();
     const { searchParams } = new URL(req.url);
     const teamId = searchParams.get("teamId");
 
@@ -62,14 +64,15 @@ export async function POST(req: Request) {
   }
 
   try {
+    await ensureUnknownTeam();
     const body = await req.json();
-    const { teamAId, teamBId, scheduledAt, bestOf, tier } = body;
+    const { teamAId, teamBId, teamCustomNameA, teamCustomNameB, scheduledAt, bestOf, tier } = body;
 
     if (!teamAId || !teamBId || !scheduledAt) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
-    if (teamAId === teamBId) {
+    if (teamAId === teamBId && teamAId !== "unknown-team-placeholder") {
       return NextResponse.json({ success: false, error: "Team A and Team B cannot be the same" }, { status: 400 });
     }
 
@@ -77,6 +80,8 @@ export async function POST(req: Request) {
       data: {
         teamAId,
         teamBId,
+        teamCustomNameA: teamCustomNameA?.trim() || null,
+        teamCustomNameB: teamCustomNameB?.trim() || null,
         scheduledAt: new Date(scheduledAt),
         bestOf: Number(bestOf) || 1,
         tier: tier || "TIER 1",
@@ -88,10 +93,13 @@ export async function POST(req: Request) {
       },
     });
 
+    const nameA = newMatch.teamCustomNameA || newMatch.teamA.name;
+    const nameB = newMatch.teamCustomNameB || newMatch.teamB.name;
+
     // Log Activity
     await prisma.activityLog.create({
       data: {
-        description: `Запланирован матч: ${newMatch.teamA.name} vs ${newMatch.teamB.name} (BO${newMatch.bestOf})`,
+        description: `Запланирован матч: ${nameA} vs ${nameB} (BO${newMatch.bestOf})`,
       },
     });
 

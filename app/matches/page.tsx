@@ -18,6 +18,8 @@ interface MatchItem {
   id: string;
   teamAId: string;
   teamBId: string;
+  teamCustomNameA?: string;
+  teamCustomNameB?: string;
   scoreA: number;
   scoreB: number;
   status: string; // SCHEDULED, LIVE, FINISHED, CANCELLED
@@ -271,34 +273,66 @@ export default function MatchesPage() {
                         {/* Match Result */}
                         <div className="grid grid-cols-5 items-center gap-2 py-1">
                           {/* Team A */}
-                          <Link
-                            href={`/teams/${match.teamA.slug}`}
-                            className={`col-span-2 flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
-                              isAWin
-                                ? "bg-emerald-950/20 border-emerald-600/50 text-white"
-                                : match.isForfeit && isBWin
-                                ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
-                            }`}
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
-                              <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamA.name} tag={match.teamA.tag} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="overflow-hidden">
-                              <span className="font-extrabold text-xs uppercase block truncate">
-                                {match.teamA.name}
-                              </span>
-                              {match.isForfeit ? (
-                                isAWin ? (
-                                  <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                          {match.teamAId === "unknown-team-placeholder" ? (
+                            <div
+                              className={`col-span-2 flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
+                                isAWin
+                                  ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                  : match.isForfeit && isBWin
+                                  ? "bg-red-950/20 border-red-800/60 text-red-200"
+                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                              }`}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                                <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamCustomNameA || match.teamA.name} tag="GUEST" className="w-full h-full object-cover" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <span className="font-extrabold text-xs uppercase block truncate">
+                                  {match.teamCustomNameA || match.teamA.name}
+                                </span>
+                                {match.isForfeit ? (
+                                  isAWin ? (
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                  )
+                                ) : isAWin ? (
+                                  <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
                                 ) : (
-                                  <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
-                                )
-                              ) : isAWin ? (
-                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
-                              ) : null}
+                                  <span className="text-[9px] font-bold text-amber-500/80 uppercase tracking-widest block">ВНЕШНЯЯ</span>
+                                )}
+                              </div>
                             </div>
-                          </Link>
+                          ) : (
+                            <Link
+                              href={`/teams/${match.teamA.slug}`}
+                              className={`col-span-2 flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
+                                isAWin
+                                  ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                  : match.isForfeit && isBWin
+                                  ? "bg-red-950/20 border-red-800/60 text-red-200"
+                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                              }`}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                                <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamA.name} tag={match.teamA.tag} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <span className="font-extrabold text-xs uppercase block truncate">
+                                  {match.teamA.name}
+                                </span>
+                                {match.isForfeit ? (
+                                  isAWin ? (
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                  )
+                                ) : isAWin ? (
+                                  <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
+                                ) : null}
+                              </div>
+                            </Link>
+                          )}
 
                           {/* Score Display */}
                           <div className="col-span-1 flex flex-col items-center justify-center font-mono gap-1">
@@ -315,34 +349,66 @@ export default function MatchesPage() {
                           </div>
 
                           {/* Team B */}
-                          <Link
-                            href={`/teams/${match.teamB.slug}`}
-                            className={`col-span-2 flex items-center justify-end text-right gap-3 p-2.5 rounded-xl border transition-all ${
-                              isBWin
-                                ? "bg-emerald-950/20 border-emerald-600/50 text-white"
-                                : match.isForfeit && isAWin
-                                ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
-                            }`}
-                          >
-                            <div className="overflow-hidden">
-                              <span className="font-extrabold text-xs uppercase block truncate">
-                                {match.teamB.name}
-                              </span>
-                              {match.isForfeit ? (
-                                isBWin ? (
-                                  <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                          {match.teamBId === "unknown-team-placeholder" ? (
+                            <div
+                              className={`col-span-2 flex items-center justify-end text-right gap-3 p-2.5 rounded-xl border transition-all ${
+                                isBWin
+                                  ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                  : match.isForfeit && isAWin
+                                  ? "bg-red-950/20 border-red-800/60 text-red-200"
+                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                              }`}
+                            >
+                              <div className="overflow-hidden">
+                                <span className="font-extrabold text-xs uppercase block truncate">
+                                  {match.teamCustomNameB || match.teamB.name}
+                                </span>
+                                {match.isForfeit ? (
+                                  isBWin ? (
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                  )
+                                ) : isBWin ? (
+                                  <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
                                 ) : (
-                                  <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
-                                )
-                              ) : isBWin ? (
-                                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
-                              ) : null}
+                                  <span className="text-[9px] font-bold text-amber-500/80 uppercase tracking-widest block">ВНЕШНЯЯ</span>
+                                )}
+                              </div>
+                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                                <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamCustomNameB || match.teamB.name} tag="GUEST" className="w-full h-full object-cover" />
+                              </div>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
-                              <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamB.name} tag={match.teamB.tag} className="w-full h-full object-cover" />
-                            </div>
-                          </Link>
+                          ) : (
+                            <Link
+                              href={`/teams/${match.teamB.slug}`}
+                              className={`col-span-2 flex items-center justify-end text-right gap-3 p-2.5 rounded-xl border transition-all ${
+                                isBWin
+                                  ? "bg-emerald-950/20 border-emerald-600/50 text-white"
+                                  : match.isForfeit && isAWin
+                                  ? "bg-red-950/20 border-red-800/60 text-red-200"
+                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                              }`}
+                            >
+                              <div className="overflow-hidden">
+                                <span className="font-extrabold text-xs uppercase block truncate">
+                                  {match.teamB.name}
+                                </span>
+                                {match.isForfeit ? (
+                                  isBWin ? (
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block">ПОБЕДА (ТП)</span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-red-400 uppercase tracking-wider block">ТЕХ. ПОРАЖЕНИЕ (ТП)</span>
+                                  )
+                                ) : isBWin ? (
+                                  <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
+                                ) : null}
+                              </div>
+                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                                <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamB.name} tag={match.teamB.tag} className="w-full h-full object-cover" />
+                              </div>
+                            </Link>
+                          )}
                         </div>
 
                         {/* Forfeit Reason Footer */}

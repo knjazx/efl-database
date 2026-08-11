@@ -6,6 +6,7 @@ import path from "path";
 import util from "util";
 import fs from "fs";
 import os from "os";
+import { UNKNOWN_TEAM_ID, ensureUnknownTeam } from "@/lib/unknownTeam";
 
 const execFilePromise = util.promisify(execFile);
 
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    await ensureUnknownTeam();
     const contentType = req.headers.get("content-type") || "";
     let body: any = {};
     let uploadedFilePath: string | null = null;
@@ -79,6 +81,8 @@ export async function POST(req: Request) {
         matchUrl: formData.get("matchUrl")?.toString(),
         teamAId: formData.get("teamAId")?.toString(),
         teamBId: formData.get("teamBId")?.toString(),
+        teamCustomNameA: formData.get("teamCustomNameA")?.toString(),
+        teamCustomNameB: formData.get("teamCustomNameB")?.toString(),
         scoreA: formData.get("scoreA")?.toString(),
         scoreB: formData.get("scoreB")?.toString(),
         bestOf: formData.get("bestOf")?.toString(),
@@ -94,6 +98,8 @@ export async function POST(req: Request) {
       action,
       teamAId,
       teamBId,
+      teamCustomNameA,
+      teamCustomNameB,
       scoreA,
       scoreB,
       bestOf,
@@ -111,7 +117,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Выберите обе команды" }, { status: 400 });
       }
 
-      if (teamAId === teamBId) {
+      if (teamAId === teamBId && teamAId !== UNKNOWN_TEAM_ID) {
         return NextResponse.json({ success: false, error: "Команды не могут совпадать" }, { status: 400 });
       }
 
@@ -130,6 +136,8 @@ export async function POST(req: Request) {
         data: {
           teamAId,
           teamBId,
+          teamCustomNameA: teamCustomNameA?.trim() || null,
+          teamCustomNameB: teamCustomNameB?.trim() || null,
           scoreA: sA,
           scoreB: sB,
           status: "FINISHED",
@@ -152,29 +160,36 @@ export async function POST(req: Request) {
         const winnerTeamId = winnerId;
         const loserTeamId = winnerId === teamAId ? teamBId : teamAId;
 
-        // Winner: wins + 1, points + 3, matchesPlayed + 1
-        await prisma.team.update({
-          where: { id: winnerTeamId },
-          data: {
-            wins: { increment: 1 },
-            points: { increment: 3 },
-            matchesPlayed: { increment: 1 },
-          },
-        });
+        // Winner stats (if not unknown team): wins + 1, points + 3, matchesPlayed + 1
+        if (winnerTeamId !== UNKNOWN_TEAM_ID) {
+          await prisma.team.update({
+            where: { id: winnerTeamId },
+            data: {
+              wins: { increment: 1 },
+              points: { increment: 3 },
+              matchesPlayed: { increment: 1 },
+            },
+          });
+        }
 
-        // Loser: losses + 1, matchesPlayed + 1
-        await prisma.team.update({
-          where: { id: loserTeamId },
-          data: {
-            losses: { increment: 1 },
-            matchesPlayed: { increment: 1 },
-          },
-        });
+        // Loser stats (if not unknown team): losses + 1, matchesPlayed + 1
+        if (loserTeamId !== UNKNOWN_TEAM_ID) {
+          await prisma.team.update({
+            where: { id: loserTeamId },
+            data: {
+              losses: { increment: 1 },
+              matchesPlayed: { increment: 1 },
+            },
+          });
+        }
+
+        const nameA = newMatch.teamCustomNameA || newMatch.teamA.name;
+        const nameB = newMatch.teamCustomNameB || newMatch.teamB.name;
 
         // Log activity
         await prisma.activityLog.create({
           data: {
-            description: `Импортирован матч Cybershoke/Demo: ${newMatch.teamA.name} [${sA}:${sB}] ${newMatch.teamB.name}`,
+            description: `Импортирован матч Cybershoke/Demo: ${nameA} [${sA}:${sB}] ${nameB}`,
           },
         });
       }

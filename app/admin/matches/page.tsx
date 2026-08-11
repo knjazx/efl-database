@@ -17,6 +17,8 @@ interface MatchItem {
   id: string;
   teamAId: string;
   teamBId: string;
+  teamCustomNameA?: string;
+  teamCustomNameB?: string;
   scoreA: number;
   scoreB: number;
   status: string;
@@ -40,6 +42,8 @@ export default function AdminMatchesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createTeamAId, setCreateTeamAId] = useState("");
   const [createTeamBId, setCreateTeamBId] = useState("");
+  const [createTeamCustomNameA, setCreateTeamCustomNameA] = useState("");
+  const [createTeamCustomNameB, setCreateTeamCustomNameB] = useState("");
   const [createScheduledAt, setCreateScheduledAt] = useState("");
   const [createBestOf, setCreateBestOf] = useState<number>(1);
   const [createTier, setCreateTier] = useState<string>("TIER 1");
@@ -51,6 +55,8 @@ export default function AdminMatchesPage() {
   const [selectedMatch, setSelectedMatch] = useState<MatchItem | null>(null);
   const [scoreA, setScoreA] = useState<number>(0);
   const [scoreB, setScoreB] = useState<number>(0);
+  const [scoreTeamCustomNameA, setScoreTeamCustomNameA] = useState("");
+  const [scoreTeamCustomNameB, setScoreTeamCustomNameB] = useState("");
   const [matchStatus, setMatchStatus] = useState<string>("FINISHED");
   const [scoreIsForfeit, setScoreIsForfeit] = useState(false);
   const [scoreForfeitReason, setScoreForfeitReason] = useState("");
@@ -63,6 +69,8 @@ export default function AdminMatchesPage() {
   const [cybershokePreview, setCybershokePreview] = useState<any | null>(null);
   const [cybershokeTeamAId, setCybershokeTeamAId] = useState("");
   const [cybershokeTeamBId, setCybershokeTeamBId] = useState("");
+  const [cybershokeCustomNameA, setCybershokeCustomNameA] = useState("");
+  const [cybershokeCustomNameB, setCybershokeCustomNameB] = useState("");
   const [cybershokeScoreA, setCybershokeScoreA] = useState(13);
   const [cybershokeScoreB, setCybershokeScoreB] = useState(9);
   const [cybershokeTier, setCybershokeTier] = useState("TIER 3");
@@ -102,7 +110,7 @@ export default function AdminMatchesPage() {
       return;
     }
 
-    if (createTeamAId === createTeamBId) {
+    if (createTeamAId === createTeamBId && createTeamAId !== "unknown-team-placeholder") {
       setCreateError("Команды не могут совпадать");
       return;
     }
@@ -120,6 +128,8 @@ export default function AdminMatchesPage() {
         body: JSON.stringify({
           teamAId: createTeamAId,
           teamBId: createTeamBId,
+          teamCustomNameA: createTeamAId === "unknown-team-placeholder" ? createTeamCustomNameA : null,
+          teamCustomNameB: createTeamBId === "unknown-team-placeholder" ? createTeamCustomNameB : null,
           scheduledAt: createScheduledAt,
           bestOf: createBestOf,
           tier: createTier,
@@ -131,6 +141,8 @@ export default function AdminMatchesPage() {
         setIsCreateModalOpen(false);
         setCreateTeamAId("");
         setCreateTeamBId("");
+        setCreateTeamCustomNameA("");
+        setCreateTeamCustomNameB("");
         setCreateScheduledAt("");
         fetchData();
       } else {
@@ -158,6 +170,8 @@ export default function AdminMatchesPage() {
           status: matchStatus,
           isForfeit: scoreIsForfeit,
           forfeitReason: scoreForfeitReason,
+          teamCustomNameA: selectedMatch.teamAId === "unknown-team-placeholder" ? scoreTeamCustomNameA : selectedMatch.teamCustomNameA,
+          teamCustomNameB: selectedMatch.teamBId === "unknown-team-placeholder" ? scoreTeamCustomNameB : selectedMatch.teamCustomNameB,
         }),
       });
 
@@ -296,6 +310,8 @@ export default function AdminMatchesPage() {
           action: "CONFIRM",
           teamAId: cybershokeTeamAId,
           teamBId: cybershokeTeamBId,
+          teamCustomNameA: cybershokeTeamAId === "unknown-team-placeholder" ? cybershokeCustomNameA : null,
+          teamCustomNameB: cybershokeTeamBId === "unknown-team-placeholder" ? cybershokeCustomNameB : null,
           scoreA: cybershokeScoreA,
           scoreB: cybershokeScoreB,
           tier: cybershokeTier,
@@ -453,9 +469,11 @@ export default function AdminMatchesPage() {
                           {/* Team A */}
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
-                              <TeamLogo logoUrl={m.teamA.logoUrl} name={m.teamA.name} tag={m.teamA.tag} className="w-full h-full object-cover" />
+                              <TeamLogo logoUrl={m.teamA.logoUrl} name={m.teamCustomNameA || m.teamA.name} tag={m.teamA.tag} className="w-full h-full object-cover" />
                             </div>
-                            <span className="font-extrabold text-white text-xs uppercase">{m.teamA.name}</span>
+                            <span className="font-extrabold text-white text-xs uppercase">
+                              {m.teamCustomNameA || m.teamA.name}
+                            </span>
                           </div>
 
                           <span className="font-black text-[10px] text-[#666666]">VS</span>
@@ -463,9 +481,11 @@ export default function AdminMatchesPage() {
                           {/* Team B */}
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
-                              <TeamLogo logoUrl={m.teamB.logoUrl} name={m.teamB.name} tag={m.teamB.tag} className="w-full h-full object-cover" />
+                              <TeamLogo logoUrl={m.teamB.logoUrl} name={m.teamCustomNameB || m.teamB.name} tag={m.teamB.tag} className="w-full h-full object-cover" />
                             </div>
-                            <span className="font-extrabold text-white text-xs uppercase">{m.teamB.name}</span>
+                            <span className="font-extrabold text-white text-xs uppercase">
+                              {m.teamCustomNameB || m.teamB.name}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -576,12 +596,22 @@ export default function AdminMatchesPage() {
                   required
                 >
                   <option value="">-- Выберите Команду A --</option>
-                  {teams.map((t) => (
+                  <option value="unknown-team-placeholder">❓ Неизвестная команда (Внешний соперник)</option>
+                  {teams.filter((t) => t.id !== "unknown-team-placeholder").map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} [{t.tag}] ({t.tier})
                     </option>
                   ))}
                 </select>
+                {createTeamAId === "unknown-team-placeholder" && (
+                  <input
+                    type="text"
+                    placeholder="Название внешней Команды A (например: Mix #1, VP)..."
+                    value={createTeamCustomNameA}
+                    onChange={(e) => setCreateTeamCustomNameA(e.target.value)}
+                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                  />
+                )}
               </div>
 
               {/* Team B */}
@@ -594,12 +624,22 @@ export default function AdminMatchesPage() {
                   required
                 >
                   <option value="">-- Выберите Команду B --</option>
-                  {teams.map((t) => (
+                  <option value="unknown-team-placeholder">❓ Неизвестная команда (Внешний соперник)</option>
+                  {teams.filter((t) => t.id !== "unknown-team-placeholder").map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} [{t.tag}] ({t.tier})
                     </option>
                   ))}
                 </select>
+                {createTeamBId === "unknown-team-placeholder" && (
+                  <input
+                    type="text"
+                    placeholder="Название внешней Команды B (например: Mix #2, NaVi)..."
+                    value={createTeamCustomNameB}
+                    onChange={(e) => setCreateTeamCustomNameB(e.target.value)}
+                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                  />
+                )}
               </div>
 
               {/* Date & Time */}
@@ -679,7 +719,18 @@ export default function AdminMatchesPage() {
               <div className="grid grid-cols-2 gap-4 bg-[#050505] p-4 rounded-xl border border-[#1A1A1A]">
                 {/* Team A */}
                 <div className="flex flex-col items-center text-center gap-2">
-                  <span className="font-extrabold text-white text-xs uppercase">{selectedMatch.teamA.name}</span>
+                  <span className="font-extrabold text-white text-xs uppercase">
+                    {selectedMatch.teamAId === "unknown-team-placeholder" ? (scoreTeamCustomNameA || "Неизвестная команда") : selectedMatch.teamA.name}
+                  </span>
+                  {selectedMatch.teamAId === "unknown-team-placeholder" && (
+                    <input
+                      type="text"
+                      placeholder="Кастомное имя A..."
+                      value={scoreTeamCustomNameA}
+                      onChange={(e) => setScoreTeamCustomNameA(e.target.value)}
+                      className="w-full text-[10px] px-2 py-1 bg-[#141414] border border-amber-500/40 rounded text-center text-white focus:outline-none"
+                    />
+                  )}
                   <input
                     type="number"
                     min={0}
@@ -692,7 +743,18 @@ export default function AdminMatchesPage() {
 
                 {/* Team B */}
                 <div className="flex flex-col items-center text-center gap-2">
-                  <span className="font-extrabold text-white text-xs uppercase">{selectedMatch.teamB.name}</span>
+                  <span className="font-extrabold text-white text-xs uppercase">
+                    {selectedMatch.teamBId === "unknown-team-placeholder" ? (scoreTeamCustomNameB || "Неизвестная команда") : selectedMatch.teamB.name}
+                  </span>
+                  {selectedMatch.teamBId === "unknown-team-placeholder" && (
+                    <input
+                      type="text"
+                      placeholder="Кастомное имя B..."
+                      value={scoreTeamCustomNameB}
+                      onChange={(e) => setScoreTeamCustomNameB(e.target.value)}
+                      className="w-full text-[10px] px-2 py-1 bg-[#141414] border border-amber-500/40 rounded text-center text-white focus:outline-none"
+                    />
+                  )}
                   <input
                     type="number"
                     min={0}
@@ -960,12 +1022,22 @@ export default function AdminMatchesPage() {
                   required
                 >
                   <option value="">-- Выберите Команду A --</option>
-                  {(cybershokePreview.availableTeams || teams).map((t: any) => (
+                  <option value="unknown-team-placeholder">❓ Неизвестная команда (Внешний соперник)</option>
+                  {(cybershokePreview.availableTeams || teams).filter((t: any) => t.id !== "unknown-team-placeholder").map((t: any) => (
                     <option key={t.id} value={t.id}>
                       {t.name} [{t.tag}]
                     </option>
                   ))}
                 </select>
+                {cybershokeTeamAId === "unknown-team-placeholder" && (
+                  <input
+                    type="text"
+                    placeholder="Название внешней Команды A (например: Mix Team A)..."
+                    value={cybershokeCustomNameA}
+                    onChange={(e) => setCybershokeCustomNameA(e.target.value)}
+                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                  />
+                )}
                 {/* Show matched player names */}
                 {cybershokePreview.teamA?.matchedNames?.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -997,12 +1069,22 @@ export default function AdminMatchesPage() {
                   required
                 >
                   <option value="">-- Выберите Команду B --</option>
-                  {(cybershokePreview.availableTeams || teams).map((t: any) => (
+                  <option value="unknown-team-placeholder">❓ Неизвестная команда (Внешний соперник)</option>
+                  {(cybershokePreview.availableTeams || teams).filter((t: any) => t.id !== "unknown-team-placeholder").map((t: any) => (
                     <option key={t.id} value={t.id}>
                       {t.name} [{t.tag}]
                     </option>
                   ))}
                 </select>
+                {cybershokeTeamBId === "unknown-team-placeholder" && (
+                  <input
+                    type="text"
+                    placeholder="Название внешней Команды B (например: Mix Team B)..."
+                    value={cybershokeCustomNameB}
+                    onChange={(e) => setCybershokeCustomNameB(e.target.value)}
+                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                  />
+                )}
                 {/* Show matched player names */}
                 {cybershokePreview.teamB?.matchedNames?.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1.5">

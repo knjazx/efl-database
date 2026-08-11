@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { UNKNOWN_TEAM_ID } from "@/lib/unknownTeam";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,7 +20,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const matchId = params.id;
     const body = await req.json();
-    const { scoreA, scoreB, status, bestOf, scheduledAt, isForfeit, forfeitReason } = body;
+    const { scoreA, scoreB, status, bestOf, scheduledAt, isForfeit, forfeitReason, teamCustomNameA, teamCustomNameB } = body;
 
     const existingMatch = await prisma.match.findUnique({
       where: { id: matchId },
@@ -56,6 +57,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         winnerId,
         isForfeit: typeof isForfeit === "boolean" ? isForfeit : existingMatch.isForfeit,
         forfeitReason: forfeitReason !== undefined ? forfeitReason : existingMatch.forfeitReason,
+        teamCustomNameA: teamCustomNameA !== undefined ? (teamCustomNameA?.trim() || null) : existingMatch.teamCustomNameA,
+        teamCustomNameB: teamCustomNameB !== undefined ? (teamCustomNameB?.trim() || null) : existingMatch.teamCustomNameB,
       },
       include: {
         teamA: true,
@@ -68,29 +71,36 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       const winnerTeamId = winnerId;
       const loserTeamId = winnerId === existingMatch.teamAId ? existingMatch.teamBId : existingMatch.teamAId;
 
-      // Winner: wins + 1, points + 3, matchesPlayed + 1
-      await prisma.team.update({
-        where: { id: winnerTeamId },
-        data: {
-          wins: { increment: 1 },
-          points: { increment: 3 },
-          matchesPlayed: { increment: 1 },
-        },
-      });
+      // Winner stats (if not unknown team): wins + 1, points + 3, matchesPlayed + 1
+      if (winnerTeamId !== UNKNOWN_TEAM_ID) {
+        await prisma.team.update({
+          where: { id: winnerTeamId },
+          data: {
+            wins: { increment: 1 },
+            points: { increment: 3 },
+            matchesPlayed: { increment: 1 },
+          },
+        });
+      }
 
-      // Loser: losses + 1, matchesPlayed + 1
-      await prisma.team.update({
-        where: { id: loserTeamId },
-        data: {
-          losses: { increment: 1 },
-          matchesPlayed: { increment: 1 },
-        },
-      });
+      // Loser stats (if not unknown team): losses + 1, matchesPlayed + 1
+      if (loserTeamId !== UNKNOWN_TEAM_ID) {
+        await prisma.team.update({
+          where: { id: loserTeamId },
+          data: {
+            losses: { increment: 1 },
+            matchesPlayed: { increment: 1 },
+          },
+        });
+      }
+
+      const nameA = updatedMatch.teamCustomNameA || updatedMatch.teamA.name;
+      const nameB = updatedMatch.teamCustomNameB || updatedMatch.teamB.name;
 
       // Log Activity
       await prisma.activityLog.create({
         data: {
-          description: `Матч завершен: ${updatedMatch.teamA.name} [${nextScoreA}:${nextScoreB}] ${updatedMatch.teamB.name}`,
+          description: `Матч завершен: ${nameA} [${nextScoreA}:${nextScoreB}] ${nameB}`,
         },
       });
     }
@@ -125,24 +135,28 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       const winnerTeamId = existingMatch.winnerId;
       const loserTeamId = winnerTeamId === existingMatch.teamAId ? existingMatch.teamBId : existingMatch.teamAId;
 
-      // Rollback winner stats: wins - 1, points - 3, matchesPlayed - 1
-      await prisma.team.update({
-        where: { id: winnerTeamId },
-        data: {
-          wins: { decrement: 1 },
-          points: { decrement: 3 },
-          matchesPlayed: { decrement: 1 },
-        },
-      });
+      // Rollback winner stats (if not unknown team): wins - 1, points - 3, matchesPlayed - 1
+      if (winnerTeamId !== UNKNOWN_TEAM_ID) {
+        await prisma.team.update({
+          where: { id: winnerTeamId },
+          data: {
+            wins: { decrement: 1 },
+            points: { decrement: 3 },
+            matchesPlayed: { decrement: 1 },
+          },
+        });
+      }
 
-      // Rollback loser stats: losses - 1, matchesPlayed - 1
-      await prisma.team.update({
-        where: { id: loserTeamId },
-        data: {
-          losses: { decrement: 1 },
-          matchesPlayed: { decrement: 1 },
-        },
-      });
+      // Rollback loser stats (if not unknown team): losses - 1, matchesPlayed - 1
+      if (loserTeamId !== UNKNOWN_TEAM_ID) {
+        await prisma.team.update({
+          where: { id: loserTeamId },
+          data: {
+            losses: { decrement: 1 },
+            matchesPlayed: { decrement: 1 },
+          },
+        });
+      }
 
       // Log the rollback
       await prisma.activityLog.create({

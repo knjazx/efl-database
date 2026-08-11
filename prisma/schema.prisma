@@ -78,24 +78,26 @@ model ActivityLog {
 }
 
 model Match {
-  id          String    @id @default(uuid())
-  teamAId     String
-  teamBId     String
-  scoreA      Int       @default(0)
-  scoreB      Int       @default(0)
-  status      String    @default("SCHEDULED") // SCHEDULED, LIVE, FINISHED, CANCELLED
-  scheduledAt DateTime
-  finishedAt  DateTime?
-  bestOf      Int       @default(1) // 1 for BO1, 3 for BO3, 5 for BO5
-  tier        String    @default("TIER 1")
-  winnerId    String?
-  isForfeit   Boolean   @default(false)
-  forfeitReason String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  teamAId         String
+  teamBId         String
+  teamCustomNameA String?
+  teamCustomNameB String?
+  scoreA          Int       @default(0)
+  scoreB          Int       @default(0)
+  status          String    @default("SCHEDULED") // SCHEDULED, LIVE, FINISHED, CANCELLED
+  scheduledAt     DateTime
+  finishedAt      DateTime?
+  bestOf          Int       @default(1) // 1 for BO1, 3 for BO3, 5 for BO5
+  tier            String    @default("TIER 1")
+  winnerId        String?
+  isForfeit       Boolean   @default(false)
+  forfeitReason   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  teamA       Team      @relation("TeamAMatches", fields: [teamAId], references: [id], onDelete: Cascade)
-  teamB       Team      @relation("TeamBMatches", fields: [teamBId], references: [id], onDelete: Cascade)
+  teamA           Team      @relation("TeamAMatches", fields: [teamAId], references: [id], onDelete: Cascade)
+  teamB           Team      @relation("TeamBMatches", fields: [teamBId], references: [id], onDelete: Cascade)
 
   @@index([teamAId])
   @@index([teamBId])
