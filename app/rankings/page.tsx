@@ -172,16 +172,16 @@ export default function RankingsPage() {
         <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-black uppercase tracking-wider">
+              <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-black uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="px-6 py-4 w-16 text-center">POS</th>
-                  <th className="px-6 py-4">КОМАНДА</th>
-                  <th className="px-6 py-4">ДИВИЗИОН / TIER</th>
-                  <th className="px-6 py-4 text-center">ИГРЫ (MP)</th>
-                  <th className="px-6 py-4 text-center">В / П (W/L)</th>
-                  <th className="px-6 py-4 text-center">РАЗНИЦА РАУНДОВ (RD)</th>
-                  <th className="px-6 py-4 text-center">WIN RATE</th>
-                  <th className="px-6 py-4 text-right">ОЧКИ (PTS)</th>
+                  <th className="px-4 py-3.5 w-14 text-center">POS</th>
+                  <th className="px-5 py-3.5">КОМАНДА</th>
+                  <th className="px-4 py-3.5 text-center">ДИВИЗИОН / TIER</th>
+                  <th className="px-3 py-3.5 text-center">ИГРЫ (MP)</th>
+                  <th className="px-3 py-3.5 text-center">В / П (W/L)</th>
+                  <th className="px-3 py-3.5 text-center whitespace-nowrap">РАЗНИЦА РАУНДОВ (RD)</th>
+                  <th className="px-4 py-3.5 text-center">WIN RATE</th>
+                  <th className="px-5 py-3.5 text-center whitespace-nowrap">ОЧКИ (PTS)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1A1A1A]">
@@ -205,7 +205,7 @@ export default function RankingsPage() {
                       }`}
                     >
                       {/* Rank Position */}
-                      <td className="px-6 py-4 font-mono text-center">
+                      <td className="px-4 py-3.5 font-mono text-center">
                         {rank === 1 ? (
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-400 text-amber-400 font-extrabold text-xs shadow-md">
                             1
@@ -224,7 +224,7 @@ export default function RankingsPage() {
                       </td>
 
                       {/* Team Logo & Name */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <Link href={`/teams/${team.slug}`} className="flex items-center gap-3 group/team">
                           <div className="w-10 h-10 rounded-xl bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0 group-hover/team:border-white transition-colors">
                             <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover" />
@@ -254,7 +254,7 @@ export default function RankingsPage() {
                       </td>
 
                       {/* Tier Badge */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3.5 text-center">
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${
                             normalizedTier.includes("1")
@@ -270,22 +270,22 @@ export default function RankingsPage() {
                       </td>
 
                       {/* Matches Played */}
-                      <td className="px-6 py-4 text-center font-mono font-bold text-white">
+                      <td className="px-3 py-3.5 text-center font-mono font-bold text-white">
                         {team.matchesPlayed}
                       </td>
 
                       {/* Wins / Losses */}
-                      <td className="px-6 py-4 text-center font-mono">
+                      <td className="px-3 py-3.5 text-center font-mono whitespace-nowrap">
                         <span className="text-emerald-400 font-bold">{team.wins}W</span>
                         <span className="text-[#666666] mx-1">/</span>
                         <span className="text-red-400 font-bold">{team.losses}L</span>
                       </td>
 
                       {/* Round Difference (RD) */}
-                      <td className="px-6 py-4 text-center font-mono font-bold">
+                      <td className="px-3 py-3.5 text-center font-mono font-bold whitespace-nowrap">
                         {team.roundDiff !== undefined ? (
                           <span
-                            className={`px-2 py-1 rounded text-xs border ${
+                            className={`px-2.5 py-1 rounded text-xs border inline-block ${
                               team.roundDiff > 0
                                 ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-400"
                                 : team.roundDiff < 0
@@ -302,7 +302,7 @@ export default function RankingsPage() {
                       </td>
 
                       {/* Win Rate Bar */}
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-3.5 text-center whitespace-nowrap">
                         <div className="inline-flex items-center gap-2">
                           <div className="w-16 bg-[#141414] h-2 rounded-full overflow-hidden border border-[#222222]">
                             <div
@@ -315,9 +315,10 @@ export default function RankingsPage() {
                       </td>
 
                       {/* Points */}
-                      <td className="px-6 py-4 text-right font-mono">
-                        <span className="px-3 py-1 bg-[#141414] border border-[#222222] rounded-lg text-sm font-black text-amber-400 shadow-md">
-                          {team.points} PTS
+                      <td className="px-5 py-3.5 text-center font-mono whitespace-nowrap">
+                        <span className="px-3 py-1 bg-[#141414] border border-[#222222] rounded-lg text-xs font-black text-amber-400 shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <span>{team.points}</span>
+                          <span className="text-[10px] text-amber-500/80 font-bold">PTS</span>
                         </span>
                       </td>
                     </tr>
