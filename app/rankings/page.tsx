@@ -18,6 +18,9 @@ interface RankedTeam {
   wins: number;
   losses: number;
   matchesPlayed: number;
+  roundsWon?: number;
+  roundsLost?: number;
+  roundDiff?: number;
   playerCount: number;
   activePlayers?: string[];
   isDisqualified?: boolean;
@@ -43,7 +46,13 @@ export default function RankingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter and sort teams by points descending, then winrate
+  // Filter and sort teams using official tournament tiebreaker hierarchy:
+  // 1. Points (PTS)
+  // 2. Winrate (W/L %)
+  // 3. Round Difference (RD = roundsWon - roundsLost)
+  // 4. Total Rounds Won
+  // 5. Total Wins
+  // 6. Alphabetical order (deterministic fallback)
   const processedTeams = teams
     .filter((team) => {
       // Tier Filter
@@ -68,10 +77,29 @@ export default function RankingsPage() {
       return true;
     })
     .sort((a, b) => {
+      // 1. Points
       if (b.points !== a.points) return b.points - a.points;
-      const winrateB = b.matchesPlayed > 0 ? (b.wins / b.matchesPlayed) : 0;
-      const winrateA = a.matchesPlayed > 0 ? (a.wins / a.matchesPlayed) : 0;
-      return winrateB - winrateA;
+
+      // 2. Winrate
+      const winrateB = b.matchesPlayed > 0 ? b.wins / b.matchesPlayed : 0;
+      const winrateA = a.matchesPlayed > 0 ? a.wins / a.matchesPlayed : 0;
+      if (winrateB !== winrateA) return winrateB - winrateA;
+
+      // 3. Round Difference (Разница раундов)
+      const diffB = b.roundDiff ?? 0;
+      const diffA = a.roundDiff ?? 0;
+      if (diffB !== diffA) return diffB - diffA;
+
+      // 4. Total Rounds Won (Выигранные раунды)
+      const rWonB = b.roundsWon ?? 0;
+      const rWonA = a.roundsWon ?? 0;
+      if (rWonB !== rWonA) return rWonB - rWonA;
+
+      // 5. Total Wins
+      if (b.wins !== a.wins) return b.wins - a.wins;
+
+      // 6. Strict Deterministic Alphabetical Fallback
+      return a.name.localeCompare(b.name);
     });
 
   return (
@@ -151,6 +179,7 @@ export default function RankingsPage() {
                   <th className="px-6 py-4">ДИВИЗИОН / TIER</th>
                   <th className="px-6 py-4 text-center">ИГРЫ (MP)</th>
                   <th className="px-6 py-4 text-center">В / П (W/L)</th>
+                  <th className="px-6 py-4 text-center">РАЗНИЦА РАУНДОВ (RD)</th>
                   <th className="px-6 py-4 text-center">WIN RATE</th>
                   <th className="px-6 py-4 text-right">ОЧКИ (PTS)</th>
                 </tr>
@@ -250,6 +279,26 @@ export default function RankingsPage() {
                         <span className="text-emerald-400 font-bold">{team.wins}W</span>
                         <span className="text-[#666666] mx-1">/</span>
                         <span className="text-red-400 font-bold">{team.losses}L</span>
+                      </td>
+
+                      {/* Round Difference (RD) */}
+                      <td className="px-6 py-4 text-center font-mono font-bold">
+                        {team.roundDiff !== undefined ? (
+                          <span
+                            className={`px-2 py-1 rounded text-xs border ${
+                              team.roundDiff > 0
+                                ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-400"
+                                : team.roundDiff < 0
+                                ? "bg-red-950/40 border-red-500/40 text-red-400"
+                                : "bg-[#141414] border-[#222222] text-[#858585]"
+                            }`}
+                            title={`Выиграно раундов: ${team.roundsWon || 0}, Проиграно: ${team.roundsLost || 0}`}
+                          >
+                            {team.roundDiff > 0 ? `+${team.roundDiff}` : team.roundDiff}
+                          </span>
+                        ) : (
+                          <span className="text-[#666666]">0</span>
+                        )}
                       </td>
 
                       {/* Win Rate Bar */}

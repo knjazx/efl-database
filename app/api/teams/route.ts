@@ -31,18 +31,37 @@ function isMainRosterPlayer(roleStr?: string | null): boolean {
 
 export async function GET() {
   try {
-    const teams = await prisma.team.findMany({
-      include: {
-        memberships: {
-          where: { status: "ACTIVE" },
-          include: {
-            player: true,
+    const [teams, finishedMatches] = await Promise.all([
+      prisma.team.findMany({
+        include: {
+          memberships: {
+            where: { status: "ACTIVE" },
+            include: {
+              player: true,
+            },
+            orderBy: { joinedAt: "asc" },
           },
-          orderBy: { joinedAt: "asc" },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.match.findMany({
+        where: { status: "FINISHED" },
+        select: { teamAId: true, teamBId: true, scoreA: true, scoreB: true },
+      }),
+    ]);
+
+    // Build rounds map for exact tiebreaking
+    const teamRoundsMap: Record<string, { roundsWon: number; roundsLost: number }> = {};
+    for (const m of finishedMatches) {
+      if (!teamRoundsMap[m.teamAId]) teamRoundsMap[m.teamAId] = { roundsWon: 0, roundsLost: 0 };
+      if (!teamRoundsMap[m.teamBId]) teamRoundsMap[m.teamBId] = { roundsWon: 0, roundsLost: 0 };
+
+      teamRoundsMap[m.teamAId].roundsWon += m.scoreA;
+      teamRoundsMap[m.teamAId].roundsLost += m.scoreB;
+
+      teamRoundsMap[m.teamBId].roundsWon += m.scoreB;
+      teamRoundsMap[m.teamBId].roundsLost += m.scoreA;
+    }
 
     const seenTeamNames = new Set<string>();
     const formattedTeams = teams
@@ -52,29 +71,37 @@ export async function GET() {
         seenTeamNames.add(key);
         return true;
       })
-      .map((team) => ({
-        id: team.id,
-        name: team.name,
-        tag: team.tag,
-        slug: team.slug,
-        tier: team.tier || "TIER 1",
-        logoUrl: team.logoUrl,
-        description: team.description,
-        frameStyle: team.frameStyle || "NONE",
-        points: team.points || 0,
-        wins: team.wins || 0,
-        losses: team.losses || 0,
-        matchesPlayed: team.matchesPlayed || 0,
-        isDisqualified: team.isDisqualified,
-        disqualifiedUntil: team.disqualifiedUntil,
-        disqualifyReason: team.disqualifyReason,
-        playerCount: team.memberships.length,
-        activePlayers: team.memberships
-          .filter((m) => m.player && isMainRosterPlayer(m.role))
-          .slice(0, 5)
-          .map((m) => m.player.nickname),
-        createdAt: team.createdAt,
-      }));
+      .map((team) => {
+        const rStats = teamRoundsMap[team.id] || { roundsWon: 0, roundsLost: 0 };
+        const roundDiff = rStats.roundsWon - rStats.roundsLost;
+
+        return {
+          id: team.id,
+          name: team.name,
+          tag: team.tag,
+          slug: team.slug,
+          tier: team.tier || "TIER 1",
+          logoUrl: team.logoUrl,
+          description: team.description,
+          frameStyle: team.frameStyle || "NONE",
+          points: team.points || 0,
+          wins: team.wins || 0,
+          losses: team.losses || 0,
+          matchesPlayed: team.matchesPlayed || 0,
+          roundsWon: rStats.roundsWon,
+          roundsLost: rStats.roundsLost,
+          roundDiff,
+          isDisqualified: team.isDisqualified,
+          disqualifiedUntil: team.disqualifiedUntil,
+          disqualifyReason: team.disqualifyReason,
+          playerCount: team.memberships.length,
+          activePlayers: team.memberships
+            .filter((m) => m.player && isMainRosterPlayer(m.role))
+            .slice(0, 5)
+            .map((m) => m.player.nickname),
+          createdAt: team.createdAt,
+        };
+      });
 
     return NextResponse.json(
       { success: true, teams: formattedTeams },

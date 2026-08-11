@@ -35,18 +35,20 @@ export default async function HomePage() {
   let recentMatches: any[] = [];
 
   try {
-    const [tCount, pCount, mCount, tTeams, rMatches] = await Promise.all([
+    const [tCount, pCount, mCount, allTeamsList, finishedMatchesList, rMatches] = await Promise.all([
       prisma.team.count(),
       prisma.player.count(),
       prisma.match.count(),
       prisma.team.findMany({
-        take: 6,
-        orderBy: [{ points: "desc" }, { wins: "desc" }, { name: "asc" }],
         include: {
           memberships: {
             where: { status: "ACTIVE" },
           },
         },
+      }),
+      prisma.match.findMany({
+        where: { status: "FINISHED" },
+        select: { teamAId: true, teamBId: true, scoreA: true, scoreB: true },
       }),
       prisma.match.findMany({
         take: 4,
@@ -58,10 +60,45 @@ export default async function HomePage() {
       }),
     ]);
 
+    // Build rounds map for exact tiebreaking
+    const teamRoundsMap: Record<string, { roundsWon: number; roundsLost: number }> = {};
+    for (const m of finishedMatchesList) {
+      if (!teamRoundsMap[m.teamAId]) teamRoundsMap[m.teamAId] = { roundsWon: 0, roundsLost: 0 };
+      if (!teamRoundsMap[m.teamBId]) teamRoundsMap[m.teamBId] = { roundsWon: 0, roundsLost: 0 };
+
+      teamRoundsMap[m.teamAId].roundsWon += m.scoreA;
+      teamRoundsMap[m.teamAId].roundsLost += m.scoreB;
+
+      teamRoundsMap[m.teamBId].roundsWon += m.scoreB;
+      teamRoundsMap[m.teamBId].roundsLost += m.scoreA;
+    }
+
+    const sortedTeams = allTeamsList
+      .map((t) => {
+        const rStats = teamRoundsMap[t.id] || { roundsWon: 0, roundsLost: 0 };
+        const roundDiff = rStats.roundsWon - rStats.roundsLost;
+        return {
+          ...t,
+          roundsWon: rStats.roundsWon,
+          roundsLost: rStats.roundsLost,
+          roundDiff,
+        };
+      })
+      .sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        const winrateB = b.matchesPlayed > 0 ? b.wins / b.matchesPlayed : 0;
+        const winrateA = a.matchesPlayed > 0 ? a.wins / a.matchesPlayed : 0;
+        if (winrateB !== winrateA) return winrateB - winrateA;
+        if (b.roundDiff !== a.roundDiff) return b.roundDiff - a.roundDiff;
+        if (b.roundsWon !== a.roundsWon) return b.roundsWon - a.roundsWon;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return a.name.localeCompare(b.name);
+      });
+
     teamsCount = tCount;
     playersCount = pCount;
     matchesCount = mCount;
-    topTeams = tTeams;
+    topTeams = sortedTeams.slice(0, 6);
     recentMatches = rMatches;
   } catch (err) {
     console.error("Failed to load home page data:", err);
