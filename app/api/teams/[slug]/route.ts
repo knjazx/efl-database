@@ -12,6 +12,14 @@ function isAuthorized() {
   return sessionToken?.value === "authenticated_efl_admin";
 }
 
+function normalizeTier(t?: string | null): string {
+  if (!t) return "TIER 3";
+  const upper = t.toUpperCase().trim();
+  if (upper === "T1" || upper === "TIER 1" || upper === "TIER1") return "TIER 1";
+  if (upper === "T2" || upper === "TIER 2" || upper === "TIER2") return "TIER 2";
+  return "TIER 3";
+}
+
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   try {
     let rawSlug = params.slug || "";
@@ -136,14 +144,6 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
 
   try {
     const { slug } = params;
-    const formData = await req.formData();
-    const name = formData.get("name") as string;
-    const tag = formData.get("tag") as string;
-    const tier = (formData.get("tier") as string) || "T1";
-    const description = formData.get("description") as string;
-    const frameStyle = formData.get("frameStyle") as string;
-    const logoFile = formData.get("logo") as File | null;
-
     const existingTeam = await prisma.team.findFirst({
       where: { OR: [{ slug: slug }, { id: slug }] },
     });
@@ -151,6 +151,15 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
     if (!existingTeam) {
       return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
     }
+
+    const formData = await req.formData();
+    const name = (formData.get("name") as string) || existingTeam.name;
+    const tag = (formData.get("tag") as string) || existingTeam.tag;
+    const rawTier = formData.get("tier") as string | null;
+    const tier = rawTier && rawTier.trim() ? normalizeTier(rawTier) : (existingTeam.tier || "TIER 3");
+    const description = (formData.get("description") as string) ?? existingTeam.description;
+    const frameStyle = (formData.get("frameStyle") as string) || existingTeam.frameStyle || "NONE";
+    const logoFile = formData.get("logo") as File | null;
 
     let logoUrl = existingTeam.logoUrl;
     if (logoFile && logoFile.size > 0) {

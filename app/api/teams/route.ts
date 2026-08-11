@@ -75,7 +75,8 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const name = formData.get("name") as string;
     const tag = formData.get("tag") as string;
-    const tier = (formData.get("tier") as string) || "T1";
+    const rawTier = formData.get("tier") as string | null;
+    const tier = rawTier && rawTier.trim() ? (rawTier.toUpperCase().startsWith("T1") || rawTier.toUpperCase() === "TIER 1" ? "TIER 1" : rawTier.toUpperCase().startsWith("T2") || rawTier.toUpperCase() === "TIER 2" ? "TIER 2" : "TIER 3") : "TIER 3";
     const description = formData.get("description") as string;
     const frameStyle = (formData.get("frameStyle") as string) || "NONE";
     const logoFile = formData.get("logo") as File | null;

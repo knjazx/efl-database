@@ -55,6 +55,7 @@ export default function AdminTeamsPage() {
   // Form Inputs
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
+  const [tier, setTier] = useState("TIER 3");
   const [description, setDescription] = useState("");
   const [frameStyle, setFrameStyle] = useState("NONE");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -110,6 +111,7 @@ export default function AdminTeamsPage() {
     setEditingTeam(null);
     setName("");
     setTag("");
+    setTier("TIER 3");
     setDescription("");
     setFrameStyle("NONE");
     setLogoFile(null);
@@ -121,6 +123,7 @@ export default function AdminTeamsPage() {
     setEditingTeam(team);
     setName(team.name);
     setTag(team.tag);
+    setTier(team.tier || "TIER 3");
     setDescription(team.description || "");
     setFrameStyle(team.frameStyle || "NONE");
     setLogoFile(null);
@@ -174,7 +177,7 @@ export default function AdminTeamsPage() {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("tag", tag);
-      formData.append("tier", "T1");
+      formData.append("tier", tier || "TIER 3");
       formData.append("description", description);
       formData.append("frameStyle", frameStyle);
 
