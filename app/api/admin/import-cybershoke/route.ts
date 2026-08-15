@@ -7,6 +7,7 @@ import util from "util";
 import fs from "fs";
 import os from "os";
 import { UNKNOWN_TEAM_ID, ensureUnknownTeam } from "@/lib/unknownTeam";
+import { syncAllTeamStats } from "@/lib/syncTeamStats";
 
 const execFilePromise = util.promisify(execFile);
 
@@ -57,7 +58,7 @@ function matchesPlayer(demoPlayerName: string, dbPlayerNick: string, dbSteamUrl?
 
 export async function POST(req: Request) {
   if (!isAuthorized()) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: "Сессия истекла. Авторизуйтесь в админ-панели заново." }, { status: 401 });
   }
 
   try {
@@ -155,44 +156,18 @@ export async function POST(req: Request) {
         },
       });
 
-      // Update team stats automatically
-      if (winnerId) {
-        const winnerTeamId = winnerId;
-        const loserTeamId = winnerId === teamAId ? teamBId : teamAId;
+      // Synchronize team stats automatically
+      await syncAllTeamStats();
 
-        // Winner stats (if not unknown team): wins + 1, points + 3, matchesPlayed + 1
-        if (winnerTeamId !== UNKNOWN_TEAM_ID) {
-          await prisma.team.update({
-            where: { id: winnerTeamId },
-            data: {
-              wins: { increment: 1 },
-              points: { increment: 3 },
-              matchesPlayed: { increment: 1 },
-            },
-          });
-        }
+      const nameA = newMatch.teamCustomNameA || newMatch.teamA.name;
+      const nameB = newMatch.teamCustomNameB || newMatch.teamB.name;
 
-        // Loser stats (if not unknown team): losses + 1, matchesPlayed + 1
-        if (loserTeamId !== UNKNOWN_TEAM_ID) {
-          await prisma.team.update({
-            where: { id: loserTeamId },
-            data: {
-              losses: { increment: 1 },
-              matchesPlayed: { increment: 1 },
-            },
-          });
-        }
-
-        const nameA = newMatch.teamCustomNameA || newMatch.teamA.name;
-        const nameB = newMatch.teamCustomNameB || newMatch.teamB.name;
-
-        // Log activity
-        await prisma.activityLog.create({
-          data: {
-            description: `Импортирован матч Cybershoke/Demo: ${nameA} [${sA}:${sB}] ${nameB}`,
-          },
-        });
-      }
+      // Log activity
+      await prisma.activityLog.create({
+        data: {
+          description: `Импортирован матч Cybershoke/Demo: ${nameA} [${sA}:${sB}] ${nameB}`,
+        },
+      });
 
       if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
         try { fs.unlinkSync(uploadedFilePath); } catch (e) {}
@@ -215,7 +190,7 @@ export async function POST(req: Request) {
       const pythonCommands = process.env.PYTHON_PATH
         ? [process.env.PYTHON_PATH]
         : process.platform === "win32"
-        ? ["python", "python3", "C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"]
+        ? ["python", "C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"]
         : ["python3", "python", "/usr/bin/python3", "/usr/local/bin/python3"];
 
       const pythonScript = path.join(process.cwd(), "parse_cybershoke_demo.py");
@@ -227,6 +202,7 @@ export async function POST(req: Request) {
             timeout: 120000,
             env: {
               ...process.env,
+              PYTHONIOENCODING: "utf-8",
               PATH: `${process.env.PATH || ""};C:\\Users\\knjazx\\AppData\\Local\\Programs\\Python\\Python312;/usr/bin;/usr/local/bin`,
             },
           });

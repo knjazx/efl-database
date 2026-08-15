@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { cookies } from "next/headers";
 import { generateUniqueTeamSlug } from "@/lib/slug";
+import { syncAllTeamStats } from "@/lib/syncTeamStats";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,6 +32,7 @@ function isMainRosterPlayer(roleStr?: string | null): boolean {
 
 export async function GET() {
   try {
+    await syncAllTeamStats();
     const [teams, finishedMatches] = await Promise.all([
       prisma.team.findMany({
         include: {

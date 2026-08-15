@@ -26,6 +26,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: "Teams", href: "/admin/teams", icon: Shield },
     { label: "Players", href: "/admin/players", icon: Users },
     { label: "Rankings", href: "/admin/rankings", icon: Trophy },
+    { label: "Tournaments", href: "/admin/tournaments", icon: Trophy },
     { label: "Matches", href: "/admin/matches", icon: Calendar },
   ];
 

@@ -210,6 +210,8 @@ export default function AdminMatchesPage() {
         setCybershokeScoreB(data.scoreB ?? 9);
         setCybershokeTeamAId(data.teamA ? data.teamA.id : (teams[0]?.id || ""));
         setCybershokeTeamBId(data.teamB ? data.teamB.id : (teams[1]?.id || ""));
+        setCybershokeIsForfeit(false);
+        setCybershokeForfeitReason("");
         setIsCybershokeModalOpen(true);
       } else {
         alert(data.error || "Не удалось распарсить файл демо");
@@ -283,6 +285,8 @@ export default function AdminMatchesPage() {
         setCybershokeScoreB(data.scoreB ?? 9);
         setCybershokeTeamAId(data.teamA ? data.teamA.id : (teams[0]?.id || ""));
         setCybershokeTeamBId(data.teamB ? data.teamB.id : (teams[1]?.id || ""));
+        setCybershokeIsForfeit(false);
+        setCybershokeForfeitReason("");
         setIsCybershokeModalOpen(true);
       } else {
         alert(data.error || "Не удалось распознать ссылку на матч");
@@ -324,6 +328,8 @@ export default function AdminMatchesPage() {
       if (data.success) {
         setIsCybershokeModalOpen(false);
         setCybershokeUrl("");
+        setCybershokeIsForfeit(false);
+        setCybershokeForfeitReason("");
         fetchData();
       } else {
         alert(data.error || "Ошибка публикации матча");
@@ -536,7 +542,11 @@ export default function AdminMatchesPage() {
                               setSelectedMatch(m);
                               setScoreA(m.scoreA);
                               setScoreB(m.scoreB);
+                              setScoreTeamCustomNameA(m.teamCustomNameA || "");
+                              setScoreTeamCustomNameB(m.teamCustomNameB || "");
                               setMatchStatus(m.status === "SCHEDULED" ? "FINISHED" : m.status);
+                              setScoreIsForfeit(m.isForfeit || false);
+                              setScoreForfeitReason(m.forfeitReason || "");
                               setIsScoreModalOpen(true);
                             }}
                             className="px-3 py-1.5 rounded-lg bg-[#181818] hover:bg-[#252525] border border-[#333333] text-white font-bold text-[11px] transition-colors flex items-center gap-1.5"

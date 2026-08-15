@@ -108,6 +108,20 @@ export function Header() {
           </Link>
 
           <Link
+            href="/tournaments"
+            className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
+              pathname.startsWith("/tournaments")
+                ? "text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            <span>TOURNAMENTS</span>
+            {pathname.startsWith("/tournaments") && (
+              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
+            )}
+          </Link>
+
+          <Link
             href="/matches"
             className={`text-xs font-semibold tracking-widest uppercase transition-colors py-1 relative flex items-center gap-2 ${
               pathname.startsWith("/matches")

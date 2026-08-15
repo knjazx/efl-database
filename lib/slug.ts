@@ -15,6 +15,19 @@ export function transliterate(text: string): string {
     .join("");
 }
 
+export function slugify(text: string): string {
+  const latinText = transliterate(text);
+  let base = latinText
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+  if (!base || base.length === 0) {
+    base = "tournament";
+  }
+  return base;
+}
+
 export async function generateUniquePlayerSlug(nickname: string, excludePlayerId?: string): Promise<string> {
   const latinText = transliterate(nickname);
   let baseSlug = latinText
