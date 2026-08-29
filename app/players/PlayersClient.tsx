@@ -14,6 +14,7 @@ interface PlayerItem {
   nickname: string;
   slug: string;
   avatarUrl?: string;
+  country?: string;
   defaultRole: string;
   steamUrl?: string;
   faceitUrl?: string;

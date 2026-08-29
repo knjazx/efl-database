@@ -203,8 +203,6 @@ export default function TeamsClient({ initialTeams }: { initialTeams: TeamItem[]
                   region={team.region || "EU"}
                   logoUrl={team.logoUrl}
                   playerCount={team.playerCount}
-                  activePlayers={team.activePlayers}
-                  activeRosterPreview={team.activeRosterPreview}
                   isDisqualified={team.isDisqualified}
                   disqualifiedUntil={team.disqualifiedUntil}
                   disqualifyReason={team.disqualifyReason}
