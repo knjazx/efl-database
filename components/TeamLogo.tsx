@@ -16,10 +16,15 @@ export function TeamLogo({ logoUrl, name, tag, className = "w-full h-full" }: Te
   const hasLogo = logoUrl && logoUrl.trim().length > 0;
 
   if (!hasLogo || hasError) {
+    const displayTag = (tag || name.substring(0, 3)).toUpperCase();
     return (
-      <div className={`bg-gradient-to-br from-neutral-900 to-black border border-[#222222] flex flex-col items-center justify-center text-center font-black text-white p-1 select-none ${className}`}>
-        <Shield className="w-5 h-5 text-[#666666] mb-0.5" />
-        <span className="text-xs font-black tracking-wider text-white uppercase">{tag || name.substring(0, 3)}</span>
+      <div className={`bg-[#0A0A0A] border border-white/[0.05] flex flex-col items-center justify-center text-center select-none w-full h-full p-2 ${className}`}>
+        <div className="w-8 h-8 bg-white/5 border border-white/10 flex items-center justify-center mb-1.5 shadow-inner">
+          <Shield className="w-4 h-4 text-white/30" />
+        </div>
+        <span className="text-sm font-black font-mono tracking-widest text-white uppercase line-clamp-1">
+          {displayTag}
+        </span>
       </div>
     );
   }

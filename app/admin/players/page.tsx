@@ -5,12 +5,16 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Plus, Edit, Trash2, X, RefreshCw, ExternalLink, Check, Crown, AlertTriangle, ShieldCheck, ShieldAlert, Filter, Search } from "lucide-react";
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
+import { COUNTRIES, getCountry } from "@/lib/countries";
+import { CountryFlag } from "@/components/CountryFlag";
+import { PlayerThumbnailSilhouette } from "@/components/PlayerSilhouette";
 
 interface PlayerItem {
   id: string;
   nickname: string;
   slug: string;
   avatarUrl?: string;
+  country?: string;
   defaultRole: string;
   steamUrl?: string;
   faceitUrl?: string;
@@ -46,6 +50,7 @@ export default function AdminPlayersPage() {
 
   // Form Inputs
   const [nickname, setNickname] = useState("");
+  const [country, setCountry] = useState("RU");
   const [isCaptain, setIsCaptain] = useState(false);
   const [steamUrl, setSteamUrl] = useState("");
   const [faceitUrl, setFaceitUrl] = useState("");
@@ -74,6 +79,7 @@ export default function AdminPlayersPage() {
   const openAddModal = () => {
     setEditingPlayer(null);
     setNickname("");
+    setCountry("RU");
     setIsCaptain(false);
     setSteamUrl("https://steamcommunity.com");
     setFaceitUrl("https://www.faceit.com");
@@ -85,8 +91,9 @@ export default function AdminPlayersPage() {
   const openEditModal = (player: PlayerItem) => {
     setEditingPlayer(player);
     setNickname(player.nickname);
+    setCountry(player.country || "RU");
     const activeRole = player.currentTeam?.role || player.defaultRole || "";
-    setIsCaptain(activeRole.toUpperCase() === "CAPTAIN");
+    setIsCaptain(activeRole.toUpperCase() === "OWNER");
     setSteamUrl(player.steamUrl || "");
     setFaceitUrl(player.faceitUrl || "");
     setDiscordUrl(player.discordUrl || "");
@@ -139,7 +146,8 @@ export default function AdminPlayersPage() {
     try {
       const formData = new FormData();
       formData.append("nickname", nickname);
-      formData.append("role", isCaptain ? "CAPTAIN" : "PLAYER");
+      formData.append("country", country);
+      formData.append("role", isCaptain ? "OWNER" : "PLAYER");
       formData.append("steamUrl", steamUrl);
       formData.append("faceitUrl", faceitUrl);
       formData.append("discordUrl", isCaptain ? discordUrl : "");
@@ -212,7 +220,7 @@ export default function AdminPlayersPage() {
               PLAYER MANAGEMENT
             </h2>
             <p className="text-xs text-[#858585] mt-1">
-              Create players, manage Captain status, Steam & FACEIT URLs, and disqualifications.
+              Create players, manage Owner status, Steam & FACEIT URLs, and disqualifications.
             </p>
           </div>
 
@@ -286,8 +294,9 @@ export default function AdminPlayersPage() {
                 <tbody className="divide-y divide-[#1A1A1A]">
                   {displayedPlayers.map((p) => {
                     const activeRole = p.currentTeam?.role || p.defaultRole || "";
-                    const playerIsCaptain = activeRole.toUpperCase() === "CAPTAIN";
+                    const playerIsOwner = activeRole.toUpperCase() === "OWNER";
                     const ban = getBanStatus(p);
+                    const countryInfo = getCountry(p.country);
 
                     return (
                       <tr key={p.id} className="hover:bg-[#0E0E0E] transition-colors">
@@ -298,17 +307,18 @@ export default function AdminPlayersPage() {
                               {p.avatarUrl ? (
                                 <img src={p.avatarUrl} alt={p.nickname} className="w-full h-full object-cover" />
                               ) : (
-                                <span className="text-[10px] font-bold text-white">{p.nickname.substring(0, 2).toUpperCase()}</span>
+                                <PlayerThumbnailSilhouette className="w-full h-full" />
                               )}
                             </div>
                             <div className="flex items-center gap-2">
+                              <CountryFlag code={p.country} size="xs" />
                               <Link href={`/players/${p.slug}`} className="font-bold text-white hover:underline text-sm">
                                 {p.nickname}
                               </Link>
-                              {playerIsCaptain && (
+                              {playerIsOwner && (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[9px]">
                                   <Crown className="w-2.5 h-2.5" />
-                                  <span>CAPTAIN</span>
+                                  <span>OWNER</span>
                                 </span>
                               )}
                             </div>
@@ -372,7 +382,7 @@ export default function AdminPlayersPage() {
                                 <ExternalLink className="w-3 h-3" />
                               </a>
                             )}
-                            {playerIsCaptain && p.discordUrl && (
+                            {playerIsOwner && p.discordUrl && (
                               <span className="text-indigo-300 font-semibold text-[11px]">
                                 Discord: {p.discordUrl}
                               </span>
@@ -441,25 +451,44 @@ export default function AdminPlayersPage() {
               </h3>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
-                    Nickname *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. KnjazX"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Nickname *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. KnjazX"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Страна игрока *
+                    </label>
+                    <select
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.flag} {c.name} ({c.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
                     <label htmlFor="isCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
-                      Team Captain (Капитан команды)
+                      Team Owner (Владелец команды)
                     </label>
                   </div>
                   <input
@@ -474,7 +503,7 @@ export default function AdminPlayersPage() {
                 {isCaptain && (
                   <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded-xl space-y-1">
                     <label className="block text-[11px] font-bold text-amber-400 uppercase">
-                      Discord Contact (Only for Captain)
+                      Discord Contact (Only for Owner)
                     </label>
                     <input
                       type="text"

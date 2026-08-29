@@ -84,6 +84,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         id: m.player.id,
         nickname: m.player.nickname,
         slug: m.player.slug,
+        avatarUrl: m.player.avatarUrl,
+        country: m.player.country || "RU",
         role: m.role || m.player.defaultRole || "PLAYER",
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
@@ -101,6 +103,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         id: m.player.id,
         nickname: m.player.nickname,
         slug: m.player.slug,
+        avatarUrl: m.player.avatarUrl,
+        country: m.player.country || "RU",
         role: m.role || m.player.defaultRole || "PLAYER",
         steamUrl: m.player.steamUrl,
         faceitUrl: m.player.faceitUrl,
@@ -119,8 +123,11 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         name: team.name,
         tag: team.tag,
         slug: team.slug,
+        region: team.region || "CIS",
         tier: team.tier,
         logoUrl: team.logoUrl,
+        contactDiscord: team.contactDiscord,
+        contactTelegram: team.contactTelegram,
         description: team.description,
         frameStyle: team.frameStyle || "NONE",
         isDisqualified: team.isDisqualified,
@@ -155,6 +162,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
     const formData = await req.formData();
     const name = (formData.get("name") as string) || existingTeam.name;
     const tag = (formData.get("tag") as string) || existingTeam.tag;
+    const region = ((formData.get("region") as string) || existingTeam.region || "CIS").trim().toUpperCase();
     const rawTier = formData.get("tier") as string | null;
     const tier = rawTier && rawTier.trim() ? normalizeTier(rawTier) : (existingTeam.tier || "TIER 3");
     const description = (formData.get("description") as string) ?? existingTeam.description;
@@ -174,6 +182,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
         name,
         tag: tag.toUpperCase(),
         slug: updatedSlug,
+        region,
         tier,
         logoUrl,
         description,

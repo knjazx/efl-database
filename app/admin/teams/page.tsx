@@ -6,12 +6,15 @@ import { Plus, Edit, Trash2, Upload, X, RefreshCw, Users, Check, AlertTriangle, 
 import Link from "next/link";
 import { getBanStatus } from "@/lib/disqualification";
 import { compressImage } from "@/lib/compressImage";
+import { REGIONS, getRegionInfo } from "@/lib/countries";
+import { RegionBadge } from "@/components/RegionBadge";
 
 interface TeamItem {
   id: string;
   name: string;
   tag: string;
   slug: string;
+  region?: string;
   tier?: string;
   logoUrl: string;
   description: string;
@@ -36,6 +39,7 @@ export default function AdminTeamsPage() {
       !query ||
       t.name.toLowerCase().includes(query) ||
       t.tag.toLowerCase().includes(query) ||
+      (t.region && t.region.toLowerCase().includes(query)) ||
       (t.description && t.description.toLowerCase().includes(query));
 
     const matchesTier =
@@ -74,6 +78,7 @@ export default function AdminTeamsPage() {
   // Form Inputs
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
+  const [region, setRegion] = useState("EUROPE");
   const [tier, setTier] = useState("TIER 3");
   const [description, setDescription] = useState("");
   const [frameStyle, setFrameStyle] = useState("NONE");
@@ -130,6 +135,7 @@ export default function AdminTeamsPage() {
     setEditingTeam(null);
     setName("");
     setTag("");
+    setRegion("EUROPE");
     setTier("TIER 3");
     setDescription("");
     setFrameStyle("NONE");
@@ -142,6 +148,7 @@ export default function AdminTeamsPage() {
     setEditingTeam(team);
     setName(team.name);
     setTag(team.tag);
+    setRegion(team.region || "EUROPE");
     setTier(team.tier || "TIER 3");
     setDescription(team.description || "");
     setFrameStyle(team.frameStyle || "NONE");
@@ -196,6 +203,7 @@ export default function AdminTeamsPage() {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("tag", tag);
+      formData.append("region", region);
       formData.append("tier", tier || "TIER 3");
       formData.append("description", description);
       formData.append("frameStyle", frameStyle);
@@ -344,7 +352,7 @@ export default function AdminTeamsPage() {
                   <tr>
                     <th className="px-6 py-4">TEAM</th>
                     <th className="px-6 py-4">TAG</th>
-                    <th className="px-6 py-4">TIER</th>
+                    <th className="px-6 py-4">REGION</th>
                     <th className="px-6 py-4">STATUS</th>
                     <th className="px-6 py-4">PLAYERS</th>
                     <th className="px-6 py-4 text-right">ACTIONS</th>
@@ -353,7 +361,7 @@ export default function AdminTeamsPage() {
                 <tbody className="divide-y divide-[#1A1A1A]">
                   {filteredTeams.map((t) => {
                     const ban = getBanStatus(t);
-                    const normalizedTier = (t.tier || "TIER 1").toUpperCase();
+                    const reg = getRegionInfo(t.region);
 
                     return (
                       <tr key={t.id} className="hover:bg-[#0E0E0E] transition-colors">
@@ -376,19 +384,12 @@ export default function AdminTeamsPage() {
                           {t.tag}
                         </td>
 
-                        {/* TIER */}
+                        {/* REGION */}
                         <td className="px-6 py-4">
-                          <span
-                            className={`px-2 py-0.5 rounded border text-[10px] font-extrabold uppercase ${
-                              normalizedTier.includes("1")
-                                ? "bg-amber-950/40 border-amber-500/50 text-amber-300"
-                                : normalizedTier.includes("2")
-                                ? "bg-purple-950/40 border-purple-500/50 text-purple-300"
-                                : "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
-                            }`}
-                          >
-                            {normalizedTier.includes("1") ? "TIER 1" : normalizedTier.includes("2") ? "TIER 2" : "TIER 3"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <RegionBadge region={t.region} size="sm" />
+                            <span className="text-xs text-[#858585]">{reg.name}</span>
+                          </div>
                         </td>
 
                         {/* STATUS */}
@@ -460,31 +461,16 @@ export default function AdminTeamsPage() {
               </table>
             </div>
           ) : (
-            <div className="p-12 text-center text-[#858585] space-y-3">
-              <p className="text-xs uppercase font-semibold">
-                {searchQuery || selectedTierFilter !== "ALL"
-                  ? `Команды не найдены по запросу "${searchQuery}"`
-                  : "Команды отсутствуют в базе данных"}
-              </p>
-              {(searchQuery || selectedTierFilter !== "ALL") && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedTierFilter("ALL");
-                  }}
-                  className="px-4 py-1.5 rounded bg-[#141414] border border-[#222222] text-xs font-bold text-white hover:border-white transition-colors"
-                >
-                  Сбросить поиск и фильтры
-                </button>
-              )}
+            <div className="p-12 text-center text-[#858585]">
+              <p className="text-sm">No teams found matching search criteria.</p>
             </div>
           )}
         </div>
 
-        {/* Modal: Add / Edit Team */}
+        {/* Modal: Create or Edit Team */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -492,8 +478,8 @@ export default function AdminTeamsPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              <h3 className="text-lg font-black text-white uppercase tracking-wider mb-4 border-b border-[#222222] pb-3">
-                {editingTeam ? "EDIT TEAM" : "ADD NEW TEAM"}
+              <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6 pb-3 border-b border-[#222222]">
+                {editingTeam ? `EDIT TEAM: ${editingTeam.name}` : "CREATE NEW TEAM"}
               </h3>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -511,18 +497,37 @@ export default function AdminTeamsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
-                    Tag *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. APEX"
-                    value={tag}
-                    onChange={(e) => setTag(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white uppercase"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Tag *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. APEX"
+                      value={tag}
+                      onChange={(e) => setTag(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white uppercase"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#858585] uppercase mb-1">
+                      Регион команды *
+                    </label>
+                    <select
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                    >
+                      {REGIONS.map((r) => (
+                        <option key={r.code} value={r.code}>
+                          [{r.tag}] {r.name} ({r.englishName})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div>

@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { syncAllTeamStats } from "./syncTeamStats";
+import { UNKNOWN_TEAM_ID, ensureUnknownTeam } from "./unknownTeam";
 
 export interface GroupStandingItem {
   participantId: string;
@@ -505,47 +506,168 @@ export async function handleBracketMatchProgression(matchId: string) {
 
   if (!node || !node.match || node.match.status !== "FINISHED") return;
 
-  const match = node.match;
-  const isAWin = match.winnerId ? match.winnerId === match.teamAId : match.scoreA > match.scoreB;
-  const winnerTeamId = isAWin ? match.teamAId : match.teamBId;
-  const winnerName = isAWin ? match.teamCustomNameA : match.teamCustomNameB;
+  if (node.stageId) {
+    await repairAndProgressStageBracket(node.stageId);
+  }
+}
 
-  const loserTeamId = isAWin ? match.teamBId : match.teamAId;
-  const loserName = isAWin ? match.teamCustomNameB : match.teamCustomNameA;
+/**
+ * Repairs missing bracket matches and automatically progresses winning teams across all rounds.
+ */
+export async function repairAndProgressStageBracket(stageId: string) {
+  await ensureUnknownTeam();
 
-  if (node.nextMatchId && node.nextMatchSlot) {
-    const nextMatch = await prisma.match.findUnique({ where: { id: node.nextMatchId } });
-    if (nextMatch) {
-      const updateData: any = {};
-      if (node.nextMatchSlot === "A") {
-        updateData.teamAId = winnerTeamId;
-        updateData.teamCustomNameA = winnerName;
-      } else {
-        updateData.teamBId = winnerTeamId;
-        updateData.teamCustomNameB = winnerName;
-      }
-      await prisma.match.update({
-        where: { id: node.nextMatchId },
-        data: updateData,
+  const stage = await prisma.stage.findUnique({
+    where: { id: stageId },
+    include: {
+      bracketNodes: {
+        include: { match: { include: { teamA: true, teamB: true } } },
+        orderBy: [{ round: "asc" }, { position: "asc" }],
+      },
+    },
+  });
+
+  if (!stage) return;
+
+  const nodes = stage.bracketNodes;
+  if (nodes.length === 0) return;
+
+  const nodeMapByRoundPos: Record<string, any> = {};
+  for (const node of nodes) {
+    nodeMapByRoundPos[`${node.round}_${node.position}`] = node;
+  }
+
+  const maxRound = Math.max(...nodes.map((n) => n.round), 1);
+
+  // 1. Ensure every bracket node has a valid match record in DB
+  for (const node of nodes) {
+    let match = node.match;
+    if (!match && node.matchId) {
+      match = await prisma.match.findUnique({
+        where: { id: node.matchId },
+        include: { teamA: true, teamB: true },
       });
+    }
+
+    if (!match) {
+      const newMatchId = `match_${stageId}_r${node.round}_pos${node.position}_${Date.now()}`;
+      match = await prisma.match.create({
+        data: {
+          id: newMatchId,
+          tournamentId: stage.tournamentId,
+          stageId: stage.id,
+          teamAId: UNKNOWN_TEAM_ID,
+          teamBId: UNKNOWN_TEAM_ID,
+          teamCustomNameA: "TBD",
+          teamCustomNameB: "TBD",
+          scoreA: 0,
+          scoreB: 0,
+          status: "SCHEDULED",
+          scheduledAt: new Date(Date.now() + node.round * 7200 * 1000 + node.position * 3600 * 1000),
+          bestOf: stage.format === "BO3" ? 3 : stage.format === "BO5" ? 5 : 1,
+          tier: "TIER 1",
+        },
+        include: { teamA: true, teamB: true },
+      });
+
+      await prisma.bracketNode.update({
+        where: { id: node.id },
+        data: { matchId: match.id },
+      });
+      node.match = match;
+      node.matchId = match.id;
     }
   }
 
-  if (node.loserMatchId && node.loserMatchSlot) {
-    const loserMatch = await prisma.match.findUnique({ where: { id: node.loserMatchId } });
-    if (loserMatch) {
-      const updateData: any = {};
-      if (node.loserMatchSlot === "A") {
-        updateData.teamAId = loserTeamId;
-        updateData.teamCustomNameA = loserName;
-      } else {
-        updateData.teamBId = loserTeamId;
-        updateData.teamCustomNameB = loserName;
+  // 2. Link nextMatchId and nextMatchSlot between rounds
+  for (const node of nodes) {
+    if (node.round < maxRound && node.bracketType === "WINNERS") {
+      const nextRound = node.round + 1;
+      const nextPos = Math.floor(node.position / 2);
+      const nextSlot = node.position % 2 === 0 ? "A" : "B";
+      const nextNode = nodeMapByRoundPos[`${nextRound}_${nextPos}`];
+
+      if (nextNode && nextNode.matchId) {
+        if (node.nextMatchId !== nextNode.matchId || node.nextMatchSlot !== nextSlot) {
+          await prisma.bracketNode.update({
+            where: { id: node.id },
+            data: {
+              nextMatchId: nextNode.matchId,
+              nextMatchSlot: nextSlot,
+            },
+          });
+          node.nextMatchId = nextNode.matchId;
+          node.nextMatchSlot = nextSlot;
+        }
       }
-      await prisma.match.update({
-        where: { id: node.loserMatchId },
-        data: updateData,
+    }
+  }
+
+  // 3. Reload nodes from DB and propagate winners round by round
+  const updatedNodes = await prisma.bracketNode.findMany({
+    where: { stageId },
+    include: { match: { include: { teamA: true, teamB: true } } },
+    orderBy: [{ round: "asc" }, { position: "asc" }],
+  });
+
+  for (let r = 1; r <= maxRound; r++) {
+    const roundNodes = updatedNodes.filter((n) => n.round === r);
+    for (const node of roundNodes) {
+      if (!node.matchId) continue;
+      const currentMatch = await prisma.match.findUnique({
+        where: { id: node.matchId },
+        include: { teamA: true, teamB: true },
       });
+      if (!currentMatch || currentMatch.status !== "FINISHED") continue;
+
+      const isAWin = currentMatch.winnerId ? currentMatch.winnerId === currentMatch.teamAId : currentMatch.scoreA > currentMatch.scoreB;
+      const winnerTeamId = isAWin ? currentMatch.teamAId : currentMatch.teamBId;
+      const winnerName = isAWin
+        ? (currentMatch.teamCustomNameA || currentMatch.teamA?.name)
+        : (currentMatch.teamCustomNameB || currentMatch.teamB?.name);
+
+      const loserTeamId = isAWin ? currentMatch.teamBId : currentMatch.teamAId;
+      const loserName = isAWin
+        ? (currentMatch.teamCustomNameB || currentMatch.teamB?.name)
+        : (currentMatch.teamCustomNameA || currentMatch.teamA?.name);
+
+      // Advance winner to next match
+      if (node.nextMatchId && node.nextMatchSlot) {
+        const targetMatch = await prisma.match.findUnique({ where: { id: node.nextMatchId } });
+        if (targetMatch) {
+          const updateData: any = {};
+          if (node.nextMatchSlot === "A") {
+            updateData.teamAId = winnerTeamId || UNKNOWN_TEAM_ID;
+            updateData.teamCustomNameA = winnerName || "TBD";
+          } else {
+            updateData.teamBId = winnerTeamId || UNKNOWN_TEAM_ID;
+            updateData.teamCustomNameB = winnerName || "TBD";
+          }
+          await prisma.match.update({
+            where: { id: node.nextMatchId },
+            data: updateData,
+          });
+        }
+      }
+
+      // Advance loser for Double Elimination lower bracket
+      if (node.loserMatchId && node.loserMatchSlot) {
+        const loserMatch = await prisma.match.findUnique({ where: { id: node.loserMatchId } });
+        if (loserMatch) {
+          const updateData: any = {};
+          if (node.loserMatchSlot === "A") {
+            updateData.teamAId = loserTeamId || UNKNOWN_TEAM_ID;
+            updateData.teamCustomNameA = loserName || "TBD";
+          } else {
+            updateData.teamBId = loserTeamId || UNKNOWN_TEAM_ID;
+            updateData.teamCustomNameB = loserName || "TBD";
+          }
+          await prisma.match.update({
+            where: { id: node.loserMatchId },
+            data: updateData,
+          });
+        }
+      }
     }
   }
 }

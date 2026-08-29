@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { UNKNOWN_TEAM_ID } from "@/lib/unknownTeam";
 import { syncAllTeamStats } from "@/lib/syncTeamStats";
+import { handleBracketMatchProgression, checkAndAdvanceStage, handleSwissMatchCompletion } from "@/lib/tournamentLogic";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -68,8 +69,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       },
     });
 
-    // Synchronize team stats automatically across all teams
-    await syncAllTeamStats();
+    // Run bracket progression, Swiss round completion & stage advancement if match is finished
+    if (nextStatus === "FINISHED") {
+      await handleBracketMatchProgression(matchId);
+      if (existingMatch.stageId) {
+        await handleSwissMatchCompletion(matchId);
+        await checkAndAdvanceStage(existingMatch.stageId);
+      }
+      await syncAllTeamStats();
+    } else {
+      await syncAllTeamStats();
+    }
 
     const nameA = updatedMatch.teamCustomNameA || updatedMatch.teamA.name;
     const nameB = updatedMatch.teamCustomNameB || updatedMatch.teamB.name;

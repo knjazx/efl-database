@@ -42,6 +42,7 @@ export async function GET() {
           nickname: player.nickname,
           slug: player.slug,
           avatarUrl: player.avatarUrl,
+          country: player.country || "RU",
           defaultRole: player.defaultRole || "PLAYER",
           steamUrl: player.steamUrl,
           faceitUrl: player.faceitUrl,
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const nickname = formData.get("nickname") as string;
+    const country = ((formData.get("country") as string) || "RU").trim().toUpperCase();
     const defaultRole = (formData.get("role") as string) || "PLAYER";
     const steamUrl = (formData.get("steamUrl") as string) || "";
     const faceitUrl = (formData.get("faceitUrl") as string) || "";
@@ -107,6 +109,7 @@ export async function POST(req: Request) {
         nickname,
         slug,
         avatarUrl,
+        country,
         defaultRole,
         steamUrl,
         faceitUrl,

@@ -83,6 +83,7 @@ export async function GET() {
           tag: team.tag,
           slug: team.slug,
           tier: team.tier || "TIER 1",
+          region: team.region || "CIS",
           logoUrl: team.logoUrl,
           description: team.description,
           frameStyle: team.frameStyle || "NONE",
@@ -101,6 +102,18 @@ export async function GET() {
             .filter((m) => m.player && isMainRosterPlayer(m.role))
             .slice(0, 5)
             .map((m) => m.player.nickname),
+          activeRosterPreview: team.memberships
+            .filter((m) => m.player && isMainRosterPlayer(m.role))
+            .slice(0, 5)
+            .map((m) => ({
+              nickname: m.player.nickname,
+              avatarUrl: m.player.avatarUrl,
+              country: m.player.country || "RU",
+              isCaptain:
+                (m.role || "").toUpperCase().includes("OWNER") ||
+                (m.role || "").toUpperCase().includes("ВЛАДЕЛЕЦ") ||
+                (m.role || "").toUpperCase().includes("IGL"),
+            })),
           createdAt: team.createdAt,
         };
       });
@@ -128,6 +141,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const name = formData.get("name") as string;
     const tag = formData.get("tag") as string;
+    const region = ((formData.get("region") as string) || "CIS").trim().toUpperCase();
     const rawTier = formData.get("tier") as string | null;
     const tier = rawTier && rawTier.trim() ? (rawTier.toUpperCase().startsWith("T1") || rawTier.toUpperCase() === "TIER 1" ? "TIER 1" : rawTier.toUpperCase().startsWith("T2") || rawTier.toUpperCase() === "TIER 2" ? "TIER 2" : "TIER 3") : "TIER 3";
     const description = formData.get("description") as string;
@@ -150,6 +164,7 @@ export async function POST(req: Request) {
         name,
         tag: tag.toUpperCase(),
         slug,
+        region,
         tier,
         logoUrl: logoUrl || "",
         description,

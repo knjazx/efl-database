@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { ArrowLeft, Plus, Edit, UserMinus, User, X, RefreshCw, Check, Crown, Search, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
 import { formatRosterRole } from "@/lib/roles";
+import { PlayerThumbnailSilhouette } from "@/components/PlayerSilhouette";
 
 interface RosterMember {
   membershipId: string;
@@ -26,6 +27,8 @@ interface TeamData {
   tag: string;
   slug: string;
   logoUrl: string;
+  contactDiscord?: string;
+  contactTelegram?: string;
   description?: string;
   activeRoster: RosterMember[];
   formerPlayers: RosterMember[];
@@ -111,7 +114,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
 
   const constructRoleString = () => {
     if (isCaptain) {
-      return `CAPTAIN:${baseRole}`;
+      return `OWNER:${baseRole}`;
     }
     return baseRole;
   };
@@ -321,7 +324,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                           {m.avatarUrl ? (
                             <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-[10px] font-bold text-white">{m.nickname.substring(0, 2).toUpperCase()}</span>
+                            <PlayerThumbnailSilhouette className="w-full h-full" />
                           )}
                         </div>
                         <Link href={`/players/${m.slug}`} className="font-bold text-white hover:underline text-sm">
@@ -345,11 +348,11 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                           {parsedRole.label}
                         </span>
 
-                        {/* Captain Badge */}
+                        {/* Owner Badge */}
                         {parsedRole.isCaptain && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-amber-400 font-bold uppercase text-[10px]">
                             <Crown className="w-3 h-3" />
-                            <span>Капитан</span>
+                            <span>Владелец</span>
                           </span>
                         )}
                       </div>
@@ -415,9 +418,13 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
               <h2 className="text-2xl font-black text-white uppercase tracking-tight">
                 {team.name}
               </h2>
-              <p className="text-xs text-[#858585] uppercase tracking-widest font-mono mt-0.5">
-                TAG: {team.tag}
-              </p>
+              <div className="flex items-center gap-3 text-xs text-[#858585] uppercase tracking-widest font-mono mt-0.5">
+                <span>TAG: {team.tag}</span>
+                <span>|</span>
+                <span>Discord: <span className="text-emerald-400 font-bold">{team.contactDiscord || "-"}</span></span>
+                <span>|</span>
+                <span>Telegram: <span className="text-blue-400 font-bold">{team.contactTelegram || "-"}</span></span>
+              </div>
             </div>
           </div>
 
@@ -605,17 +612,17 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   </select>
                 </div>
 
-                {/* Captain Checkbox (only for single player / new) */}
+                {/* Owner Checkbox (only for single player / new) */}
                 {addMode === "new" || selectedPlayerIds.length === 1 ? (
                   <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
-                      <label htmlFor="rosterCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
-                        Назначить капитаном (Team Captain)
+                      <label htmlFor="rosterOwnerCheck" className="text-xs font-bold text-white cursor-pointer select-none">
+                        Назначить владелецом (Team Owner)
                       </label>
                     </div>
                     <input
-                      id="rosterCaptainCheck"
+                      id="rosterOwnerCheck"
                       type="checkbox"
                       checked={isCaptain}
                       onChange={(e) => setIsCaptain(e.target.checked)}
@@ -652,7 +659,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
           </div>
         )}
 
-        {/* Modal: Change Role / Captain status */}
+        {/* Modal: Change Role / Owner status */}
         {isRoleModalOpen && editingMembership && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
@@ -686,12 +693,12 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                 <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
-                    <label htmlFor="editCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
-                      Капитан команды (Team Captain)
+                    <label htmlFor="editOwnerCheck" className="text-xs font-bold text-white cursor-pointer select-none">
+                      Владелец команды (Team Owner)
                     </label>
                   </div>
                   <input
-                    id="editCaptainCheck"
+                    id="editOwnerCheck"
                     type="checkbox"
                     checked={isCaptain}
                     onChange={(e) => setIsCaptain(e.target.checked)}

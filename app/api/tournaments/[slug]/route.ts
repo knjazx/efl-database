@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { calculateGroupStandings, calculateSwissStandings } from "@/lib/tournamentLogic";
+import { calculateGroupStandings, calculateSwissStandings, repairAndProgressStageBracket } from "@/lib/tournamentLogic";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -107,6 +107,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       } else if (stage.type === "SWISS") {
         const swissStandings = await calculateSwissStandings(stage.id);
         swissStandingsByStageId[stage.id] = swissStandings;
+      } else if (stage.type === "SINGLE_ELIMINATION" || stage.type === "DOUBLE_ELIMINATION") {
+        await repairAndProgressStageBracket(stage.id);
       }
     }
 

@@ -1,546 +1,121 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { prisma } from "@/lib/prisma";
+import TeamProfileClient from "./TeamProfileClient";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Download, ExternalLink, ArrowLeft, RefreshCw, Crown, AlertTriangle, Shield, UserCheck, ShieldAlert, Sparkles } from "lucide-react";
-import { getBanStatus } from "@/lib/disqualification";
-import { formatRosterRole } from "@/lib/roles";
-import { TeamLogo } from "@/components/TeamLogo";
-import { getFrameStyles } from "@/components/TeamCard";
+import { ArrowLeft } from "lucide-react";
+import { cookies } from "next/headers";
 
-interface PlayerMember {
-  membershipId: string;
-  id: string;
-  nickname: string;
-  slug: string;
-  avatarUrl?: string;
-  role: string;
-  steamUrl?: string;
-  faceitUrl?: string;
-  discordUrl?: string;
-  isDisqualified?: boolean;
-  disqualifiedUntil?: Date | string | null;
-  disqualifyReason?: string | null;
-  joinedAt: string;
-  leftAt?: string;
-}
+export const dynamic = "force-dynamic";
 
-interface TeamDetail {
-  id: string;
-  name: string;
-  tag: string;
-  slug: string;
-  tier?: string;
-  logoUrl: string;
-  description?: string;
-  frameStyle?: string;
-  isDisqualified?: boolean;
-  disqualifiedUntil?: Date | string | null;
-  disqualifyReason?: string | null;
-  activeRoster: PlayerMember[];
-  formerPlayers: PlayerMember[];
-}
+export default async function TeamProfilePage({ params }: { params: { slug: string } }) {
+  const cookieStore = cookies();
+  const sessionToken = cookieStore.get("efl_admin_session");
+  const isAdmin = sessionToken?.value === "authenticated_efl_admin";
 
-export default function TeamProfilePage({ params }: { params: { slug: string } }) {
-  const routerParams = useParams();
-  const slug = (routerParams?.slug as string) || params?.slug || "";
+  const team = await prisma.team.findUnique({
+    where: { slug: params.slug },
+    include: {
+      memberships: {
+        include: {
+          player: true,
+        },
+        orderBy: { joinedAt: "asc" },
+      },
+      activityLogs: {
+        orderBy: {
+          timestamp: "desc",
+        },
+        take: 20,
+      },
+    },
+  });
 
-  const [team, setTeam] = useState<TeamDetail | null>(null);
-  const [teamMatches, setTeamMatches] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!slug || slug === "undefined") return;
-
-    setLoading(true);
-    setError(null);
-
-    fetch(`/api/teams/${slug}`, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.team) {
-          setTeam(data.team);
-          // Fetch match history for this team
-          fetch(`/api/matches?teamId=${data.team.id}`, { cache: "no-store" })
-            .then((r) => r.json())
-            .then((mRes) => {
-              if (mRes.success) setTeamMatches(mRes.matches || []);
-            })
-            .catch((e) => console.error("Failed to load team matches:", e));
-        } else {
-          setError(data.error || "Team not found");
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch team profile:", err);
-        setError("Failed to fetch team profile");
-      })
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  const handleDownloadLogo = () => {
-    if (!team?.logoUrl) return;
-    const link = document.createElement("a");
-    link.href = team.logoUrl;
-    link.download = `${team.tag.toLowerCase()}_logo${team.logoUrl.substring(team.logoUrl.lastIndexOf("."))}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  if (loading) {
+  if (!team) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-20 flex flex-col items-center justify-center gap-3 text-[#858585]">
-        <RefreshCw className="w-6 h-6 animate-spin" />
-        <span className="text-xs font-medium tracking-widest uppercase">Loading team profile...</span>
-      </div>
-    );
-  }
-
-  if (error || !team) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-        <Link href="/teams" className="inline-flex items-center gap-2 text-xs font-semibold text-[#858585] hover:text-white mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Teams
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <Link
+          href="/teams"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[#8E95A5] hover:text-white mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Все команды
         </Link>
-        <div className="p-12 border border-[#222222] bg-[#0A0A0A] rounded-xl max-w-md mx-auto">
-          <h2 className="text-xl font-bold text-white uppercase tracking-wider mb-2">TEAM NOT FOUND</h2>
-          <p className="text-xs text-[#858585] mb-6">{error || "The requested team profile does not exist."}</p>
-          <Link href="/teams" className="px-4 py-2 bg-white text-black text-xs font-bold rounded-md hover:bg-neutral-200 transition-colors">
-            BROWSE TEAMS
+        <div className="p-12 bg-[#050505] border border-white/[0.08] max-w-md mx-auto shadow-2xl">
+          <h2 className="text-xl font-bold text-white uppercase tracking-wider mb-2">
+            КОМАНДА НЕ НАЙДЕНА
+          </h2>
+          <p className="text-xs text-[#8E95A5] mb-6">
+            Запрошенный профиль команды не найден в базе данных.
+          </p>
+          <Link
+            href="/teams"
+            className="px-5 py-2.5 bg-white text-black text-xs font-extrabold hover:bg-neutral-200 transition-colors uppercase tracking-wider"
+          >
+            СПИСОК КОМАНД
           </Link>
         </div>
       </div>
     );
   }
 
-  const teamBan = getBanStatus(team);
+  const activeRoster = team.memberships
+    .filter((m) => m.status === "ACTIVE")
+    .map((m) => ({
+      membershipId: m.id,
+      id: m.player.id,
+      nickname: m.player.nickname,
+      slug: m.player.slug,
+      avatarUrl: m.player.avatarUrl || undefined,
+      country: m.player.country,
+      role: m.role,
+      steamUrl: m.player.steamUrl || undefined,
+      faceitUrl: m.player.faceitUrl || undefined,
+      discordUrl: m.player.discordUrl || undefined,
+      isDisqualified: m.player.isDisqualified,
+      disqualifiedUntil: m.player.disqualifiedUntil?.toISOString() || null,
+      disqualifyReason: m.player.disqualifyReason,
+      joinedAt: m.joinedAt.toISOString(),
+      leftAt: m.leftAt?.toISOString() || undefined,
+    }));
 
-  // Group roster into 3 distinct categories
-  const corePlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "CORE");
-  const substitutePlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "SUBSTITUTE");
-  const coachPlayers = team.activeRoster.filter((p) => formatRosterRole(p.role).baseRole === "COACH");
+  const formerPlayers = team.memberships
+    .filter((m) => m.status === "FORMER")
+    .map((m) => ({
+      membershipId: m.id,
+      id: m.player.id,
+      nickname: m.player.nickname,
+      slug: m.player.slug,
+      avatarUrl: m.player.avatarUrl || undefined,
+      country: m.player.country,
+      role: m.role,
+      steamUrl: m.player.steamUrl || undefined,
+      faceitUrl: m.player.faceitUrl || undefined,
+      discordUrl: m.player.discordUrl || undefined,
+      isDisqualified: m.player.isDisqualified,
+      disqualifiedUntil: m.player.disqualifiedUntil?.toISOString() || null,
+      disqualifyReason: m.player.disqualifyReason,
+      joinedAt: m.joinedAt.toISOString(),
+      leftAt: m.leftAt?.toISOString() || undefined,
+    }));
 
-  const renderRosterGrid = (players: PlayerMember[]) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-      {players.map((player) => {
-        const parsedRole = formatRosterRole(player.role);
-        const playerBan = getBanStatus(player);
+  const formattedTeam = {
+    id: team.id,
+    name: team.name,
+    tag: team.tag,
+    slug: team.slug,
+    region: team.region,
+    logoUrl: team.logoUrl,
+    description: team.description,
+    createdAt: team.createdAt.toISOString(),
+    isDisqualified: team.isDisqualified,
+    disqualifiedUntil: team.disqualifiedUntil?.toISOString() || null,
+    disqualifyReason: team.disqualifyReason,
+    activeRoster,
+    formerPlayers,
+    activityLogs: team.activityLogs.map((log) => ({
+      id: log.id,
+      description: log.description,
+      createdAt: log.timestamp.toISOString(),
+    })),
+  };
 
-        return (
-          <div
-            key={player.id}
-            className={`bg-[#0A0A0A] border rounded-xl p-5 transition-all flex flex-col justify-between group relative overflow-hidden ${
-              playerBan.isBanned ? "border-red-900/60 bg-red-950/10" : "border-[#222222] hover:border-[#444444]"
-            }`}
-          >
-            {playerBan.isBanned && (
-              <div className="mb-3 bg-red-950/80 border border-red-800 rounded py-1 px-2 text-center text-[10px] font-bold text-red-300 uppercase">
-                ДИСКВАЛИФИЦИРОВАН ({playerBan.remainingText})
-              </div>
-            )}
-
-            <div>
-              {/* Player Avatar & Name & Roles */}
-              <Link href={`/players/${player.slug}`} className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#222222] overflow-hidden mb-3 flex items-center justify-center flex-shrink-0 group-hover:border-amber-400/60 transition-colors">
-                  {player.avatarUrl ? (
-                    <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-lg font-black text-white">{player.nickname.substring(0, 2).toUpperCase()}</span>
-                  )}
-                </div>
-
-                <h3 className="text-base font-black text-white group-hover:text-amber-400 transition-colors tracking-tight">
-                  {player.nickname}
-                </h3>
-
-                <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
-                  {/* Roster Role Badge */}
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                      parsedRole.baseRole === "CORE"
-                        ? "bg-blue-950/40 border border-blue-500/50 text-blue-400"
-                        : parsedRole.baseRole === "SUBSTITUTE"
-                        ? "bg-purple-950/40 border border-purple-500/50 text-purple-400"
-                        : "bg-emerald-950/40 border border-emerald-500/50 text-emerald-400"
-                    }`}
-                  >
-                    {parsedRole.label}
-                  </span>
-
-                  {/* Captain Badge */}
-                  {parsedRole.isCaptain && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-500/50 text-[10px] font-bold tracking-widest text-amber-400 uppercase">
-                      <Crown className="w-3 h-3" />
-                      <span>Капитан</span>
-                    </span>
-                  )}
-                </div>
-              </Link>
-            </div>
-
-            {/* Steam & FACEIT & Discord Action Links */}
-            <div className="mt-6 pt-4 border-t border-[#181818] flex flex-wrap gap-2 text-center">
-              {player.steamUrl ? (
-                <a
-                  href={player.steamUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
-                >
-                  <span>Steam</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              ) : (
-                <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
-                  Steam —
-                </span>
-              )}
-
-              {player.faceitUrl ? (
-                <a
-                  href={player.faceitUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#050505] border border-[#222222] hover:border-white rounded text-[11px] font-semibold text-[#858585] hover:text-white transition-colors"
-                >
-                  <span>FACEIT</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              ) : (
-                <span className="flex-1 py-1.5 text-[11px] text-[#444444] border border-[#141414] rounded">
-                  FACEIT —
-                </span>
-              )}
-
-              {parsedRole.isCaptain && player.discordUrl && (
-                <a
-                  href={player.discordUrl.startsWith("http") ? player.discordUrl : `https://discord.com/users/${player.discordUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-indigo-950/40 border border-indigo-500/40 hover:border-indigo-400 rounded text-[11px] font-semibold text-indigo-300 hover:text-white transition-colors"
-                  title={`Discord: ${player.discordUrl}`}
-                >
-                  <span>Discord ({player.discordUrl})</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Back Link */}
-      <Link href="/teams" className="inline-flex items-center gap-2 text-xs font-semibold text-[#858585] hover:text-white mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Teams
-      </Link>
-
-      {/* Disqualification Banner */}
-      {teamBan.isBanned && (
-        <div className="bg-red-950/80 border border-red-800 rounded-2xl p-6 mb-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl shadow-red-950/20">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-red-900/60 border border-red-700 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-black uppercase tracking-wider text-red-300">
-                КОМАНДА ДИСКВАЛИФИЦИРОВАНА
-              </h3>
-              <p className="text-xs text-red-200/80 mt-0.5">
-                Причина: <span className="font-semibold text-white">{teamBan.reason}</span>
-              </p>
-            </div>
-          </div>
-          <div className="bg-red-900/40 border border-red-700/60 px-4 py-2 rounded-xl font-mono text-xs font-bold text-red-300">
-            {teamBan.remainingText}
-          </div>
-        </div>
-      )}
-
-      {/* Hero / Header Section */}
-      {(() => {
-        const frame = getFrameStyles(team.frameStyle);
-        return (
-          <div className={`rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 relative overflow-hidden border ${
-            teamBan.isBanned ? "border-red-900/60 bg-red-950/10" : frame.cardClass
-          }`}>
-            {!teamBan.isBanned && frame.label && (
-              <div className={`absolute top-4 right-4 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 ${frame.badgeClass}`}>
-                <Sparkles className={`w-3.5 h-3.5 ${frame.iconColor}`} />
-                <span>{frame.label}</span>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              {/* Logo Container */}
-              <div className={`w-28 h-28 relative bg-[#050505] border rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 ${
-                teamBan.isBanned ? "border-red-900/40" : frame.logoBorder
-              }`}>
-                <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover filter drop-shadow-md" />
-              </div>
-
-              {/* Team Info */}
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight uppercase mb-1">
-                  {team.name}
-                </h1>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm font-semibold text-[#858585] tracking-widest uppercase">
-                    TAG: {team.tag}
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded border text-[10px] font-extrabold uppercase ${
-                      (team.tier || "TIER 1").toUpperCase().includes("1")
-                        ? "bg-amber-950/40 border-amber-500/50 text-amber-300"
-                        : (team.tier || "TIER 1").toUpperCase().includes("2")
-                        ? "bg-purple-950/40 border-purple-500/50 text-purple-300"
-                        : "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
-                    }`}
-                  >
-                    {(team.tier || "TIER 1").toUpperCase().includes("1") ? "TIER 1" : (team.tier || "TIER 1").toUpperCase().includes("2") ? "TIER 2" : "TIER 3"}
-                  </span>
-                </div>
-                {team.description && (
-                  <p className="text-xs text-[#858585] max-w-2xl leading-relaxed">
-                    {team.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Download Logo Action Button */}
-            <div className="flex-shrink-0 w-full md:w-auto">
-              <button
-                onClick={handleDownloadLogo}
-                className="w-full md:w-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-[#141414] border border-[#222222] hover:border-white hover:bg-[#1A1A1A] text-xs font-bold tracking-wider text-white transition-all uppercase"
-              >
-                <Download className="w-4 h-4 text-white" />
-                <span>DOWNLOAD LOGO</span>
-              </button>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Main Roster Container */}
-      <div className="space-y-12 mb-16">
-
-        {/* SECTION 1: ОСНОВНОЙ СОСТАВ (Core Roster) */}
-        <div>
-          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-blue-500 inline-block shadow-lg shadow-blue-500/50"></span>
-              <h2 className="text-xl font-black tracking-tight text-white uppercase">
-                ОСНОВНОЙ СОСТАВ ({corePlayers.length})
-              </h2>
-            </div>
-            <span className="text-xs font-bold text-blue-400 bg-blue-950/40 border border-blue-500/30 px-3 py-1 rounded-md uppercase">
-              Starting Roster
-            </span>
-          </div>
-
-          {corePlayers.length > 0 ? (
-            renderRosterGrid(corePlayers)
-          ) : (
-            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
-              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
-                Нет игроков в основном составе
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* SECTION 2: ЗАМЕНА (Substitutes) */}
-        <div>
-          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-purple-500 inline-block shadow-lg shadow-purple-500/50"></span>
-              <h2 className="text-xl font-black tracking-tight text-white uppercase">
-                ЗАМЕНА ({substitutePlayers.length})
-              </h2>
-            </div>
-            <span className="text-xs font-bold text-purple-400 bg-purple-950/40 border border-purple-500/30 px-3 py-1 rounded-md uppercase">
-              Substitutes
-            </span>
-          </div>
-
-          {substitutePlayers.length > 0 ? (
-            renderRosterGrid(substitutePlayers)
-          ) : (
-            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
-              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
-                Запасные игроки отсутствуют
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* SECTION 3: ТРЕНЕРСКИЙ ШТАБ (Coaches & Staff) */}
-        <div>
-          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-lg shadow-emerald-500/50"></span>
-              <h2 className="text-xl font-black tracking-tight text-white uppercase">
-                ТРЕНЕРСКИЙ ШТАБ ({coachPlayers.length})
-              </h2>
-            </div>
-            <span className="text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-md uppercase">
-              Coaches & Staff
-            </span>
-          </div>
-
-          {coachPlayers.length > 0 ? (
-            renderRosterGrid(coachPlayers)
-          ) : (
-            <div className="p-8 border border-dashed border-[#222222] bg-[#0A0A0A]/40 rounded-xl text-center">
-              <p className="text-xs font-bold text-[#858585] uppercase tracking-wider">
-                Тренеры не назначены
-              </p>
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* RECENT MATCHES SECTION */}
-      {teamMatches.length > 0 && (
-        <div className="mt-12">
-          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
-              <h3 className="text-lg font-black text-white uppercase tracking-wider">
-                ПОСЛЕДНИЕ МАТЧИ ({teamMatches.length})
-              </h3>
-            </div>
-            <Link href="/matches" className="text-xs text-amber-400 font-bold uppercase hover:underline">
-              Все матчи &rarr;
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teamMatches.slice(0, 5).map((match) => {
-              const isTeamA = match.teamAId === team.id;
-              const opponent = isTeamA ? match.teamB : match.teamA;
-              const opponentName = isTeamA ? (match.teamCustomNameB || match.teamB?.name || "Неизвестная команда") : (match.teamCustomNameA || match.teamA?.name || "Неизвестная команда");
-              const myScore = isTeamA ? match.scoreA : match.scoreB;
-              const oppScore = isTeamA ? match.scoreB : match.scoreA;
-              const isFinished = match.status === "FINISHED";
-              const isWin = isFinished && myScore > oppScore;
-              const isLoss = isFinished && oppScore > myScore;
-
-              const dateObj = new Date(match.scheduledAt);
-              const formattedDate = dateObj.toLocaleDateString("ru-RU", { day: "2-digit", month: "short" });
-
-              return (
-                <div
-                  key={match.id}
-                  className={`bg-[#0A0A0A] border rounded-xl p-4 flex flex-col justify-between gap-3 ${
-                    isWin
-                      ? "border-emerald-800/50 bg-emerald-950/10"
-                      : isLoss
-                      ? "border-red-900/50 bg-red-950/10"
-                      : "border-[#1F1F1F]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-[11px] font-mono border-b border-[#1A1A1A] pb-2">
-                    <span className="text-[#858585]">{formattedDate} &bull; BO{match.bestOf}</span>
-                    {isFinished ? (
-                      <span
-                        className={`px-2 py-0.5 rounded font-black text-[9px] uppercase ${
-                          isWin ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-red-950 text-red-400 border border-red-800"
-                        }`}
-                      >
-                        {match.isForfeit ? (isWin ? "WIN (ТП)" : "LOSS (ТП)") : isWin ? "WIN" : isLoss ? "LOSS" : "DRAW"}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[9px] font-extrabold uppercase">
-                        UPCOMING
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3">
-                    {/* Opponent Logo & Name */}
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
-                        <TeamLogo logoUrl={opponent?.logoUrl || ""} name={opponentName} tag={opponent?.tag || "GUEST"} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="overflow-hidden">
-                        <span className="text-[10px] text-[#858585] font-mono uppercase block">vs {opponent?.tag || "GUEST"}</span>
-                        <span className="font-extrabold text-white text-xs uppercase truncate block">
-                          {opponentName}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Score */}
-                    <div className="font-mono text-sm font-black px-2.5 py-1 bg-[#141414] border border-[#222222] rounded-lg text-white">
-                      {isFinished ? `${myScore} : ${oppScore}` : "VS"}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Former Players Section */}
-      {team.formerPlayers && team.formerPlayers.length > 0 && (
-        <div className="mt-12">
-          <div className="mb-6 border-b border-[#222222] pb-3 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white uppercase tracking-wider">
-              FORMER PLAYERS
-            </h3>
-            <span className="text-xs text-[#858585]">
-              {team.formerPlayers.length} HISTORICAL MEMBERS
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {team.formerPlayers.map((player) => (
-              <div
-                key={player.id}
-                className="bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl p-4 flex items-center justify-between gap-4"
-              >
-                <Link href={`/players/${player.slug}`} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
-                    {player.avatarUrl ? (
-                      <img src={player.avatarUrl} alt={player.nickname} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-white">{player.nickname.substring(0, 2).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
-                      {player.nickname}
-                    </h4>
-                  </div>
-                </Link>
-
-                <div className="text-right flex flex-col items-end">
-                  <span className="text-[10px] text-[#858585] font-mono">
-                    {player.leftAt
-                      ? `Left: ${new Date(player.leftAt).toLocaleDateString("ru-RU", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}`
-                      : "Left: N/A"}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <TeamProfileClient team={formattedTeam as any} isAdmin={isAdmin} />;
 }

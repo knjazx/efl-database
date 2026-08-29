@@ -82,6 +82,27 @@ export function SwissBoard({
     "2-2": [],
   };
 
+  // Calculate team record before a given round based on finished matches in earlier rounds
+  function getTeamPreMatchRecord(teamId?: string, targetRound: number = 1) {
+    if (!teamId || targetRound <= 1) return "0-0";
+    let w = 0;
+    let l = 0;
+    bracketNodes.forEach((n) => {
+      if (n.round >= targetRound) return;
+      const m = n.match;
+      if (!m || m.status !== "FINISHED") return;
+      const isA = m.teamAId === teamId;
+      const isB = m.teamBId === teamId;
+      if (!isA && !isB) return;
+
+      const isAWin = m.winnerId ? m.winnerId === m.teamAId : m.scoreA > m.scoreB;
+      const isWin = isA ? isAWin : !isAWin;
+      if (isWin) w++;
+      else l++;
+    });
+    return `${w}-${l}`;
+  }
+
   bracketNodes.forEach((node) => {
     const m = node.match;
     if (!m) return;
@@ -92,19 +113,10 @@ export function SwissBoard({
     let poolKey = "0-0";
     if (node.round === 1) {
       poolKey = "0-0";
-    } else if (node.round === 2) {
-      const recA = stA?.record || "0-0";
-      poolKey = recA.startsWith("1") ? "1-0" : "0-1";
-    } else if (node.round === 3) {
-      const recA = stA?.record || "0-0";
-      if (recA.startsWith("2")) poolKey = "2-0";
-      else if (recA.startsWith("0")) poolKey = "0-2";
-      else poolKey = "1-1";
-    } else if (node.round === 4) {
-      const recA = stA?.record || "0-0";
-      poolKey = recA.startsWith("2") ? "2-1" : "1-2";
-    } else if (node.round === 5) {
-      poolKey = "2-2";
+    } else {
+      const recA = getTeamPreMatchRecord(m.teamAId, node.round);
+      const recB = getTeamPreMatchRecord(m.teamBId, node.round);
+      poolKey = recA !== "0-0" ? recA : recB;
     }
 
     if (!poolMatches[poolKey]) poolMatches[poolKey] = [];

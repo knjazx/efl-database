@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Trophy, Calendar, CheckCircle2, Clock, Trash2, Edit3, X, RefreshCw, Sparkles, Shield } from "lucide-react";
 import { TeamLogo } from "@/components/TeamLogo";
+import { AdminLayout } from "@/components/AdminLayout";
 
 interface TeamOption {
   id: string;
@@ -358,33 +359,27 @@ export default function AdminMatchesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[#222222] pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link href="/admin" className="text-xs text-[#858585] hover:text-white uppercase font-bold">
-              Админ-панель
-            </Link>
-            <span className="text-[#444444] text-xs">/</span>
-            <span className="text-xs text-amber-400 font-bold uppercase">Управление матчами</span>
+    <AdminLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[#222222] pb-6">
+          <div>
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight">
+              УПРАВЛЕНИЕ МАТЧАМИ И РАСПИСАНИЕМ
+            </h1>
+            <p className="text-xs text-[#858585] mt-1">
+              Создавайте матчи, вносите результаты и завершайте встречи. Винрейт и очки команд пересчитываются автоматически!
+            </p>
           </div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tight">
-            УПРАВЛЕНИЕ МАТЧАМИ И РАСПИСАНИЕМ
-          </h1>
-          <p className="text-xs text-[#858585] mt-1">
-            Создавайте матчи, вносите результаты и завершайте встречи. Винрейт и очки команд пересчитываются автоматически!
-          </p>
-        </div>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-5 py-2.5 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Запланировать матч</span>
-        </button>
-      </div>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-5 py-2.5 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Запланировать матч</span>
+          </button>
+        </div>
 
       {/* CYBERSHOKE AUTO-IMPORTER BAR */}
       <div className="bg-gradient-to-r from-[#0F172A] to-[#0A0A0A] border border-blue-500/30 rounded-2xl p-6 shadow-xl">
@@ -1141,6 +1136,7 @@ export default function AdminMatchesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

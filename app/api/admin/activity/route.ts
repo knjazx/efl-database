@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
+function isAuthorized() {
+  const cookieStore = cookies();
+  const sessionToken = cookieStore.get("efl_admin_session");
+  return sessionToken?.value === "authenticated_efl_admin";
+}
+
 export async function GET() {
+  if (!isAuthorized()) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const logs = await prisma.activityLog.findMany({
       orderBy: { timestamp: "desc" },
