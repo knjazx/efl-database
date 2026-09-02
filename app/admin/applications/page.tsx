@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -32,7 +32,7 @@ export default function ApplicationsAdminPage() {
   const loadApps = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/applications");
+      const res = await fetch("/api/admin/applications", { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
         setApps(data.applications);
