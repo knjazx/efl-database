@@ -70,23 +70,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           });
         };
 
-        const baseCapSlug = slugify(application.captainNickname, { lower: true, strict: true }) || 'player';
-        const capSlug = `${baseCapSlug}-${Date.now().toString(36)}-${Math.floor(Math.random()*10000)}`;
-        const cap = await tx.player.create({
-            data: {
-                nickname: application.captainNickname,
-                slug: capSlug,
-                defaultRole: "Owner",
-                country: roster.captainCountry || "RU",
-                steamUrl: application.captainSteam,
-                faceitUrl: application.captainFaceit,
-                discordUrl: application.captainDiscord
-            }
-        });
-        await tx.teamMembership.create({
-            data: { teamId: team.id, playerId: cap.id, role: "Owner", status: "ACTIVE" }
-        });
-
+        // Captain is no longer added as a player
         if (roster.mainPlayers) {
             for (const m of roster.mainPlayers) {
                 await createPlayer(m.nickname, m.steamUrl, m.faceitUrl, m.country, "Player", "Rifler");
