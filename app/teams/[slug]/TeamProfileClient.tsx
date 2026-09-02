@@ -53,7 +53,7 @@ interface TeamDetail {
   tag: string;
   slug: string;
   region?: string;
-  logoUrl: string;
+  logoUrl: string;\n  contactDiscord?: string;\n  contactTelegram?: string;
   description?: string;
   isDisqualified?: boolean;
   disqualifiedUntil?: Date | string | null;
@@ -322,9 +322,9 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
               )}
             </div>
 
-            {/* Owner */}
+            {/* Captain */}
             <div className="flex justify-between items-center py-3 border-b border-white/10">
-              <span className="text-[13px] font-bold text-[#888888]">Владелец (IGL)</span>
+              <span className="text-[13px] font-bold text-[#888888]">КАПИТАН (IGL)</span>
               {captainPlayer ? (
                 <Link
                   href={`/players/${captainPlayer.slug}`}
@@ -335,9 +335,29 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                   <span>{captainPlayer.nickname}</span>
                 </Link>
               ) : (
-                <span className="text-[13px] font-bold text-[#555555]">Не назначен</span>
+                <span className="text-[13px] font-bold text-[#555555]">НЕ НАЗНАЧЕН</span>
               )}
             </div>
+
+            {/* Owner / Contacts */}
+            {(team.contactDiscord || team.contactTelegram) && (
+              <div className="flex justify-between items-center py-3 border-b border-white/10">
+                <span className="text-[13px] font-bold text-[#888888]">ВЛАДЕЛЕЦ</span>
+                <div className="flex items-center gap-3">
+                  {team.contactDiscord && (
+                    <span className="text-[13px] text-white flex items-center gap-1.5">
+                      <DiscordIcon className="w-3.5 h-3.5" /> 
+                      {team.contactDiscord}
+                    </span>
+                  )}
+                  {team.contactTelegram && (
+                    <span className="text-[13px] text-white flex items-center gap-1.5">
+                      TG: {team.contactTelegram}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Core Starters Count */}
             <div className="flex justify-between items-center py-3 border-b border-white/10">
