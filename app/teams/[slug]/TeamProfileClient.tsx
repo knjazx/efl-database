@@ -341,18 +341,21 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
 
             {/* Owner / Contacts */}
             {(team.contactDiscord || team.contactTelegram) && (
-              <div className="flex justify-between items-center py-3 border-b border-white/10">
-                <span className="text-[13px] font-bold text-[#888888]">ВЛАДЕЛЕЦ</span>
+              <div className="flex justify-between items-center py-3 border-b border-white/10 bg-gradient-to-r from-amber-500/10 to-transparent px-3 rounded-lg -ml-3">
+                <span className="text-[13px] font-black text-amber-500 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  ВЛАДЕЛЕЦ
+                </span>
                 <div className="flex items-center gap-3">
                   {team.contactDiscord && (
-                    <span className="text-[13px] text-white flex items-center gap-1.5">
-                      <DiscordIcon className="w-3.5 h-3.5" /> 
+                    <span className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                      <DiscordIcon className="w-4 h-4 text-amber-400" /> 
                       {team.contactDiscord}
                     </span>
                   )}
                   {team.contactTelegram && (
-                    <span className="text-[13px] text-white flex items-center gap-1.5">
-                      TG: {team.contactTelegram}
+                    <span className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                      <span className="text-amber-400">TG:</span> {team.contactTelegram}
                     </span>
                   )}
                 </div>
