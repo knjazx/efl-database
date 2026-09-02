@@ -233,7 +233,7 @@ export default function AdminPlayersPage() {
                 placeholder="Поиск по нику..."
                 value={playerSearchQuery}
                 onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                className="pl-9 pr-8 py-2 bg-[#050505] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors w-48 sm:w-60"
+                className="pl-9 pr-8 py-2 bg-[#151515] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors w-48 sm:w-60"
               />
               {playerSearchQuery && (
                 <button
@@ -251,7 +251,7 @@ export default function AdminPlayersPage() {
               className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 ${
                 hidePlayersWithTeam
                   ? "bg-amber-950/40 border-amber-500/60 text-amber-300 shadow-md shadow-amber-950/30"
-                  : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white hover:border-white"
+                  : "bg-[#151515] border-[#222222] text-[#858585] hover:text-white hover:border-white"
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
@@ -273,7 +273,7 @@ export default function AdminPlayersPage() {
         </div>
 
         {/* Players Table */}
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+        <div className="bg-[#151515] border border-[#222222] rounded-xl overflow-hidden">
           {loading ? (
             <div className="p-12 text-center text-[#858585] flex flex-col items-center gap-3">
               <RefreshCw className="w-6 h-6 animate-spin" />
@@ -282,7 +282,7 @@ export default function AdminPlayersPage() {
           ) : displayedPlayers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+                <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">PLAYER</th>
                     <th className="px-6 py-4">TEAM</th>
@@ -303,7 +303,7 @@ export default function AdminPlayersPage() {
                         {/* PLAYER NICKNAME & AVATAR */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
                               {p.avatarUrl ? (
                                 <img src={p.avatarUrl} alt={p.nickname} className="w-full h-full object-cover" />
                               ) : (
@@ -438,7 +438,7 @@ export default function AdminPlayersPage() {
         {/* Modal: Add / Edit Player */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-lg bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -462,7 +462,7 @@ export default function AdminPlayersPage() {
                       placeholder="e.g. KnjazX"
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                     />
                   </div>
 
@@ -473,7 +473,7 @@ export default function AdminPlayersPage() {
                     <select
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
                     >
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.code}>
@@ -484,7 +484,7 @@ export default function AdminPlayersPage() {
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-[#151515] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
                     <label htmlFor="isCaptainCheck" className="text-xs font-bold text-white cursor-pointer select-none">
@@ -510,7 +510,7 @@ export default function AdminPlayersPage() {
                       placeholder="Discord Tag or Link (e.g. username#0000)"
                       value={discordUrl}
                       onChange={(e) => setDiscordUrl(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-amber-400"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                 )}
@@ -524,7 +524,7 @@ export default function AdminPlayersPage() {
                     placeholder="https://steamcommunity.com/id/..."
                     value={steamUrl}
                     onChange={(e) => setSteamUrl(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
@@ -537,7 +537,7 @@ export default function AdminPlayersPage() {
                     placeholder="https://www.faceit.com/en/players/..."
                     value={faceitUrl}
                     onChange={(e) => setFaceitUrl(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
@@ -572,7 +572,7 @@ export default function AdminPlayersPage() {
         {/* Modal: Manage Player Disqualification / Ban */}
         {isBanModalOpen && banTargetPlayer && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-md bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
               <button
                 onClick={() => setIsBanModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -609,7 +609,7 @@ export default function AdminPlayersPage() {
                         className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
                           banDurationDays === preset.days
                             ? "bg-red-900/60 border-red-500 text-white"
-                            : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white"
+                            : "bg-[#151515] border-[#222222] text-[#858585] hover:text-white"
                         }`}
                       >
                         {preset.label}
@@ -629,7 +629,7 @@ export default function AdminPlayersPage() {
                     placeholder="e.g. Rule 3.1 Violation / Toxic behavior"
                     value={banReason}
                     onChange={(e) => setBanReason(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
 

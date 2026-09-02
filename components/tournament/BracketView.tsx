@@ -117,16 +117,16 @@ export function BracketView({ nodes, onMatchClick, isAdmin }: Props) {
   const handleMouseLeave = () => setIsDragging(false);
 
   return (
-    <div ref={wrapperRef} className="w-full bg-[#050505] border border-[#222222] rounded-xl flex flex-col shadow-2xl relative" style={{ height: isFullscreen ? '100vh' : 'auto' }}>
+    <div ref={wrapperRef} className="w-full bg-[#151515] border border-[#222222] rounded-xl flex flex-col shadow-2xl relative" style={{ height: isFullscreen ? '100vh' : 'auto' }}>
       {/* Top Banner & Toolbar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#1F1F1F] p-4 bg-[#0A0A0A] z-10 rounded-t-xl">
+      <div className="flex flex-wrap items-center justify-between border-b border-[#1F1F1F] p-4 bg-[#151515] z-10 rounded-t-xl">
         <div className="flex items-center gap-2">
           <Swords className="w-5 h-5 text-emerald-400" />
           <h2 className="text-sm font-bold text-white uppercase tracking-widest">PLAYOFF BRACKET</h2>
         </div>
         
         {/* Toolbar */}
-        <div className="flex items-center gap-1 bg-[#0D0D0D] border border-[#1F1F1F] rounded-xl p-1">
+        <div className="flex items-center gap-1 bg-[#181818] border border-[#1F1F1F] rounded-xl p-1">
           <button onClick={handleZoomOut} className="p-1.5 bg-[#141414] border border-[#333] rounded-lg hover:border-white/40 transition-colors text-[#888] hover:text-white" title="Zoom Out">
             <ZoomOut className="w-4 h-4" />
           </button>
@@ -147,7 +147,7 @@ export function BracketView({ nodes, onMatchClick, isAdmin }: Props) {
       {/* Interactive Bracket Container */}
       <div 
         ref={bracketRef}
-        className={`flex-1 overflow-hidden relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} bg-[#050505]`}
+        className={`flex-1 overflow-hidden relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} bg-[#151515]`}
         style={{ minHeight: '500px' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -168,7 +168,7 @@ export function BracketView({ nodes, onMatchClick, isAdmin }: Props) {
               return (
                 <div key={rNum} className="flex flex-col w-72 flex-shrink-0 gap-4">
                   {/* Round Header */}
-                  <div className="bg-[#0D0D0D] border border-[#222] py-2 px-3 rounded-lg text-center font-mono font-bold text-xs text-white tracking-widest uppercase shadow-md">
+                  <div className="bg-[#181818] border border-[#222] py-2 px-3 rounded-lg text-center font-mono font-bold text-xs text-white tracking-widest uppercase shadow-md">
                     {title}
                   </div>
 
@@ -196,7 +196,7 @@ export function BracketView({ nodes, onMatchClick, isAdmin }: Props) {
                               onMatchClick(match.id);
                             }
                           }}
-                          className={`group relative bg-[#0D0D0D] border rounded-lg p-3 transition-all hover:border-white/40 shadow-lg ${
+                          className={`group relative bg-[#181818] border rounded-lg p-3 transition-all hover:border-white/40 shadow-lg ${
                             isLive
                               ? "border-emerald-500/50 shadow-emerald-500/10"
                               : "border-[#222222]"

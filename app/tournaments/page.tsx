@@ -44,7 +44,7 @@ export default function TournamentsPage() {
             <h1 className="text-2xl font-black tracking-wider uppercase">TOURNAMENTS</h1>
           </div>
           <p className="text-xs text-[#858585] tracking-wide font-mono">
-            Официальные турниры и лиги Electronic Future League (EFL)
+            Официальные турниры и лиги Ascent League (ASCENT)
           </p>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function TournamentsPage() {
             <Link
               key={t.id}
               href={`/tournaments/${t.slug}`}
-              className="group bg-[#0A0A0A] border border-[#222222] hover:border-white/40 rounded-xl p-6 transition-all flex flex-col justify-between gap-6 shadow-xl relative overflow-hidden"
+              className="group bg-[#151515] border border-[#222222] hover:border-white/40 rounded-xl p-6 transition-all flex flex-col justify-between gap-6 shadow-xl relative overflow-hidden"
             >
               <div className="flex flex-col gap-4">
                 {/* Status Badge & Preset */}
@@ -99,7 +99,7 @@ export default function TournamentsPage() {
                     {t.status}
                   </span>
                   <span className="text-[#666] font-mono uppercase tracking-wider">
-                    {t.presetType?.replace("EFL_", "").replace("_", " ")}
+                    {t.presetType?.replace("ASCENT_", "").replace("_", " ")}
                   </span>
                 </div>
 

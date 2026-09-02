@@ -74,19 +74,19 @@ export default function TeamsClient({ initialTeams }: { initialTeams: TeamItem[]
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
       {/* Minimalist Top Header */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/[0.05] pb-8">
+      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/10 pb-8">
         <div>
           <div className="flex items-center gap-2 mb-3 text-[10px] font-mono tracking-widest uppercase">
             <span className="text-white">OFFICIAL REGISTRY</span>
             <span className="text-[#333333]">&bull;</span>
-            <span className="text-[#666666]">EFL DATABASE</span>
+            <span className="text-[#666666]">ASCENT DATABASE</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white uppercase">
             КОМАНДЫ
           </h1>
           <p className="text-[#888888] text-sm mt-3 max-w-xl font-normal leading-relaxed">
-            Официальный публичный реестр киберспортивных организаций и составов Electronic Future League.
+            Официальный публичный реестр киберспортивных организаций и составов Ascent League.
           </p>
 
           {/* Quick Stat Badges - simplified */}
@@ -151,7 +151,7 @@ export default function TeamsClient({ initialTeams }: { initialTeams: TeamItem[]
         >
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="bg-[#0a0a0a] border border-white/[0.1] text-xs font-bold text-white uppercase tracking-widest pl-4 pr-10 py-2.5 focus:outline-none hover:bg-white/[0.02] transition-colors flex items-center justify-between min-w-[200px]"
+            className="bg-[#151515] border border-white/[0.1] text-xs font-bold text-white uppercase tracking-widest pl-4 pr-10 py-2.5 focus:outline-none hover:bg-white/[0.02] transition-colors flex items-center justify-between min-w-[200px]"
           >
             <span>
               {selectedRegion === "ALL" || selectedRegion === "BANNED" 
@@ -162,7 +162,7 @@ export default function TeamsClient({ initialTeams }: { initialTeams: TeamItem[]
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 w-full bg-[#0a0a0a] border border-white/[0.1] shadow-xl z-50 flex flex-col max-h-[300px] overflow-y-auto scrollbar-none">
+            <div className="absolute top-full left-0 w-full bg-[#151515] border border-white/[0.1] shadow-xl z-50 flex flex-col max-h-[300px] overflow-y-auto scrollbar-none">
               <button
                 onClick={() => { setSelectedRegion("ALL"); setIsDropdownOpen(false); }}
                 className="text-left px-4 py-2.5 text-xs font-bold text-white uppercase tracking-widest hover:bg-white/[0.05] transition-colors"
@@ -211,7 +211,7 @@ export default function TeamsClient({ initialTeams }: { initialTeams: TeamItem[]
             </div>
         ) : (
           /* EMPTY SEARCH STATE */
-          <div className="bg-[#050505] p-16 text-center border border-white/[0.08] max-w-lg mx-auto my-10">
+          <div className="bg-[#151515] p-16 text-center border border-white/[0.15] max-w-lg mx-auto my-10">
             <div className="w-14 h-14 bg-white/[0.04] border border-white/10 flex items-center justify-center mx-auto mb-4 text-[#8E95A5]">
               <SlidersHorizontal className="w-6 h-6" />
             </div>

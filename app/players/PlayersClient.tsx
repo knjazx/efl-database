@@ -83,7 +83,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.08] pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.15] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-3 text-[10px] font-mono tracking-widest uppercase">
             <span className="text-white">OFFICIAL REGISTRY</span>
@@ -95,7 +95,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
             ИГРОКИ
           </h1>
           <p className="text-[#888888] text-sm mt-3 max-w-xl font-normal leading-relaxed">
-            Публичный реестр всех зарегистрированных киберспортсменов Electronic Future League, их роли в составах и прямые ссылки на Steam и FACEIT.
+            Публичный реестр всех зарегистрированных киберспортсменов Ascent League, их роли в составах и прямые ссылки на Steam и FACEIT.
           </p>
 
           {/* Quick Stat Badges */}
@@ -115,7 +115,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
             placeholder="Поиск по никнейму или команде..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-9 py-2.5 bg-[#050505] border border-white/[0.08] focus:border-white text-xs text-white placeholder-[#666666] focus:outline-none transition-colors"
+            className="w-full pl-10 pr-9 py-2.5 bg-[#151515] border border-white/[0.15] focus:border-white text-xs text-white placeholder-[#666666] focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button
@@ -129,7 +129,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 pb-2 overflow-x-auto border-b border-white/[0.08]">
+      <div className="flex flex-wrap items-center gap-2 pb-2 overflow-x-auto border-b border-white/[0.15]">
         {[
           { id: "ALL", label: "ВСЕ ИГРОКИ" },
           { id: "FREE_AGENTS", label: "Free Agents" },
@@ -141,7 +141,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
             className={`px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
               selectedRoleFilter === tab.id
                 ? "bg-white text-black"
-                : "bg-white/[0.04] border border-white/[0.08] text-[#8E95A5] hover:text-white hover:border-white/30"
+                : "bg-white/[0.04] border border-white/[0.15] text-[#8E95A5] hover:text-white hover:border-white/30"
             }`}
           >
             {tab.label}
@@ -160,8 +160,8 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
             return (
               <div
                 key={player.id}
-                className={`bg-[#050505] border p-5 flex flex-col justify-between transition-all hover:border-white/30 relative group ${
-                  ban.isBanned ? "border-red-900/60 bg-red-950/10" : "border-white/[0.08]"
+                className={`bg-[#151515] border p-5 flex flex-col justify-between transition-all hover:border-white/30 relative group ${
+                  ban.isBanned ? "border-red-900/60 bg-red-950/10" : "border-white/[0.15]"
                 }`}
               >
                 <div>
@@ -171,13 +171,13 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                     {player.currentTeam ? (
                       <Link
                         href={`/teams/${player.currentTeam.slug}`}
-                        className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#080808] border border-white/[0.08] hover:border-white/50 text-[10px] font-bold text-white transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#111111] border border-white/[0.15] hover:border-white/50 text-[10px] font-bold text-white transition-colors"
                       >
                         <span className="text-amber-400 font-mono">[{player.currentTeam.tag}]</span>
                         <span className="truncate max-w-[110px]">{player.currentTeam.name}</span>
                       </Link>
                     ) : (
-                      <span className="px-2 py-0.5 bg-[#080808] border border-white/[0.08] text-[10px] font-bold text-[#8E95A5]">
+                      <span className="px-2 py-0.5 bg-[#111111] border border-white/[0.15] text-[10px] font-bold text-[#8E95A5]">
                         Free Agent
                       </span>
                     )}
@@ -210,7 +210,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                     href={`/players/${player.slug}`}
                     className="flex items-center gap-4 mt-4"
                   >
-                    <div className="w-14 h-14 bg-[#0a0a0a] border border-white/10 flex items-end justify-center flex-shrink-0 group-hover:border-white/30 transition-colors">
+                    <div className="w-14 h-14 bg-[#151515] border border-white/10 flex items-end justify-center flex-shrink-0 group-hover:border-white/30 transition-colors">
                       {player.avatarUrl ? (
                         <img
                           src={player.avatarUrl}
@@ -238,18 +238,18 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                 </div>
 
                 {/* External Action Links: Steam & FACEIT */}
-                <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center gap-2">
+                <div className="mt-5 pt-3 border-t border-white/10 flex items-center gap-2">
                   {player.steamUrl ? (
                     <a
                       href={player.steamUrl.startsWith('http') ? player.steamUrl : `https://steamcommunity.com/id/${player.steamUrl}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 py-1.5 px-2 bg-white/[0.04] border border-white/[0.08] hover:border-white/30 hover:bg-white/[0.06] hover:text-white text-[10px] font-bold text-[#8E95A5] transition-colors uppercase tracking-widest"
+                      className="flex-1 flex items-center justify-center gap-2 py-1.5 px-2 bg-white/[0.04] border border-white/[0.15] hover:border-white/30 hover:bg-white/[0.06] hover:text-white text-[10px] font-bold text-[#8E95A5] transition-colors uppercase tracking-widest"
                     >
                       <SteamIcon className="w-3.5 h-3.5" /> <span>STEAM</span>
                     </a>
                   ) : (
-                    <span className="flex-1 py-1.5 text-center text-[10px] text-[#444444] border border-white/[0.04] bg-white/[0.02]">
+                    <span className="flex-1 py-1.5 text-center text-[10px] text-[#444444] border border-white/10 bg-white/[0.02]">
                       STEAM —
                     </span>
                   )}
@@ -259,12 +259,12 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                       href={player.faceitUrl.startsWith('http') ? player.faceitUrl : `https://faceit.com/en/players/${player.faceitUrl}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 py-1.5 px-2 bg-white/[0.04] border border-white/[0.08] hover:border-white/30 hover:bg-white/[0.06] hover:text-[#ff5500] text-[10px] font-bold text-[#8E95A5] transition-colors uppercase tracking-widest"
+                      className="flex-1 flex items-center justify-center gap-2 py-1.5 px-2 bg-white/[0.04] border border-white/[0.15] hover:border-white/30 hover:bg-white/[0.06] hover:text-[#ff5500] text-[10px] font-bold text-[#8E95A5] transition-colors uppercase tracking-widest"
                     >
                       <FaceitIcon className="w-3.5 h-3.5" /> <span>FACEIT</span>
                     </a>
                   ) : (
-                    <span className="flex-1 py-1.5 text-center text-[10px] text-[#444444] border border-white/[0.04] bg-white/[0.02]">
+                    <span className="flex-1 py-1.5 text-center text-[10px] text-[#444444] border border-white/10 bg-white/[0.02]">
                       FACEIT —
                     </span>
                   )}
@@ -274,7 +274,7 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
           })}
         </div>
       ) : (
-        <div className="p-16 border border-white/[0.08] bg-[#050505] text-center">
+        <div className="p-16 border border-white/[0.15] bg-[#151515] text-center">
           <p className="text-sm font-semibold text-white">Игроки не найдены</p>
           <p className="text-xs text-[#8E95A5] mt-1">Попробуйте изменить параметры поиска или фильтр по ролям.</p>
         </div>

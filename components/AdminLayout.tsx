@@ -89,13 +89,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   if (!authenticated) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md glass-panel border border-white/[0.08] rounded-3xl p-8 shadow-2xl">
+        <div className="w-full max-w-md glass-panel border border-white/[0.15] rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#090B10] border border-white/10 flex items-center justify-center mb-4 text-white shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-[#11131a] border border-white/10 flex items-center justify-center mb-4 text-white shadow-inner">
               <Lock className="w-7 h-7 text-amber-400" />
             </div>
             <h1 className="text-xl font-black tracking-wider text-white uppercase">
-              EFL ADMIN ACCESS
+              ASCENT ADMIN ACCESS
             </h1>
             <p className="text-xs text-[#8E95A5] mt-1.5">
               Вход в панель управления защищен. Введите пароль администратора.
@@ -114,7 +114,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 placeholder="••••••••••••"
                 required
                 autoFocus
-                className="w-full px-4 py-3 bg-[#090B10] border border-white/10 rounded-xl text-sm text-white placeholder-[#444444] focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 bg-[#11131a] border border-white/10 rounded-xl text-sm text-white placeholder-[#444444] focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
 
@@ -164,14 +164,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Top Admin Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/[0.15]">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#090B10] border border-white/10 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img src="/efl-logo.jpg" alt="EFL Admin Logo" className="w-full h-full object-contain rounded-lg" />
+          <div className="w-10 h-10 rounded-xl bg-[#11131a] border border-white/10 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src="/al-logo.png" alt="AL Admin Logo" className="w-full h-full object-contain rounded-lg" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-white tracking-wider uppercase">
-              EFL ADMIN PORTAL
+              ASCENT ADMIN PORTAL
             </h1>
             <p className="text-xs text-[#8E95A5]">
               Управление базой данных команд, составами, логотипами и игроками
@@ -200,7 +200,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Admin Sub-navigation Tabs */}
-      <div className="flex items-center gap-2 mt-6 mb-8 border-b border-white/[0.08] pb-px overflow-x-auto">
+      <div className="flex items-center gap-2 mt-6 mb-8 border-b border-white/[0.15] pb-px overflow-x-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =

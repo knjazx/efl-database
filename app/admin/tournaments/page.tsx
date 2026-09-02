@@ -13,7 +13,7 @@ export default function AdminTournamentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [presetType, setPresetType] = useState("EFL_SWISS");
+  const [presetType, setPresetType] = useState("ASCENT_SWISS");
   const [maxParticipants, setMaxParticipants] = useState(16);
   const [pointsWin, setPointsWin] = useState(3);
   const [pointsLoss, setPointsLoss] = useState(0);
@@ -149,7 +149,7 @@ export default function AdminTournamentsPage() {
             {tournaments.map((t) => (
               <div
                 key={t.id}
-                className="bg-[#0A0A0A] border border-[#222222] hover:border-[#333333] rounded-xl p-6 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
+                className="bg-[#151515] border border-[#222222] hover:border-[#333333] rounded-xl p-6 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
               >
                 <div className="flex items-center gap-5">
                   <div className="w-14 h-14 rounded-xl bg-[#141414] border border-[#222] flex items-center justify-center text-amber-400 flex-shrink-0">
@@ -221,7 +221,7 @@ export default function AdminTournamentsPage() {
         {/* Create Tournament Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-6 relative">
+            <div className="bg-[#151515] border border-[#222222] rounded-xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-6 relative">
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="absolute top-4 right-4 text-[#888] hover:text-white"
@@ -233,7 +233,7 @@ export default function AdminTournamentsPage() {
                 <h3 className="text-sm font-bold uppercase text-white tracking-widest flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-400" /> СОЗДАНИЕ ТУРНИРА (ADMIN)
                 </h3>
-                <p className="text-xs text-[#888]">Создание нового турнира EFL и конфигурация стадий</p>
+                <p className="text-xs text-[#888]">Создание нового турнира ASCENT и конфигурация стадий</p>
               </div>
 
               {error && (
@@ -249,7 +249,7 @@ export default function AdminTournamentsPage() {
                   <input
                     type="text"
                     required
-                    placeholder="EFL Season 1 Grand League"
+                    placeholder="ASCENT Season 1 Grand League"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="bg-[#111] border border-[#222] rounded-lg p-2.5 text-xs font-mono text-white focus:outline-none focus:border-white/40"
@@ -260,7 +260,7 @@ export default function AdminTournamentsPage() {
                   <label className="text-xs font-mono text-[#888]">Описание</label>
                   <textarea
                     rows={3}
-                    placeholder="Главный сезонный турнир лиги Electronic Future League..."
+                    placeholder="Главный сезонный турнир лиги Ascent League..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="bg-[#111] border border-[#222] rounded-lg p-2.5 text-xs font-mono text-white focus:outline-none focus:border-white/40"
@@ -275,10 +275,10 @@ export default function AdminTournamentsPage() {
                       onChange={(e) => setPresetType(e.target.value)}
                       className="bg-[#111] border border-[#333] rounded-lg p-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500 font-bold"
                     >
-                      <option value="EFL_SWISS">SWISS SYSTEM (Швейцарская система)</option>
-                      <option value="EFL_GROUP_STAGE">GROUP STAGE (Групповой этап)</option>
-                      <option value="EFL_PLAYOFFS">SINGLE ELIMINATION (Плей-офф)</option>
-                      <option value="EFL_QUALIFICATION">DOUBLE ELIMINATION (Квалификация)</option>
+                      <option value="ASCENT_SWISS">SWISS SYSTEM (Швейцарская система)</option>
+                      <option value="ASCENT_GROUP_STAGE">GROUP STAGE (Групповой этап)</option>
+                      <option value="ASCENT_PLAYOFFS">SINGLE ELIMINATION (Плей-офф)</option>
+                      <option value="ASCENT_QUALIFICATION">DOUBLE ELIMINATION (Квалификация)</option>
                       <option value="CUSTOM">CUSTOM (Кастомная система)</option>
                     </select>
                   </div>
@@ -301,7 +301,7 @@ export default function AdminTournamentsPage() {
                       type="number"
                       value={pointsWin}
                       onChange={(e) => setPointsWin(parseInt(e.target.value) || 3)}
-                      className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
+                      className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -310,7 +310,7 @@ export default function AdminTournamentsPage() {
                       type="number"
                       value={pointsLoss}
                       onChange={(e) => setPointsLoss(parseInt(e.target.value) || 0)}
-                      className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-rose-400 font-bold text-center"
+                      className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-rose-400 font-bold text-center"
                     />
                   </div>
                 </div>

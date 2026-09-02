@@ -19,7 +19,7 @@ export function SwissStandingsTable({ standings }: SwissStandingsTableProps) {
   }
 
   return (
-    <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
+    <div className="bg-[#151515] border border-[#222222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
       <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-amber-400" />

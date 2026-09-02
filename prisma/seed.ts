@@ -52,7 +52,7 @@ function generateAvatarSvg(name: string, bg: string = "#141414"): string {
 }
 
 async function main() {
-  console.log("Seeding EFL Database...");
+  console.log("Seeding ASCENT Database...");
 
   const logosDir = path.join(process.cwd(), "public", "logos");
   const avatarsDir = path.join(process.cwd(), "public", "avatars");
@@ -74,7 +74,7 @@ async function main() {
       tier: "T1",
       logoUrl: "/logos/npc.svg",
       frameStyle: "GOLD",
-      description: "Premier Counter-Strike 2 squad competing at the top tier of Electronic Future League.",
+      description: "Premier Counter-Strike 2 squad competing at the top tier of Ascent League.",
     },
     {
       name: "Apex Predators",
@@ -92,7 +92,7 @@ async function main() {
       tier: "T2",
       logoUrl: "/logos/fatum.svg",
       frameStyle: "COPPER",
-      description: "Rising force in the EFL T2 circuit featuring top CIS talents.",
+      description: "Rising force in the ASCENT T2 circuit featuring top CIS talents.",
     },
     {
       name: "Cyber Wolves",
@@ -231,7 +231,7 @@ async function main() {
     });
   }
 
-  console.log("EFL Database successfully seeded!");
+  console.log("ASCENT Database successfully seeded!");
 }
 
 main()

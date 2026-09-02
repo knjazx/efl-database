@@ -291,7 +291,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
   const coachMembers = team.activeRoster.filter((m) => formatRosterRole(m.role).baseRole === "COACH");
 
   const renderAdminSectionTable = (title: string, colorDotClass: string, members: RosterMember[]) => (
-    <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+    <div className="bg-[#151515] border border-[#222222] rounded-xl overflow-hidden">
       <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className={`w-2.5 h-2.5 rounded-full ${colorDotClass}`}></span>
@@ -304,7 +304,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
       {members.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+            <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4">PLAYER</th>
                 <th className="px-6 py-4">ROSTER ROLE</th>
@@ -320,7 +320,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   <tr key={m.membershipId} className="hover:bg-[#0E0E0E] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
                           {m.avatarUrl ? (
                             <img src={m.avatarUrl} alt={m.nickname} className="w-full h-full object-cover" />
                           ) : (
@@ -409,9 +409,9 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
         </Link>
 
         {/* Team Banner */}
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="bg-[#151515] border border-[#222222] rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#222222] p-2 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl bg-[#151515] border border-[#222222] p-2 flex items-center justify-center">
               <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
             </div>
             <div>
@@ -455,7 +455,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
 
         {/* Former Players List */}
         {team.formerPlayers.length > 0 && (
-          <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden mt-8">
+          <div className="bg-[#151515] border border-[#222222] rounded-xl overflow-hidden mt-8">
             <div className="px-6 py-4 border-b border-[#222222] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#858585] uppercase tracking-wider">
                 FORMER PLAYERS ({team.formerPlayers.length})
@@ -479,7 +479,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
         {/* Modal: Add Player(s) to Roster */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
+            <div className="w-full max-w-lg bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -492,7 +492,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
               </h3>
 
               {/* Mode Toggle */}
-              <div className="flex items-center bg-[#050505] border border-[#222222] rounded-lg p-1 mb-4">
+              <div className="flex items-center bg-[#151515] border border-[#222222] rounded-lg p-1 mb-4">
                 <button
                   type="button"
                   onClick={() => setAddMode("existing")}
@@ -525,7 +525,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                           placeholder="Search player nickname..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 bg-[#050505] border border-[#222222] rounded-lg text-xs text-white focus:outline-none focus:border-white"
+                          className="w-full pl-8 pr-3 py-1.5 bg-[#151515] border border-[#222222] rounded-lg text-xs text-white focus:outline-none focus:border-white"
                         />
                       </div>
 
@@ -541,7 +541,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                     </div>
 
                     {/* Multi-Select Player Checkbox List */}
-                    <div className="flex-1 overflow-y-auto bg-[#050505] border border-[#222222] rounded-xl p-2 space-y-1 min-h-[160px] max-h-[220px]">
+                    <div className="flex-1 overflow-y-auto bg-[#151515] border border-[#222222] rounded-xl p-2 space-y-1 min-h-[160px] max-h-[220px]">
                       {filteredAvailablePlayers.length > 0 ? (
                         filteredAvailablePlayers.map((p) => {
                           const isSelected = selectedPlayerIds.includes(p.id);
@@ -591,7 +591,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                       placeholder="e.g. Player6"
                       value={newNickname}
                       onChange={(e) => setNewNickname(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                     />
                   </div>
                 )}
@@ -604,7 +604,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   <select
                     value={baseRole}
                     onChange={(e) => setBaseRole(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   >
                     <option value="CORE">Игрок основы (Starting Roster)</option>
                     <option value="SUBSTITUTE">Замена (Substitute)</option>
@@ -614,7 +614,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
 
                 {/* Owner Checkbox (only for single player / new) */}
                 {addMode === "new" || selectedPlayerIds.length === 1 ? (
-                  <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                  <div className="p-3 bg-[#151515] border border-[#222222] rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
                       <label htmlFor="rosterOwnerCheck" className="text-xs font-bold text-white cursor-pointer select-none">
@@ -662,7 +662,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
         {/* Modal: Change Role / Owner status */}
         {isRoleModalOpen && editingMembership && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-md bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
               <button
                 onClick={() => setIsRoleModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -682,7 +682,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   <select
                     value={baseRole}
                     onChange={(e) => setBaseRole(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   >
                     <option value="CORE">Игрок основы (Starting Roster)</option>
                     <option value="SUBSTITUTE">Замена (Substitute)</option>
@@ -690,7 +690,7 @@ export default function AdminRosterManagementPage({ params }: { params: { id: st
                   </select>
                 </div>
 
-                <div className="p-3 bg-[#050505] border border-[#222222] rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-[#151515] border border-[#222222] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Crown className={`w-4 h-4 ${isCaptain ? "text-amber-400" : "text-[#858585]"}`} />
                     <label htmlFor="editOwnerCheck" className="text-xs font-bold text-white cursor-pointer select-none">

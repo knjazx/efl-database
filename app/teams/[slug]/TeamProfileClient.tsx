@@ -137,7 +137,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
       <div className="flex items-center justify-between mb-6">
         <Link
           href="/teams"
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-semibold text-[#8E95A5] hover:text-white hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.15] text-xs font-semibold text-[#8E95A5] hover:text-white hover:bg-white/[0.08] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Все команды</span>
@@ -182,16 +182,16 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
       {/* ========================================================================= */}
       {/* 1. HLTV-STYLE TEAM PROFILE BANNER */}
       {/* ========================================================================= */}
-      <div className="bg-[#080808] border border-white/[0.06] shadow-2xl mb-12 flex flex-col">
+      <div className="bg-[#111111] border border-white/10 shadow-2xl mb-12 flex flex-col">
         
         {/* TOP HALF: Player Showcase Gallery */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 border-b border-white/[0.06] bg-[#050505]">
+        <div className="grid grid-cols-2 sm:grid-cols-5 border-b border-white/10 bg-[#151515]">
           {showcaseSlots.map((player, idx) => {
             if (!player) {
               return (
                 <div
                   key={`empty-${idx}`}
-                  className="aspect-[4/5] sm:aspect-[3/4] border-r border-white/[0.02] last:border-r-0 flex flex-col items-center justify-between p-3 text-center text-[#4B5563] relative overflow-hidden"
+                  className="aspect-[4/5] sm:aspect-[3/4] border-r border-white/[0.15] last:border-r-0 flex flex-col items-center justify-between p-3 text-center text-[#4B5563] relative overflow-hidden"
                 >
                   <div className="w-full h-full flex items-end justify-center pb-6 opacity-5">
                     <PlayerSilhouette className="w-full h-full" />
@@ -212,7 +212,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
               <Link
                 key={player.id}
                 href={`/players/${player.slug}`}
-                className="group relative aspect-[4/5] sm:aspect-[3/4] border-r border-white/[0.02] last:border-r-0 hover:bg-[#0c0c0c] overflow-hidden flex flex-col justify-between transition-colors duration-300"
+                className="group relative aspect-[4/5] sm:aspect-[3/4] border-r border-white/[0.15] last:border-r-0 hover:bg-[#1a1a1a] overflow-hidden flex flex-col justify-between transition-colors duration-300"
               >
                 {/* Top Icons (Owner / Ban) */}
                 <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between pointer-events-none">
@@ -265,7 +265,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
 
           {/* Left: Team Logo & Identity */}
           <div className="relative z-10 flex items-center gap-8 w-full lg:w-[55%]">
-            <div className="w-28 h-28 sm:w-40 sm:h-40 bg-[#020202] flex items-center justify-center flex-shrink-0 border-2 border-white/10 shadow-2xl overflow-hidden relative group">
+            <div className="w-28 h-28 sm:w-40 sm:h-40 bg-[#121212] flex items-center justify-center flex-shrink-0 border-2 border-white/10 shadow-2xl overflow-hidden relative group">
               <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
               <TeamLogo
                 logoUrl={team.logoUrl}
@@ -298,7 +298,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             <div className="relative z-10 w-full lg:w-[40%] flex flex-col gap-1">
             
             {/* Region */}
-            <div className="flex justify-between items-center py-3 border-b border-white/[0.05]">
+            <div className="flex justify-between items-center py-3 border-b border-white/10">
               <span className="text-[13px] font-bold text-[#888888]">Регион</span>
               <div className="flex items-center gap-2">
                 <RegionBadge region={team.region} size="sm" />
@@ -307,7 +307,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             </div>
 
             {/* Coach */}
-            <div className="flex justify-between items-center py-3 border-b border-white/[0.05]">
+            <div className="flex justify-between items-center py-3 border-b border-white/10">
               <span className="text-[13px] font-bold text-[#888888]">Главный тренер</span>
               {headCoach ? (
                 <Link
@@ -323,7 +323,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             </div>
 
             {/* Owner */}
-            <div className="flex justify-between items-center py-3 border-b border-white/[0.05]">
+            <div className="flex justify-between items-center py-3 border-b border-white/10">
               <span className="text-[13px] font-bold text-[#888888]">Владелец (IGL)</span>
               {captainPlayer ? (
                 <Link
@@ -340,7 +340,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             </div>
 
             {/* Core Starters Count */}
-            <div className="flex justify-between items-center py-3 border-b border-white/[0.05]">
+            <div className="flex justify-between items-center py-3 border-b border-white/10">
               <span className="text-[13px] font-bold text-[#888888]">Основной состав</span>
               <span className="font-bold text-white text-[13px]">
                 {corePlayers.length} / 5
@@ -348,7 +348,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             </div>
 
             {/* Substitutes Count */}
-            <div className="flex justify-between items-center py-3 border-b border-white/[0.05]">
+            <div className="flex justify-between items-center py-3 border-b border-white/10">
               <span className="text-[13px] font-bold text-[#888888]">Запасные</span>
               <span className="font-bold text-white text-[13px]">
                 {substitutePlayers.length}
@@ -375,7 +375,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
       {/* ========================================================================= */}
       {/* 3. HLTV-STYLE NAVIGATION TABS */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-2 mb-8 border-b border-white/[0.08] pb-px overflow-x-auto">
+      <div className="flex items-center gap-2 mb-8 border-b border-white/[0.15] pb-px overflow-x-auto">
         <button
           onClick={() => setActiveTab("roster")}
           className={`flex items-center gap-2 px-5 py-3 text-xs font-bold tracking-wider uppercase transition-all relative whitespace-nowrap ${
@@ -430,8 +430,8 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
       {activeTab === "roster" && (
         <div className="space-y-8">
           {/* Main Roster Section */}
-          <div className="bg-[#080808] border border-white/[0.08] overflow-hidden shadow-xl">
-            <div className="p-5 sm:p-6 border-b border-white/[0.08] flex items-center justify-between">
+          <div className="bg-[#111111] border border-white/[0.15] overflow-hidden shadow-xl">
+            <div className="p-5 sm:p-6 border-b border-white/[0.15] flex items-center justify-between">
               <div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
                   <span className="w-2 h-2 bg-white inline-block shadow-sm" />
@@ -449,7 +449,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             {team.activeRoster.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-white/[0.02] border-b border-white/[0.06] text-[#8E95A5] font-mono font-bold uppercase tracking-wider text-[11px]">
+                  <thead className="bg-white/[0.02] border-b border-white/10 text-[#8E95A5] font-mono font-bold uppercase tracking-wider text-[11px]">
                     <tr>
                       <th className="py-4 px-6">Игрок</th>
                       <th className="py-4 px-6">Статус</th>
@@ -468,7 +468,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                     ].map(group => group.players.length > 0 && (
                       <React.Fragment key={group.title}>
                         <tr>
-                          <td colSpan={5} className="py-3 px-6 bg-white/[0.03] text-[#aaaaaa] font-bold uppercase tracking-widest text-[10px] border-t border-white/[0.06]">
+                          <td colSpan={5} className="py-3 px-6 bg-white/[0.03] text-[#aaaaaa] font-bold uppercase tracking-widest text-[10px] border-t border-white/10">
                             {group.title}
                           </td>
                         </tr>
@@ -486,7 +486,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                                 <div className="flex items-center gap-3.5">
                                   <Link
                                     href={`/players/${player.slug}`}
-                                    className="w-11 h-11 bg-[#090B10] border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 group-hover:border-blue-500/40 transition-colors shadow-inner"
+                                    className="w-11 h-11 bg-[#11131a] border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 group-hover:border-blue-500/40 transition-colors shadow-inner"
                                   >
                                     {player.avatarUrl ? (
                                       <img
@@ -564,7 +564,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                                       href={player.steamUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] hover:border-white/30 text-[11px] font-semibold text-[#8E95A5] hover:text-white transition-colors inline-flex items-center gap-1.5"
+                                      className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.15] hover:border-white/30 text-[11px] font-semibold text-[#8E95A5] hover:text-white transition-colors inline-flex items-center gap-1.5"
                                     >
                                       <span>Steam</span>
                                       <SteamIcon className="w-3.5 h-3.5" />
@@ -576,7 +576,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                                       href={player.faceitUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] hover:border-white/30 text-[11px] font-semibold text-[#8E95A5] hover:text-[#ff5500] transition-colors inline-flex items-center gap-1.5"
+                                      className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.15] hover:border-white/30 text-[11px] font-semibold text-[#8E95A5] hover:text-[#ff5500] transition-colors inline-flex items-center gap-1.5"
                                     >
                                       <span>FACEIT</span>
                                       <FaceitIcon className="w-3.5 h-3.5" />
@@ -621,8 +621,8 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
 
       {/* TAB 3: FORMER PLAYERS */}
       {activeTab === "former" && (
-        <div className="bg-[#080808] border border-white/[0.08] p-6 shadow-xl">
-          <div className="mb-6 pb-4 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="bg-[#111111] border border-white/[0.15] p-6 shadow-xl">
+          <div className="mb-6 pb-4 border-b border-white/[0.15] flex items-center justify-between">
             <div>
               <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-purple-500 inline-block shadow-sm" />
@@ -646,12 +646,12 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                 return (
                   <div
                     key={player.id}
-                    className="p-4 bg-[#050505] border border-white/[0.08] hover:border-purple-500/40 transition-colors flex flex-col justify-between group"
+                    className="p-4 bg-[#151515] border border-white/[0.15] hover:border-purple-500/40 transition-colors flex flex-col justify-between group"
                   >
                     <div className="flex items-center gap-3">
                       <Link
                         href={`/players/${player.slug}`}
-                        className="w-12 h-12 bg-[#0a0a0a] border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 group-hover:border-purple-400 transition-colors"
+                        className="w-12 h-12 bg-[#151515] border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 group-hover:border-purple-400 transition-colors"
                       >
                         {player.avatarUrl ? (
                           <img
@@ -687,7 +687,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-white/[0.06] text-[10px] text-[#8E95A5] flex flex-col gap-1 font-mono uppercase tracking-widest">
+                    <div className="mt-4 pt-3 border-t border-white/10 text-[10px] text-[#8E95A5] flex flex-col gap-1 font-mono uppercase tracking-widest">
                       <div className="flex justify-between items-center">
                         <span>ПРИСОЕДИНИЛСЯ:</span>
                         <span className="text-white">
@@ -725,18 +725,18 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
 
       {/* TAB 4: INFO */}
       {activeTab === "info" && (
-        <div className="bg-[#080808] border border-white/[0.08] p-8 shadow-xl space-y-6">
-          <div className="border-b border-white/[0.08] pb-4">
+        <div className="bg-[#111111] border border-white/[0.15] p-8 shadow-xl space-y-6">
+          <div className="border-b border-white/[0.15] pb-4">
             <h3 className="text-base font-black text-white uppercase tracking-wider">
               ОБ ОРГАНИЗАЦИИ {team.name.toUpperCase()}
             </h3>
             <p className="text-xs text-[#8E95A5] mt-1">
-              Регистрационные данные в базе данных Electronic Future League.
+              Регистрационные данные в базе данных Ascent League.
             </p>
           </div>
 
           <div className="space-y-4 text-sm">
-            <div className="p-4 bg-[#050505] border border-white/[0.06]">
+            <div className="p-4 bg-[#151515] border border-white/10">
               <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                 ОПИСАНИЕ
               </span>
@@ -746,7 +746,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-              <div className="p-4 bg-[#050505] border border-white/[0.06]">
+              <div className="p-4 bg-[#151515] border border-white/10">
                 <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                   РЕГИОН
                 </span>
@@ -756,7 +756,7 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                 </div>
               </div>
 
-              <div className="p-4 bg-[#050505] border border-white/[0.06]">
+              <div className="p-4 bg-[#151515] border border-white/10">
                 <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                   ДАТА РЕГИСТРАЦИИ В БАЗЕ
                 </span>

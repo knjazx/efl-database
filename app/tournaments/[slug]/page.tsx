@@ -211,7 +211,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
   return (
     <div className="max-w-7xl mx-auto w-full px-6 py-10 flex-1 flex flex-col gap-8">
       {/* Tournament Hero Banner */}
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
+      <div className="bg-[#151515] border border-[#222222] rounded-2xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
         <div className="flex items-center gap-6 z-10">
           {tournament.logoUrl ? (
             <img
@@ -331,25 +331,25 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
         <div className="flex flex-col gap-8">
           {/* Info Cards Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
               <span className="text-[10px] font-mono text-[#666] uppercase">Status</span>
               <span className={`text-sm font-bold font-mono ${tournament.status === "ACTIVE" ? "text-emerald-400" : "text-white"}`}>
                 {tournament.status}
               </span>
             </div>
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
               <span className="text-[10px] font-mono text-[#666] uppercase">Участники</span>
               <span className="text-sm font-bold font-mono text-white">
                 {tournament.participants?.length || 0} / {tournament.maxParticipants}
               </span>
             </div>
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
               <span className="text-[10px] font-mono text-[#666] uppercase">Матчи</span>
               <span className="text-sm font-bold font-mono text-white">
                 {allMatches.filter((m) => m.status === "FINISHED").length} / {allMatches.length}
               </span>
             </div>
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-4 flex flex-col gap-1.5">
               <span className="text-[10px] font-mono text-[#666] uppercase">Формат Очков</span>
               <span className="text-sm font-bold font-mono text-emerald-400">
                 W:{tournament.pointsWin} / L:{tournament.pointsLoss}
@@ -359,7 +359,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
 
           {/* Dates & Format */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
               <span className="text-[10px] font-mono text-[#666] uppercase flex items-center gap-1.5">
                 <Calendar className="w-3 h-3" /> Даты
               </span>
@@ -367,13 +367,13 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
                 {formatDate(tournament.startDate)} — {formatDate(tournament.endDate)}
               </span>
             </div>
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
               <span className="text-[10px] font-mono text-[#666] uppercase">Текущая Стадия</span>
               <span className="text-xs font-bold font-mono text-amber-400 uppercase">
                 {currentStage?.name || "—"}
               </span>
             </div>
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-5 flex flex-col gap-2">
               <span className="text-[10px] font-mono text-[#666] uppercase">Тайбрейки</span>
               <span className="text-xs font-mono text-white">{tournament.tiebreakers}</span>
             </div>
@@ -385,7 +385,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
               <h3 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
                 TOURNAMENT PROGRESS
               </h3>
-              <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-6 overflow-x-auto">
+              <div className="bg-[#151515] border border-[#222] rounded-xl p-6 overflow-x-auto">
                 <div className="flex items-center gap-3 min-w-max">
                   {tournament.stages.map((st: any, idx: number) => {
                     const status = getStageStatus(st, idx);
@@ -406,7 +406,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
                               ? "bg-emerald-950/30 border-emerald-500/50 shadow-md shadow-emerald-900/20"
                               : status === "COMPLETED"
                               ? "bg-[#111] border-emerald-500/30"
-                              : "bg-[#0D0D0D] border-[#222]"
+                              : "bg-[#181818] border-[#222]"
                           }`}
                         >
                           {status === "COMPLETED" ? (
@@ -465,7 +465,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
         <div className="flex flex-col gap-6">
           {/* Filter Bar */}
           {allMatches.length > 0 && (
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex flex-col gap-4">
+            <div className="bg-[#151515] border border-[#222] rounded-xl p-4 flex flex-col gap-4">
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#888] uppercase">
                 <Filter className="w-3.5 h-3.5 text-emerald-400" /> Фильтры
               </div>
@@ -532,7 +532,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
           </h3>
 
           {allMatches.length === 0 ? (
-            <div className="bg-[#0A0A0A] border border-dashed border-[#222] rounded-2xl p-12 text-center flex flex-col items-center gap-4">
+            <div className="bg-[#151515] border border-dashed border-[#222] rounded-2xl p-12 text-center flex flex-col items-center gap-4">
               <Swords className="w-12 h-12 text-[#333]" />
               <div className="flex flex-col gap-1">
                 <h4 className="text-base font-bold font-mono text-white uppercase">
@@ -574,7 +574,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
                         setShowMatchModal(true);
                       }
                     }}
-                    className="bg-[#0A0A0A] border border-[#222] hover:border-white/40 rounded-xl p-4 transition-all cursor-pointer flex flex-col gap-3"
+                    className="bg-[#151515] border border-[#222] hover:border-white/40 rounded-xl p-4 transition-all cursor-pointer flex flex-col gap-3"
                   >
                     <div className="flex items-center justify-between text-[10px] font-mono border-b border-[#1A1A1A] pb-2">
                       <span className="text-[#888]">
@@ -665,7 +665,7 @@ export default function TournamentDetailPage({ params }: { params: { slug: strin
                 </div>
 
                 {!hasNodes ? (
-                  <div className="bg-[#0A0A0A] border border-dashed border-[#222] rounded-2xl p-12 text-center flex flex-col items-center gap-4">
+                  <div className="bg-[#151515] border border-dashed border-[#222] rounded-2xl p-12 text-center flex flex-col items-center gap-4">
                     <Trophy className="w-12 h-12 text-[#333]" />
                     <div className="flex flex-col gap-1">
                       <h4 className="text-base font-bold font-mono text-white uppercase">

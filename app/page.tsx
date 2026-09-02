@@ -15,7 +15,7 @@ export default async function Home() {
     <div className="max-w-7xl mx-auto px-6 py-20 min-h-[80vh] flex flex-col justify-center">
       {/* Top Tagline */}
       <div className="flex items-center gap-3 mb-8 text-[10px] font-mono tracking-widest uppercase">
-        <span className="text-white">ELECTRONIC FUTURE LEAGUE</span>
+        <span className="text-white">ASCENT LEAGUE</span>
         <span className="text-[#333333]">&bull;</span>
         <span className="text-[#666666]">SYSTEM v2.0</span>
       </div>
@@ -27,7 +27,7 @@ export default async function Home() {
       </h1>
       
       <p className="text-[#888888] max-w-2xl text-base sm:text-lg mb-10 font-normal leading-relaxed">
-        Единый реестр киберспортивных команд и игроков EFL по дисциплине Counter-Strike 2. Строгий контроль составов, отслеживание ролей, история трансферов и прозрачная статистика участников лиги.
+        Единый реестр киберспортивных команд и игроков Ascent League в дисциплине Counter-Strike 2. Строгий контроль составов, анализ ролей, единая система фейсита и прозрачная история банов.
       </p>
 
       <div className="mb-16">
@@ -45,7 +45,7 @@ export default async function Home() {
         {/* Teams Block */}
         <Link 
           href="/teams" 
-          className="group block bg-[#050505] border border-white/[0.08] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
+          className="group block bg-[#151515] border border-white/[0.15] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 pointer-events-none">
             <Shield className="w-48 h-48" />
@@ -65,7 +65,7 @@ export default async function Home() {
             </p>
             
             <div className="flex items-center justify-between mt-auto">
-              <div className="text-[10px] font-mono text-[#888888] font-bold uppercase tracking-widest bg-white/[0.02] border border-white/[0.04] px-3 py-1.5">
+              <div className="text-[10px] font-mono text-[#888888] font-bold uppercase tracking-widest bg-white/[0.02] border border-white/10 px-3 py-1.5">
                 {teamCount} КОМАНД
               </div>
               <ArrowRight className="w-5 h-5 text-[#444444] group-hover:text-white transition-colors group-hover:translate-x-1" />
@@ -76,7 +76,7 @@ export default async function Home() {
         {/* Players Block */}
         <Link 
           href="/players" 
-          className="group block bg-[#050505] border border-white/[0.08] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
+          className="group block bg-[#151515] border border-white/[0.15] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 pointer-events-none">
             <Users className="w-48 h-48" />
@@ -96,7 +96,7 @@ export default async function Home() {
             </p>
             
             <div className="flex items-center justify-between mt-auto">
-              <div className="text-[10px] font-mono text-[#888888] font-bold uppercase tracking-widest bg-white/[0.02] border border-white/[0.04] px-3 py-1.5">
+              <div className="text-[10px] font-mono text-[#888888] font-bold uppercase tracking-widest bg-white/[0.02] border border-white/10 px-3 py-1.5">
                 {playerCount} ИГРОКОВ
               </div>
               <ArrowRight className="w-5 h-5 text-[#444444] group-hover:text-white transition-colors group-hover:translate-x-1" />
@@ -106,7 +106,7 @@ export default async function Home() {
       </div>
 
       {/* Global Stat Footer */}
-      <div className="mt-20 pt-8 border-t border-white/[0.04] flex flex-wrap gap-12">
+      <div className="mt-20 pt-8 border-t border-white/10 flex flex-wrap gap-12">
         <div className="flex items-center gap-3">
           <Database className="w-4 h-4 text-[#444444]" />
           <div>

@@ -293,7 +293,7 @@ export default function AdminTeamsPage() {
         </div>
 
         {/* Search & Tier Filters Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0A0A0A] border border-[#222222] p-4 rounded-xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#151515] border border-[#222222] p-4 rounded-xl">
           {/* Search Input */}
           <div className="relative w-full sm:w-96">
             <Search className="w-4 h-4 text-[#858585] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -339,7 +339,7 @@ export default function AdminTeamsPage() {
         </div>
 
         {/* Teams Table */}
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+        <div className="bg-[#151515] border border-[#222222] rounded-xl overflow-hidden">
           {loading ? (
             <div className="p-12 text-center text-[#858585] flex flex-col items-center gap-3">
               <RefreshCw className="w-6 h-6 animate-spin" />
@@ -348,7 +348,7 @@ export default function AdminTeamsPage() {
           ) : filteredTeams.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+                <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">TEAM</th>
                     <th className="px-6 py-4">TAG</th>
@@ -368,7 +368,7 @@ export default function AdminTeamsPage() {
                         {/* TEAM NAME & LOGO */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0">
                               <img src={t.logoUrl} alt={t.name} className="w-full h-full object-cover" />
                             </div>
                             <div>
@@ -411,7 +411,7 @@ export default function AdminTeamsPage() {
                         <td className="px-6 py-4">
                           <Link
                             href={`/admin/teams/${t.id}`}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#050505] border border-[#222222] hover:border-white font-bold text-white transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#151515] border border-[#222222] hover:border-white font-bold text-white transition-colors"
                           >
                             <Users className="w-3 h-3 text-[#858585]" />
                             <span>{t.playerCount}</span>
@@ -470,7 +470,7 @@ export default function AdminTeamsPage() {
         {/* Modal: Create or Edit Team */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-lg bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -493,7 +493,7 @@ export default function AdminTeamsPage() {
                     placeholder="e.g. Apex Predators"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
@@ -508,7 +508,7 @@ export default function AdminTeamsPage() {
                       placeholder="e.g. APEX"
                       value={tag}
                       onChange={(e) => setTag(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white uppercase"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white uppercase"
                     />
                   </div>
 
@@ -519,7 +519,7 @@ export default function AdminTeamsPage() {
                     <select
                       value={region}
                       onChange={(e) => setRegion(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                      className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
                     >
                       {REGIONS.map((r) => (
                         <option key={r.code} value={r.code}>
@@ -564,7 +564,7 @@ export default function AdminTeamsPage() {
                   <select
                     value={frameStyle}
                     onChange={(e) => setFrameStyle(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white font-medium"
                   >
                     <option value="NONE">Стандартная рамка (Обычный темный border)</option>
                     <option value="GOLD">🥇 Золотая рамка (Glowing Gold Frame)</option>
@@ -584,7 +584,7 @@ export default function AdminTeamsPage() {
                     placeholder="Brief description about the team..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white resize-none"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white resize-none"
                   />
                 </div>
 
@@ -619,7 +619,7 @@ export default function AdminTeamsPage() {
         {/* Modal: Manage Disqualification / Ban */}
         {isBanModalOpen && banTargetTeam && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-md bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
               <button
                 onClick={() => setIsBanModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -656,7 +656,7 @@ export default function AdminTeamsPage() {
                         className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
                           banDurationDays === preset.days
                             ? "bg-red-900/60 border-red-500 text-white"
-                            : "bg-[#050505] border-[#222222] text-[#858585] hover:text-white"
+                            : "bg-[#151515] border-[#222222] text-[#858585] hover:text-white"
                         }`}
                       >
                         {preset.label}
@@ -676,7 +676,7 @@ export default function AdminTeamsPage() {
                     placeholder="e.g. Rule 3.1 Violation / Cheating"
                     value={banReason}
                     onChange={(e) => setBanReason(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
@@ -720,7 +720,7 @@ export default function AdminTeamsPage() {
         {/* Modal: Bulk Import Teams */}
         {isBulkModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-[#0A0A0A] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
+            <div className="w-full max-w-lg bg-[#151515] border border-[#222222] rounded-2xl p-6 shadow-2xl relative">
               <button
                 onClick={() => setIsBulkModalOpen(false)}
                 className="absolute top-4 right-4 text-[#858585] hover:text-white"
@@ -751,7 +751,7 @@ export default function AdminTeamsPage() {
                     placeholder="Например:&#10;NaVi | NAVI | T1 | GOLD&#10;Cloud9 | C9 | T1 | SILVER&#10;Virtus.pro | VP | T1 | COPPER&#10;Team Spirit | TS | T1 | NEON&#10;FaZe Clan | FAZE | T1 | CRIMSON"
                     value={bulkRawText}
                     onChange={(e) => setBulkRawText(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#050505] border border-[#222222] rounded-lg text-xs font-mono text-white focus:outline-none focus:border-white resize-none"
+                    className="w-full px-3 py-2 bg-[#151515] border border-[#222222] rounded-lg text-xs font-mono text-white focus:outline-none focus:border-white resize-none"
                   />
                 </div>
 
@@ -786,7 +786,7 @@ export default function AdminTeamsPage() {
         {/* EDIT RANKINGS & STATS MODAL */}
         {isRankingsModalOpen && rankingTeam && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
+            <div className="bg-[#151515] border border-[#222222] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
               <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
                 <div>
                   <h2 className="text-lg font-black text-white uppercase tracking-tight">Редактирование рейтинга</h2>

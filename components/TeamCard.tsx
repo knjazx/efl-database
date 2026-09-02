@@ -37,8 +37,8 @@ export function TeamCard({
       <div
         className={`p-4 relative flex flex-col items-center text-center overflow-hidden h-full transition-all duration-300 ${
           ban.isBanned
-            ? "border border-red-900/50 bg-red-950/10"
-            : "border border-white/[0.04] bg-[#080808] hover:bg-[#0c0c0c]"
+            ? "border border-red-900/50 bg-red-950/10 hover:border-red-500/50 hover:bg-red-950/20"
+            : "border border-white/10 bg-[#181818] hover:border-white/30 hover:bg-[#141414] shadow-md"
         }`}
       >
         {/* Disqualification Banner */}

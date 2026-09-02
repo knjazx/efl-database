@@ -168,7 +168,7 @@ export default function AdminRankingsPage() {
               placeholder="Поиск команды по названию или тегу..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#0A0A0A] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-[#151515] border border-[#222222] rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none focus:border-white transition-colors"
             />
           </div>
 
@@ -184,10 +184,10 @@ export default function AdminRankingsPage() {
             <span className="text-xs font-semibold uppercase">Загрузка рейтинга...</span>
           </div>
         ) : filteredTeams.length > 0 ? (
-          <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-[#151515] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+                <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">КОМАНДА</th>
                     <th className="px-6 py-4">ДИВИЗИОН (TIER)</th>
@@ -214,7 +214,7 @@ export default function AdminRankingsPage() {
                         {/* Team Logo & Name */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                            <div className="w-9 h-9 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                               <TeamLogo logoUrl={t.logoUrl} name={t.name} tag={t.tag} className="w-full h-full object-cover" />
                             </div>
                             <div>
@@ -332,7 +332,7 @@ export default function AdminRankingsPage() {
             </div>
           </div>
         ) : (
-          <div className="p-12 border border-[#222222] bg-[#0A0A0A] rounded-2xl text-center text-xs text-[#858585]">
+          <div className="p-12 border border-[#222222] bg-[#151515] rounded-2xl text-center text-xs text-[#858585]">
             Команды не найдены.
           </div>
         )}

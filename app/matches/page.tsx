@@ -73,7 +73,7 @@ export default function MatchesPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#141414] border border-[#222222] text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider mb-2">
             <Trophy className="w-3 h-3 text-amber-400" />
-            <span>ELECTRONIC FUTURE LEAGUE MATCHES</span>
+            <span>ASCENT LEAGUE MATCHES</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
             РАСПИСАНИЕ И ИСТОРИЯ МАТЧЕЙ
@@ -84,7 +84,7 @@ export default function MatchesPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex items-center gap-2 bg-[#0A0A0A] p-1.5 rounded-xl border border-[#222222]">
+        <div className="flex items-center gap-2 bg-[#151515] p-1.5 rounded-xl border border-[#222222]">
           {[
             { id: "ALL", label: "ВСЕ МАТЧИ" },
             { id: "UPCOMING", label: `БЛИЖАЙШИЕ (${upcomingMatches.length})` },
@@ -119,7 +119,7 @@ export default function MatchesPage() {
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
               tierFilter === t.id
                 ? "bg-[#222222] text-white border border-[#444444]"
-                : "bg-[#0A0A0A] border border-[#1F1F1F] text-[#858585] hover:text-white"
+                : "bg-[#151515] border border-[#1F1F1F] text-[#858585] hover:text-white"
             }`}
           >
             {t.label}
@@ -163,7 +163,7 @@ export default function MatchesPage() {
                     return (
                       <div
                         key={match.id}
-                        className="bg-[#0A0A0A] border border-[#222222] hover:border-[#444444] rounded-2xl p-5 transition-all flex flex-col justify-between gap-4 group"
+                        className="bg-[#151515] border border-[#222222] hover:border-[#444444] rounded-2xl p-5 transition-all flex flex-col justify-between gap-4 group"
                       >
                         {/* Header info */}
                         <div className="flex items-center justify-between border-b border-[#181818] pb-3 text-xs font-mono">
@@ -186,7 +186,7 @@ export default function MatchesPage() {
                             href={`/teams/${match.teamA.slug}`}
                             className="col-span-2 flex flex-col items-center text-center gap-2 group/team"
                           >
-                            <div className="w-14 h-14 rounded-xl bg-[#050505] border border-[#222222] group-hover/team:border-white transition-colors overflow-hidden flex items-center justify-center p-1">
+                            <div className="w-14 h-14 rounded-xl bg-[#151515] border border-[#222222] group-hover/team:border-white transition-colors overflow-hidden flex items-center justify-center p-1">
                               <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamA.name} tag={match.teamA.tag} className="w-full h-full object-cover" />
                             </div>
                             <span className="font-extrabold text-white text-xs uppercase tracking-tight group-hover/team:text-amber-400 transition-colors line-clamp-1">
@@ -206,7 +206,7 @@ export default function MatchesPage() {
                             href={`/teams/${match.teamB.slug}`}
                             className="col-span-2 flex flex-col items-center text-center gap-2 group/team"
                           >
-                            <div className="w-14 h-14 rounded-xl bg-[#050505] border border-[#222222] group-hover/team:border-white transition-colors overflow-hidden flex items-center justify-center p-1">
+                            <div className="w-14 h-14 rounded-xl bg-[#151515] border border-[#222222] group-hover/team:border-white transition-colors overflow-hidden flex items-center justify-center p-1">
                               <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamB.name} tag={match.teamB.tag} className="w-full h-full object-cover" />
                             </div>
                             <span className="font-extrabold text-white text-xs uppercase tracking-tight group-hover/team:text-amber-400 transition-colors line-clamp-1">
@@ -219,7 +219,7 @@ export default function MatchesPage() {
                   })}
                 </div>
               ) : (
-                <div className="p-8 bg-[#0A0A0A] border border-[#222222] rounded-xl text-center text-xs text-[#858585]">
+                <div className="p-8 bg-[#151515] border border-[#222222] rounded-xl text-center text-xs text-[#858585]">
                   Предстоящих матчей пока нет.
                 </div>
               )}
@@ -254,7 +254,7 @@ export default function MatchesPage() {
                     return (
                       <div
                         key={match.id}
-                        className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-5 flex flex-col justify-between gap-4"
+                        className="bg-[#151515] border border-[#222222] rounded-2xl p-5 flex flex-col justify-between gap-4"
                       >
                         {/* Header info */}
                         <div className="flex items-center justify-between border-b border-[#181818] pb-3 text-xs font-mono">
@@ -280,10 +280,10 @@ export default function MatchesPage() {
                                   ? "bg-emerald-950/20 border-emerald-600/50 text-white"
                                   : match.isForfeit && isBWin
                                   ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                                  : "bg-[#151515] border-[#1F1F1F] text-[#858585]"
                               }`}
                             >
-                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                                 <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamCustomNameA || match.teamA.name} tag="GUEST" className="w-full h-full object-cover" />
                               </div>
                               <div className="overflow-hidden">
@@ -311,10 +311,10 @@ export default function MatchesPage() {
                                   ? "bg-emerald-950/20 border-emerald-600/50 text-white"
                                   : match.isForfeit && isBWin
                                   ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                                  : "bg-[#151515] border-[#1F1F1F] text-[#858585]"
                               }`}
                             >
-                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                                 <TeamLogo logoUrl={match.teamA.logoUrl} name={match.teamA.name} tag={match.teamA.tag} className="w-full h-full object-cover" />
                               </div>
                               <div className="overflow-hidden">
@@ -356,7 +356,7 @@ export default function MatchesPage() {
                                   ? "bg-emerald-950/20 border-emerald-600/50 text-white"
                                   : match.isForfeit && isAWin
                                   ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                                  : "bg-[#151515] border-[#1F1F1F] text-[#858585]"
                               }`}
                             >
                               <div className="overflow-hidden">
@@ -375,7 +375,7 @@ export default function MatchesPage() {
                                   <span className="text-[9px] font-bold text-amber-500/80 uppercase tracking-widest block">ВНЕШНЯЯ</span>
                                 )}
                               </div>
-                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                                 <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamCustomNameB || match.teamB.name} tag="GUEST" className="w-full h-full object-cover" />
                               </div>
                             </div>
@@ -387,7 +387,7 @@ export default function MatchesPage() {
                                   ? "bg-emerald-950/20 border-emerald-600/50 text-white"
                                   : match.isForfeit && isAWin
                                   ? "bg-red-950/20 border-red-800/60 text-red-200"
-                                  : "bg-[#050505] border-[#1F1F1F] text-[#858585]"
+                                  : "bg-[#151515] border-[#1F1F1F] text-[#858585]"
                               }`}
                             >
                               <div className="overflow-hidden">
@@ -404,7 +404,7 @@ export default function MatchesPage() {
                                   <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">WINNER</span>
                                 ) : null}
                               </div>
-                              <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center p-0.5 flex-shrink-0">
                                 <TeamLogo logoUrl={match.teamB.logoUrl} name={match.teamB.name} tag={match.teamB.tag} className="w-full h-full object-cover" />
                               </div>
                             </Link>
@@ -424,7 +424,7 @@ export default function MatchesPage() {
                   })}
                 </div>
               ) : (
-                <div className="p-8 bg-[#0A0A0A] border border-[#222222] rounded-xl text-center text-xs text-[#858585]">
+                <div className="p-8 bg-[#151515] border border-[#222222] rounded-xl text-center text-xs text-[#858585]">
                   История сыгранных матчей пока пуста.
                 </div>
               )}

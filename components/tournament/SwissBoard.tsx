@@ -155,7 +155,7 @@ export function SwissBoard({
         {/* Team A */}
         <div className={`flex items-center gap-2 flex-1 min-w-0 ${isAWin ? "text-emerald-400 font-bold" : "text-[#E0E0E0]"}`}>
           {logoA ? (
-            <img src={logoA} alt={nameA} className="w-5 h-5 object-contain rounded-full bg-[#050505] p-0.5 border border-[#333]" />
+            <img src={logoA} alt={nameA} className="w-5 h-5 object-contain rounded-full bg-[#151515] p-0.5 border border-[#333]" />
           ) : (
             <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333] flex items-center justify-center text-[8px] font-mono font-bold text-[#AAA]">
               {nameA.slice(0, 2).toUpperCase()}
@@ -165,7 +165,7 @@ export function SwissBoard({
         </div>
 
         {/* VS / Score */}
-        <div className="px-2 py-0.5 rounded bg-[#080808] border border-[#222222] text-[10px] font-mono font-bold text-center flex-shrink-0">
+        <div className="px-2 py-0.5 rounded bg-[#111111] border border-[#222222] text-[10px] font-mono font-bold text-center flex-shrink-0">
           {isFinished ? (
             <span className="text-emerald-400">{m.scoreA} : {m.scoreB}</span>
           ) : (
@@ -177,7 +177,7 @@ export function SwissBoard({
         <div className={`flex items-center justify-end gap-2 flex-1 min-w-0 ${isBWin ? "text-emerald-400 font-bold" : "text-[#E0E0E0]"}`}>
           <span className="text-xs font-mono font-semibold truncate">{nameB}</span>
           {logoB ? (
-            <img src={logoB} alt={nameB} className="w-5 h-5 object-contain rounded-full bg-[#050505] p-0.5 border border-[#333]" />
+            <img src={logoB} alt={nameB} className="w-5 h-5 object-contain rounded-full bg-[#151515] p-0.5 border border-[#333]" />
           ) : (
             <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333] flex items-center justify-center text-[8px] font-mono font-bold text-[#AAA]">
               {nameB.slice(0, 2).toUpperCase()}
@@ -202,7 +202,7 @@ export function SwissBoard({
       .sort((a, b) => (a.seed || 0) - (b.seed || 0));
 
     return (
-      <div className="flex flex-col gap-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl p-3 shadow-md">
+      <div className="flex flex-col gap-2 bg-[#151515] border border-[#1F1F1F] rounded-xl p-3 shadow-md">
         <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-2 px-1">
           <span className="text-xs font-black font-mono text-white uppercase tracking-widest">
             {title}
@@ -255,7 +255,7 @@ export function SwissBoard({
                     {teamA ? (
                       <>
                         {teamA.logoUrl ? (
-                          <img src={teamA.logoUrl} alt={teamA.name} className="w-5 h-5 object-contain rounded-full bg-[#050505] p-0.5 border border-[#333]" />
+                          <img src={teamA.logoUrl} alt={teamA.name} className="w-5 h-5 object-contain rounded-full bg-[#151515] p-0.5 border border-[#333]" />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333] flex items-center justify-center text-[8px] font-mono font-bold text-[#AAA]">
                             {teamA.name.slice(0, 2).toUpperCase()}
@@ -269,7 +269,7 @@ export function SwissBoard({
                   </div>
 
                   {/* VS badge */}
-                  <div className="px-2 py-0.5 rounded bg-[#080808] border border-[#222222] text-[10px] font-mono font-bold text-[#666] text-center flex-shrink-0">
+                  <div className="px-2 py-0.5 rounded bg-[#111111] border border-[#222222] text-[10px] font-mono font-bold text-[#666] text-center flex-shrink-0">
                     VS
                   </div>
 
@@ -279,7 +279,7 @@ export function SwissBoard({
                       <>
                         <span className="text-xs font-mono font-semibold truncate text-white">{teamB.name}</span>
                         {teamB.logoUrl ? (
-                          <img src={teamB.logoUrl} alt={teamB.name} className="w-5 h-5 object-contain rounded-full bg-[#050505] p-0.5 border border-[#333]" />
+                          <img src={teamB.logoUrl} alt={teamB.name} className="w-5 h-5 object-contain rounded-full bg-[#151515] p-0.5 border border-[#333]" />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333] flex items-center justify-center text-[8px] font-mono font-bold text-[#AAA]">
                             {teamB.name.slice(0, 2).toUpperCase()}
@@ -325,12 +325,12 @@ export function SwissBoard({
         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
           team
             ? "bg-[#111111] border-[#2B3B2F] text-white shadow-sm"
-            : "bg-[#0B0B0B] border-white/5 text-[#444444]"
+            : "bg-[#181818] border-white/5 text-[#444444]"
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
           {team?.logoUrl ? (
-            <img src={team.logoUrl} alt={team.name} className="w-4 h-4 object-contain rounded-full bg-[#050505] p-0.5 border border-[#333]" />
+            <img src={team.logoUrl} alt={team.name} className="w-4 h-4 object-contain rounded-full bg-[#151515] p-0.5 border border-[#333]" />
           ) : (
             <div className="w-4 h-4 rounded-full bg-[#1F1F1F] border border-[#333] flex items-center justify-center text-[8px] font-mono text-[#777]">
               {team ? team.name.slice(0, 2).toUpperCase() : "?"}
@@ -349,7 +349,7 @@ export function SwissBoard({
   };
 
   return (
-    <div className="flex flex-col gap-8 bg-[#070707] border border-[#1A1A1A] rounded-2xl p-8 shadow-2xl">
+    <div className="flex flex-col gap-8 bg-[#151515] border border-[#1A1A1A] rounded-2xl p-8 shadow-2xl">
       {/* 1. HEADER SECTION (Exact EFL Subtitle Branding) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[#1F1F1F] pb-6">
         <div className="flex flex-col gap-1">
@@ -357,7 +357,7 @@ export function SwissBoard({
             SWISS FORMAT
           </h1>
           <p className="text-xs font-mono font-bold text-[#777777] uppercase tracking-widest">
-            ELECTRONIC FUTURE LEAGUE • {stageName}
+            ASCENT LEAGUE • {stageName}
           </p>
         </div>
 
@@ -384,7 +384,7 @@ export function SwissBoard({
       </div>
 
       {/* Control Switcher & Admin Actions */}
-      <div className="bg-[#0D0D0D] border border-[#1F1F1F] rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#181818] border border-[#1F1F1F] rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode("MATRIX")}
@@ -644,7 +644,7 @@ export function SwissBoard({
                       ? "bg-[#111111] text-emerald-400 border border-emerald-500/30"
                       : hasMatches
                       ? "bg-[#111111] text-white border border-[#222222]"
-                      : "bg-[#080808] text-[#555555] border border-[#181818]"
+                      : "bg-[#111111] text-[#555555] border border-[#181818]"
                   }`}
                 >
                   <span>ROUND {rNum}</span>
@@ -669,7 +669,7 @@ export function SwissBoard({
       )}
 
       {/* Opponents History */}
-      <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
+      <div className="bg-[#181818] border border-[#1F1F1F] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
         <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-cyan-400" />
@@ -690,7 +690,7 @@ export function SwissBoard({
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white uppercase">{st.name}</span>
-                <span className="px-2 py-0.5 rounded bg-[#080808] text-emerald-400 font-mono font-bold text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-[#111111] text-emerald-400 font-mono font-bold text-[10px]">
                   {st.record}
                 </span>
               </div>

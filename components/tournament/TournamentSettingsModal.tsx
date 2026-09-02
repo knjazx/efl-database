@@ -67,7 +67,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl w-full max-w-2xl p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#151515] border border-[#222222] rounded-xl w-full max-w-2xl p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#888] hover:text-white transition-colors"
@@ -141,7 +141,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="bg-[#050505] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
+                className="bg-[#151515] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
               >
                 <option value="DRAFT">DRAFT</option>
                 <option value="REGISTRATION">REGISTRATION</option>
@@ -156,7 +156,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
                 min="2"
                 value={maxParticipants}
                 onChange={(e) => setMaxParticipants(parseInt(e.target.value))}
-                className="bg-[#050505] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
+                className="bg-[#151515] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -165,7 +165,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
                 type="number"
                 value={pointsWin}
                 onChange={(e) => setPointsWin(parseInt(e.target.value))}
-                className="bg-[#050505] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
+                className="bg-[#151515] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -174,7 +174,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
                 type="number"
                 value={pointsLoss}
                 onChange={(e) => setPointsLoss(parseInt(e.target.value))}
-                className="bg-[#050505] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
+                className="bg-[#151515] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
               />
             </div>
             <div className="flex flex-col gap-1.5 col-span-2">
@@ -183,7 +183,7 @@ export function TournamentSettingsModal({ tournament, isOpen, onClose, onSuccess
                 type="text"
                 value={tiebreakers}
                 onChange={(e) => setTiebreakers(e.target.value)}
-                className="bg-[#050505] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
+                className="bg-[#151515] border border-[#333] rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
                 placeholder="POINTS,DIFF,H2H,WINS"
               />
             </div>

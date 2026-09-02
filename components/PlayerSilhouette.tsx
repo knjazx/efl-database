@@ -34,7 +34,7 @@ export function PlayerSilhouette({ className = "w-full h-full" }: PlayerSilhouet
 
 export function PlayerThumbnailSilhouette({ className = "w-full h-full" }: { className?: string }) {
   return (
-    <div className={`relative flex items-end justify-center overflow-hidden bg-[#080808] select-none w-full h-full ${className}`}>
+    <div className={`relative flex items-end justify-center overflow-hidden bg-[#111111] select-none w-full h-full ${className}`}>
       <img
         src="/player-silhouette.png"
         alt="Player Thumbnail Silhouette"

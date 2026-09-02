@@ -99,7 +99,7 @@ export default function StandaloneMatchPage({ params }: { params: { slug: string
       </Link>
 
       {/* Match Header Scoreboard */}
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+      <div className="bg-[#151515] border border-[#222222] rounded-2xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
         <div className="flex items-center justify-between text-xs font-mono border-b border-[#1A1A1A] pb-4">
           <span className="text-[#888] uppercase">
             {match.stage?.type === "SWISS" ? `SWISS — ROUND ${match.bracketNode?.round || 1}` : match.stage?.name} {match.group ? `• ${match.group.name}` : ""}
@@ -175,7 +175,7 @@ export default function StandaloneMatchPage({ params }: { params: { slug: string
             {mapResults.map((m: any, idx: number) => (
               <div
                 key={idx}
-                className="bg-[#0A0A0A] border border-[#222] rounded-xl p-4 flex items-center justify-between font-mono"
+                className="bg-[#151515] border border-[#222] rounded-xl p-4 flex items-center justify-between font-mono"
               >
                 <span className="text-xs font-bold text-white uppercase">{m.map || `Map ${idx + 1}`}</span>
                 <span className="text-xs font-bold text-emerald-400">
@@ -188,7 +188,7 @@ export default function StandaloneMatchPage({ params }: { params: { slug: string
       )}
 
       {/* Existing Demo Parser Attachment Box */}
-      <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
+      <div className="bg-[#151515] border border-[#222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
         <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-3">
           <LinkIcon className="w-4 h-4 text-emerald-400" />
           <h3 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
@@ -215,7 +215,7 @@ export default function StandaloneMatchPage({ params }: { params: { slug: string
       </div>
 
       {/* Player Statistics Table */}
-      <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
+      <div className="bg-[#151515] border border-[#222] rounded-xl p-6 flex flex-col gap-4 shadow-xl">
         <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-amber-400" />

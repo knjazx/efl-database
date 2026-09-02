@@ -27,7 +27,7 @@ interface Props {
 
 export function GroupStandingsTable({ groupName, standings, advancingCount = 2 }: Props) {
   return (
-    <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl p-5 shadow-2xl flex flex-col gap-4">
+    <div className="bg-[#151515] border border-[#222222] rounded-xl p-5 shadow-2xl flex flex-col gap-4">
       {/* Table Header / Group Name */}
       <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
         <div className="flex items-center gap-2">

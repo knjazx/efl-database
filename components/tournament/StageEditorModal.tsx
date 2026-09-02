@@ -103,7 +103,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div className="bg-[#151515] border border-[#222222] rounded-xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#888] hover:text-white transition-colors"
@@ -174,7 +174,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                       max="16"
                       value={groupCount}
                       onChange={(e) => setGroupCount(parseInt(e.target.value) || 1)}
-                      className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center"
+                      className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center"
                     />
                   </div>
                 )}
@@ -187,7 +187,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="32"
                     value={teamsPerGroup}
                     onChange={(e) => setTeamsPerGroup(parseInt(e.target.value) || 2)}
-                    className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center"
                   />
                 </div>
 
@@ -199,7 +199,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="16"
                     value={advancingCount}
                     onChange={(e) => setAdvancingCount(parseInt(e.target.value) || 1)}
-                    className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
                   />
                 </div>
               </div>
@@ -211,7 +211,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     type="number"
                     value={pointsWin}
                     onChange={(e) => setPointsWin(parseInt(e.target.value) || 0)}
-                    className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 text-center"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -221,7 +221,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     value={pointsDraw}
                     disabled
                     onChange={(e) => setPointsDraw(parseInt(e.target.value) || 0)}
-                    className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-[#555] text-center cursor-not-allowed"
+                    className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-[#555] text-center cursor-not-allowed"
                     title="N/A in CS2"
                   />
                 </div>
@@ -231,7 +231,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     type="number"
                     value={pointsLoss}
                     onChange={(e) => setPointsLoss(parseInt(e.target.value) || 0)}
-                    className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-rose-400 text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-rose-400 text-center"
                   />
                 </div>
               </div>
@@ -257,7 +257,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="5"
                     value={winsRequired}
                     onChange={(e) => setWinsRequired(parseInt(e.target.value) || 3)}
-                    className="bg-[#050505] border border-[#333] rounded p-2 text-xs font-mono text-emerald-400 font-bold text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-2 text-xs font-mono text-emerald-400 font-bold text-center"
                   />
                 </div>
 
@@ -269,7 +269,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="5"
                     value={lossesRequired}
                     onChange={(e) => setLossesRequired(parseInt(e.target.value) || 3)}
-                    className="bg-[#050505] border border-[#333] rounded p-2 text-xs font-mono text-rose-400 font-bold text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-2 text-xs font-mono text-rose-400 font-bold text-center"
                   />
                 </div>
               </div>
@@ -283,7 +283,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="10"
                     value={maxRounds}
                     onChange={(e) => setMaxRounds(parseInt(e.target.value) || 5)}
-                    className="bg-[#050505] border border-[#333] rounded p-2 text-xs font-mono text-white text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-2 text-xs font-mono text-white text-center"
                   />
                 </div>
 
@@ -295,7 +295,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                     max="16"
                     value={swissAdvancingCount}
                     onChange={(e) => setSwissAdvancingCount(parseInt(e.target.value) || 8)}
-                    className="bg-[#050505] border border-[#333] rounded p-2 text-xs font-mono text-cyan-400 font-bold text-center"
+                    className="bg-[#151515] border border-[#333] rounded p-2 text-xs font-mono text-cyan-400 font-bold text-center"
                   />
                 </div>
               </div>
@@ -313,7 +313,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                   max="4"
                   value={advancingCount}
                   onChange={(e) => setAdvancingCount(parseInt(e.target.value) || 1)}
-                  className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
+                  className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-emerald-400 font-bold text-center"
                 />
               </div>
             </div>
@@ -327,7 +327,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                 <select
                   value={grandFinalFormat}
                   onChange={(e) => setGrandFinalFormat(e.target.value)}
-                  className="bg-[#050505] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center focus:outline-none"
+                  className="bg-[#151515] border border-[#333] rounded p-1.5 text-xs font-mono text-white text-center focus:outline-none"
                 >
                   <option value="BO3">Best of 3 (BO3)</option>
                   <option value="BO5">Best of 5 (BO5)</option>
@@ -345,7 +345,7 @@ export function StageEditorModal({ tournamentSlug, isOpen, onClose, onSuccess }:
                   value={customDescription}
                   onChange={(e) => setCustomDescription(e.target.value)}
                   placeholder="Enter details for the custom stage..."
-                  className="bg-[#050505] border border-[#333] rounded p-2 text-xs font-mono text-white focus:outline-none min-h-[80px]"
+                  className="bg-[#151515] border border-[#333] rounded p-2 text-xs font-mono text-white focus:outline-none min-h-[80px]"
                 />
               </div>
             </div>

@@ -109,7 +109,7 @@ export default function RankingsPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#141414] border border-[#222222] text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider mb-2">
             <Trophy className="w-3 h-3 text-amber-400" />
-            <span>ELECTRONIC FUTURE LEAGUE STANDINGS</span>
+            <span>ASCENT LEAGUE STANDINGS</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
             ТАБЛИЦА РЕЙТИНГА КОМАНД
@@ -127,7 +127,7 @@ export default function RankingsPage() {
             placeholder="Поиск команды в рейтинге..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-9 py-2.5 bg-[#0A0A0A] border border-[#222222] focus:border-white rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none transition-colors"
+            className="w-full pl-10 pr-9 py-2.5 bg-[#151515] border border-[#222222] focus:border-white rounded-xl text-xs text-white placeholder-[#666666] focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button
@@ -154,7 +154,7 @@ export default function RankingsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
               selectedTierFilter === tab.id
                 ? "bg-white text-black shadow-lg shadow-white/10 scale-105"
-                : "bg-[#0A0A0A] border border-[#222222] text-[#858585] hover:text-white hover:border-[#444444]"
+                : "bg-[#151515] border border-[#222222] text-[#858585] hover:text-white hover:border-[#444444]"
             }`}
           >
             <span>{tab.label}</span>
@@ -169,10 +169,10 @@ export default function RankingsPage() {
           <span className="text-xs font-semibold uppercase tracking-widest">Загрузка турнирной таблицы...</span>
         </div>
       ) : processedTeams.length > 0 ? (
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-[#151515] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-black uppercase tracking-wider text-[11px]">
+              <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-black uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="px-4 py-3.5 w-14 text-center">POS</th>
                   <th className="px-5 py-3.5">КОМАНДА</th>
@@ -226,7 +226,7 @@ export default function RankingsPage() {
                       {/* Team Logo & Name */}
                       <td className="px-5 py-3.5">
                         <Link href={`/teams/${team.slug}`} className="flex items-center gap-3 group/team">
-                          <div className="w-10 h-10 rounded-xl bg-[#050505] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0 group-hover/team:border-white transition-colors">
+                          <div className="w-10 h-10 rounded-xl bg-[#151515] border border-[#222222] overflow-hidden flex items-center justify-center flex-shrink-0 group-hover/team:border-white transition-colors">
                             <TeamLogo logoUrl={team.logoUrl} name={team.name} tag={team.tag} className="w-full h-full object-cover" />
                           </div>
                           <div>
@@ -329,7 +329,7 @@ export default function RankingsPage() {
           </div>
         </div>
       ) : (
-        <div className="p-16 border border-[#222222] bg-[#0A0A0A] rounded-2xl text-center">
+        <div className="p-16 border border-[#222222] bg-[#151515] rounded-2xl text-center">
           <p className="text-sm font-semibold text-white">Команды не найдены</p>
           <p className="text-xs text-[#858585] mt-1">Попробуйте изменить поисковый запрос или сбросить фильтры тиров.</p>
         </div>

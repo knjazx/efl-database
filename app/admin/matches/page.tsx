@@ -404,7 +404,7 @@ export default function AdminMatchesPage() {
                 placeholder="Ссылка на матч или текст демо..."
                 value={cybershokeUrl}
                 onChange={(e) => setCybershokeUrl(e.target.value)}
-                className="w-full sm:w-72 px-4 py-2.5 bg-[#050505] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
+                className="w-full sm:w-72 px-4 py-2.5 bg-[#151515] border border-[#222222] focus:border-blue-400 rounded-xl text-xs text-white placeholder-[#555555] focus:outline-none transition-colors"
                 required
               />
               <button
@@ -444,10 +444,10 @@ export default function AdminMatchesPage() {
           <span className="text-xs font-semibold uppercase">Загрузка списка матчей...</span>
         </div>
       ) : matches.length > 0 ? (
-        <div className="bg-[#0A0A0A] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-[#151515] border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#050505] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
+              <thead className="bg-[#151515] border-b border-[#222222] text-[#858585] font-bold uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4">МАТЧ (TEAM A vs TEAM B)</th>
                   <th className="px-[#181818] py-4 text-center">ДАТА И ВРЕМЯ</th>
@@ -469,7 +469,7 @@ export default function AdminMatchesPage() {
                         <div className="flex items-center gap-4">
                           {/* Team A */}
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
                               <TeamLogo logoUrl={m.teamA.logoUrl} name={m.teamCustomNameA || m.teamA.name} tag={m.teamA.tag} className="w-full h-full object-cover" />
                             </div>
                             <span className="font-extrabold text-white text-xs uppercase">
@@ -481,7 +481,7 @@ export default function AdminMatchesPage() {
 
                           {/* Team B */}
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#151515] border border-[#222222] overflow-hidden p-0.5 flex-shrink-0">
                               <TeamLogo logoUrl={m.teamB.logoUrl} name={m.teamCustomNameB || m.teamB.name} tag={m.teamB.tag} className="w-full h-full object-cover" />
                             </div>
                             <span className="font-extrabold text-white text-xs uppercase">
@@ -567,7 +567,7 @@ export default function AdminMatchesPage() {
           </div>
         </div>
       ) : (
-        <div className="p-12 border border-[#222222] bg-[#0A0A0A] rounded-2xl text-center">
+        <div className="p-12 border border-[#222222] bg-[#151515] rounded-2xl text-center">
           <p className="text-sm font-semibold text-white">Список матчей пуст</p>
           <p className="text-xs text-[#858585] mt-1">Нажмите кнопку «Запланировать матч», чтобы добавить первую встречу.</p>
         </div>
@@ -576,7 +576,7 @@ export default function AdminMatchesPage() {
       {/* CREATE MATCH MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-6">
+          <div className="bg-[#151515] border border-[#222222] w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
               <h2 className="text-lg font-black text-white uppercase tracking-tight">Запланировать матч</h2>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-[#858585] hover:text-white">
@@ -614,7 +614,7 @@ export default function AdminMatchesPage() {
                     placeholder="Название внешней Команды A (например: Mix #1, VP)..."
                     value={createTeamCustomNameA}
                     onChange={(e) => setCreateTeamCustomNameA(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full mt-2 px-3 py-2 bg-[#151515] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
                   />
                 )}
               </div>
@@ -642,7 +642,7 @@ export default function AdminMatchesPage() {
                     placeholder="Название внешней Команды B (например: Mix #2, NaVi)..."
                     value={createTeamCustomNameB}
                     onChange={(e) => setCreateTeamCustomNameB(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full mt-2 px-3 py-2 bg-[#151515] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
                   />
                 )}
               </div>
@@ -712,7 +712,7 @@ export default function AdminMatchesPage() {
       {/* EDIT SCORE & FINISH MATCH MODAL */}
       {isScoreModalOpen && selectedMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
+          <div className="bg-[#151515] border border-[#222222] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
               <h2 className="text-lg font-black text-white uppercase tracking-tight">Внести результат матча</h2>
               <button onClick={() => setIsScoreModalOpen(false)} className="text-[#858585] hover:text-white">
@@ -721,7 +721,7 @@ export default function AdminMatchesPage() {
             </div>
 
             <form onSubmit={handleUpdateScore} className="space-y-5 text-xs">
-              <div className="grid grid-cols-2 gap-4 bg-[#050505] p-4 rounded-xl border border-[#1A1A1A]">
+              <div className="grid grid-cols-2 gap-4 bg-[#151515] p-4 rounded-xl border border-[#1A1A1A]">
                 {/* Team A */}
                 <div className="flex flex-col items-center text-center gap-2">
                   <span className="font-extrabold text-white text-xs uppercase">
@@ -785,7 +785,7 @@ export default function AdminMatchesPage() {
               </div>
 
               {/* Quick Technical Forfeit (ТП) Controls */}
-              <div className="bg-[#050505] p-3 rounded-xl border border-red-900/30 space-y-2">
+              <div className="bg-[#151515] p-3 rounded-xl border border-red-900/30 space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-mono font-bold text-red-400 uppercase">
                   <span>Техническое поражение (ТП)</span>
                   <label className="flex items-center gap-1.5 cursor-pointer text-[#C0C0C0] hover:text-white">
@@ -853,7 +853,7 @@ export default function AdminMatchesPage() {
       {/* CYBERSHOKE MATCH PREVIEW MODAL */}
       {isCybershokeModalOpen && cybershokePreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0A0A0A] border border-[#222222] w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#151515] border border-[#222222] w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
               <div>
                 <span className="text-[10px] font-mono font-bold text-blue-400 uppercase tracking-widest block">
@@ -892,7 +892,7 @@ export default function AdminMatchesPage() {
               )}
 
               {/* Score Display */}
-              <div className="bg-[#050505] p-4 rounded-xl border border-[#1A1A1A] flex flex-col gap-3">
+              <div className="bg-[#151515] p-4 rounded-xl border border-[#1A1A1A] flex flex-col gap-3">
                 <div className="flex items-center justify-center gap-6">
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-[10px] text-[#858585] font-mono uppercase">Счёт A</span>
@@ -950,7 +950,7 @@ export default function AdminMatchesPage() {
               </div>
 
               {/* Raw Text / Roster Paste Box for Manual / Serverless Fallback */}
-              <div className="bg-[#050505] p-3 rounded-xl border border-[#1A1A1A] space-y-2">
+              <div className="bg-[#151515] p-3 rounded-xl border border-[#1A1A1A] space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-mono font-bold text-amber-400 uppercase">
                   <span>Текст демки / Список никнеймов игроков</span>
                   <span className="text-[#666666]">Для быстрых совпадений</span>
@@ -979,7 +979,7 @@ export default function AdminMatchesPage() {
               {(cybershokePreview.team1Players?.length > 0 || cybershokePreview.team2Players?.length > 0) && (
                 <div className="grid grid-cols-2 gap-3">
                   {/* Team 1 Players from Demo */}
-                  <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-3">
+                  <div className="bg-[#151515] border border-[#1A1A1A] rounded-xl p-3">
                     <div className="text-[10px] font-mono font-bold text-blue-400 uppercase mb-2">
                       Игроки из демки (Сторона A)
                     </div>
@@ -993,7 +993,7 @@ export default function AdminMatchesPage() {
                   </div>
 
                   {/* Team 2 Players from Demo */}
-                  <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-3">
+                  <div className="bg-[#151515] border border-[#1A1A1A] rounded-xl p-3">
                     <div className="text-[10px] font-mono font-bold text-blue-400 uppercase mb-2">
                       Игроки из демки (Сторона B)
                     </div>
@@ -1040,7 +1040,7 @@ export default function AdminMatchesPage() {
                     placeholder="Название внешней Команды A (например: Mix Team A)..."
                     value={cybershokeCustomNameA}
                     onChange={(e) => setCybershokeCustomNameA(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full mt-2 px-3 py-2 bg-[#151515] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
                   />
                 )}
                 {/* Show matched player names */}
@@ -1087,7 +1087,7 @@ export default function AdminMatchesPage() {
                     placeholder="Название внешней Команды B (например: Mix Team B)..."
                     value={cybershokeCustomNameB}
                     onChange={(e) => setCybershokeCustomNameB(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 bg-[#050505] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full mt-2 px-3 py-2 bg-[#151515] border border-amber-500/50 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
                   />
                 )}
                 {/* Show matched player names */}

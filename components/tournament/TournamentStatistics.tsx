@@ -95,7 +95,7 @@ export function TournamentStatistics({ tournamentSlug, stages, teams }: Tourname
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0A0A0A] p-4 rounded-xl border border-[#222222]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#151515] p-4 rounded-xl border border-[#222222]">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-[#141414] border border-[#222]">
             <BarChart3 className="w-5 h-5 text-emerald-400" />
@@ -142,7 +142,7 @@ export function TournamentStatistics({ tournamentSlug, stages, teams }: Tourname
         </div>
       </div>
 
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl overflow-hidden">
+      <div className="bg-[#151515] border border-[#222222] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead className="bg-[#111] border-b border-[#222]">

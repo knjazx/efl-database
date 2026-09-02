@@ -141,7 +141,7 @@ export function ParticipantManagerModal({ tournamentSlug, participants, isOpen, 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl w-full max-w-3xl p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#151515] border border-[#222222] rounded-xl w-full max-w-3xl p-6 shadow-2xl flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#888] hover:text-white transition-colors"
@@ -245,7 +245,7 @@ export function ParticipantManagerModal({ tournamentSlug, participants, isOpen, 
           )}
 
           {/* Multi-Select Teams Grid */}
-          <div className="max-h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 p-1 border border-[#1A1A1A] rounded-lg bg-[#050505]">
+          <div className="max-h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 p-1 border border-[#1A1A1A] rounded-lg bg-[#151515]">
             {filteredAvailableTeams.length === 0 ? (
               <div className="col-span-2 py-8 text-center text-xs font-mono text-[#666]">
                 {availableTeams.length === 0
@@ -331,7 +331,7 @@ export function ParticipantManagerModal({ tournamentSlug, participants, isOpen, 
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 text-xs font-mono hover:bg-[#161616] transition-colors">
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded bg-[#050505] border border-[#333] flex items-center justify-center text-[10px] text-emerald-400 font-bold">
+                      <span className="w-6 h-6 rounded bg-[#151515] border border-[#333] flex items-center justify-center text-[10px] text-emerald-400 font-bold">
                         #{p.seed || idx + 1}
                       </span>
                       {p.team?.logoUrl && (

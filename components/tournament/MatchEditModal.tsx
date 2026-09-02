@@ -97,7 +97,7 @@ export function MatchEditModal({ tournamentSlug, match, isOpen, onClose, onSucce
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#0A0A0A] border border-[#222222] rounded-xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-6 relative">
+      <div className="bg-[#151515] border border-[#222222] rounded-xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-6 relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#888] hover:text-white transition-colors"
@@ -133,7 +133,7 @@ export function MatchEditModal({ tournamentSlug, match, isOpen, onClose, onSucce
                 min="0"
                 value={scoreA}
                 onChange={(e) => setScoreA(parseInt(e.target.value) || 0)}
-                className="w-20 text-center text-xl font-bold font-mono bg-[#050505] border border-[#333] rounded-lg py-2 text-white focus:outline-none focus:border-emerald-500"
+                className="w-20 text-center text-xl font-bold font-mono bg-[#151515] border border-[#333] rounded-lg py-2 text-white focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="flex flex-col gap-2 items-center">
@@ -145,7 +145,7 @@ export function MatchEditModal({ tournamentSlug, match, isOpen, onClose, onSucce
                 min="0"
                 value={scoreB}
                 onChange={(e) => setScoreB(parseInt(e.target.value) || 0)}
-                className="w-20 text-center text-xl font-bold font-mono bg-[#050505] border border-[#333] rounded-lg py-2 text-white focus:outline-none focus:border-emerald-500"
+                className="w-20 text-center text-xl font-bold font-mono bg-[#151515] border border-[#333] rounded-lg py-2 text-white focus:outline-none focus:border-emerald-500"
               />
             </div>
           </div>

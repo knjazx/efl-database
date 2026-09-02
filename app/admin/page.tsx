@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -74,9 +74,9 @@ export default function AdminDashboardPage() {
   return (
     <AdminLayout>
       <div className="space-y-8">
-        <div className="border-b border-white/[0.08] pb-4">
+        <div className="border-b border-white/[0.15] pb-4">
           <h2 className="text-2xl font-black text-white uppercase tracking-tight">
-            EFL DATABASE DASHBOARD
+            ASCENT DATABASE DASHBOARD
           </h2>
           <p className="text-xs text-[#8E95A5] mt-1">
             Общая статистика базы данных и журнал последних действий.
@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
 
         {/* Statistics Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <Link href="/admin/teams" className="glass-panel border border-white/[0.08] hover:border-blue-500/50 rounded-2xl p-6 flex items-center justify-between transition-all group">
+          <Link href="/admin/teams" className="glass-panel border border-white/[0.15] hover:border-blue-500/50 rounded-2xl p-6 flex items-center justify-between transition-all group">
             <div>
               <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                 КОМАНДЫ
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
             </div>
           </Link>
 
-          <Link href="/admin/players" className="glass-panel border border-white/[0.08] hover:border-emerald-500/50 rounded-2xl p-6 flex items-center justify-between transition-all group">
+          <Link href="/admin/players" className="glass-panel border border-white/[0.15] hover:border-emerald-500/50 rounded-2xl p-6 flex items-center justify-between transition-all group">
             <div>
               <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                 ИГРОКИ
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
             </div>
           </Link>
 
-          <div className="glass-panel border border-white/[0.08] rounded-2xl p-6 flex items-center justify-between">
+          <div className="glass-panel border border-white/[0.15] rounded-2xl p-6 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-widest block mb-1">
                 АКТИВНЫЕ СОСТАВЫ
@@ -140,8 +140,8 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Changes Log */}
-        <div className="glass-panel border border-white/[0.08] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.08]">
+        <div className="glass-panel border border-white/[0.15] rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.15]">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-400" />
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
             </div>
             <button
               onClick={loadDashboardData}
-              className="text-xs text-[#8E95A5] hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] transition-colors"
+              className="text-xs text-[#8E95A5] hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.15] transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Обновить</span>
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
               {stats.recentChanges.map((change) => (
                 <div
                   key={change.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-[#090B10] border border-white/[0.06] rounded-xl text-xs"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-[#11131a] border border-white/10 rounded-xl text-xs"
                 >
                   <div className="flex items-center gap-3">
                     {change.teamName && (

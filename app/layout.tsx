@@ -5,8 +5,8 @@ import { Footer } from "@/components/Footer";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 
 export const metadata: Metadata = {
-  title: "Electronic Future League (EFL) — База данных команд CS2",
-  description: "Официальный реестр и база данных команд киберспортивной лиги Electronic Future League по дисциплине CS2.",
+  title: "Ascent League (AL) — База данных киберспорта CS2",
+  description: "Официальная база данных киберспортивной лиги Ascent League и дисциплин CS2.",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className="dark">
-      <body className="bg-[#040405] text-[#f5f5f5] min-h-screen flex flex-col antialiased selection:bg-white selection:text-black relative overflow-x-hidden">
+      <body className="bg-[#000000] text-[#f5f5f5] min-h-screen flex flex-col antialiased selection:bg-white selection:text-black relative overflow-x-hidden">
         <BackgroundEffect />
         <div className="relative z-10 flex flex-col min-h-screen">
           <Header />

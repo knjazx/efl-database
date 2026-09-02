@@ -117,7 +117,7 @@ export default function RegisterPage() {
   }
 
   const renderPlayerBlock = (title: string, type: any, index: number, data: any, required: boolean = false) => (
-    <div key={type + "-" + index} className="bg-[#050505] border border-white/[0.05] p-6 space-y-4">
+    <div key={type + "-" + index} className="bg-[#151515] border border-white/10 p-6 space-y-4">
         <h3 className="text-xs font-bold text-white uppercase tracking-widest">{title}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -126,7 +126,7 @@ export default function RegisterPage() {
                 required={required}
                 value={data.nickname}
                 onChange={(e) => handleArrayChange(type, index, 'nickname', e.target.value)}
-                className="w-full bg-[#020202] border border-white/[0.08] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#121212] border border-white/[0.15] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -134,7 +134,7 @@ export default function RegisterPage() {
               <select 
                 value={data.country}
                 onChange={(e) => handleArrayChange(type, index, 'country', e.target.value)}
-                className="w-full bg-[#020202] border border-white/[0.08] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors appearance-none"
+                className="w-full bg-[#121212] border border-white/[0.15] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors appearance-none"
               >
                 {
                   COUNTRIES.map((c) => (
@@ -148,7 +148,7 @@ export default function RegisterPage() {
               <input 
                 value={data.steamUrl}
                 onChange={(e) => handleArrayChange(type, index, 'steamUrl', e.target.value)}
-                className="w-full bg-[#020202] border border-white/[0.08] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#121212] border border-white/[0.15] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -156,7 +156,7 @@ export default function RegisterPage() {
               <input 
                 value={data.faceitUrl}
                 onChange={(e) => handleArrayChange(type, index, 'faceitUrl', e.target.value)}
-                className="w-full bg-[#020202] border border-white/[0.08] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#121212] border border-white/[0.15] p-2 text-white text-sm focus:border-white focus:outline-none transition-colors"
               />
             </div>
         </div>
@@ -165,7 +165,7 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <div className="mb-12 border-b border-white/[0.05] pb-8">
+      <div className="mb-12 border-b border-white/10 pb-8">
         <h1 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tight mb-3">
           РЕГИСТРАЦИЯ <span className="text-[#555555]">КОМАНДЫ</span>
         </h1>
@@ -190,7 +190,7 @@ export default function RegisterPage() {
                 name="teamName"
                 value={formData.teamName}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -200,7 +200,7 @@ export default function RegisterPage() {
                 name="teamTag"
                 value={formData.teamTag}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors uppercase"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors uppercase"
                 maxLength={6}
               />
             </div>
@@ -213,7 +213,7 @@ export default function RegisterPage() {
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors appearance-none"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors appearance-none"
               >
                 {
                   REGIONS.map((r) => (
@@ -230,10 +230,10 @@ export default function RegisterPage() {
                   name="logoUrl"
                   value={formData.logoUrl}
                   onChange={handleChange}
-                  className="flex-1 w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                  className="flex-1 w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
                   placeholder="https://..."
                 />
-                <label className="bg-[#050505] border border-white/[0.08] px-4 py-3 text-[#aaa] cursor-pointer hover:bg-white/[0.02] flex items-center justify-center transition-colors">
+                <label className="bg-[#151515] border border-white/[0.15] px-4 py-3 text-[#aaa] cursor-pointer hover:bg-white/[0.02] flex items-center justify-center transition-colors">
                   <span className="text-[10px] font-bold uppercase tracking-widest">{uploadingLogo ? '...' : 'Загрузить'}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                 </label>
@@ -257,7 +257,7 @@ export default function RegisterPage() {
                 name="captainNickname"
                 value={formData.captainNickname}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors "
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors "
               />
             </div>
             <div>
@@ -266,7 +266,7 @@ export default function RegisterPage() {
                 name="captainCountry"
                 value={formData.captainCountry}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors appearance-none"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors appearance-none"
               >
                 {
                   COUNTRIES.map((c) => (
@@ -285,7 +285,7 @@ export default function RegisterPage() {
                 name="captainDiscord"
                 value={formData.captainDiscord}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -295,7 +295,7 @@ export default function RegisterPage() {
                 name="captainTelegram"
                 value={formData.captainTelegram}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
                 placeholder="@username"
               />
             </div>
@@ -308,7 +308,7 @@ export default function RegisterPage() {
                 name="captainSteam"
                 value={formData.captainSteam}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -317,7 +317,7 @@ export default function RegisterPage() {
                 name="captainFaceit"
                 value={formData.captainFaceit}
                 onChange={handleChange}
-                className="w-full bg-[#050505] border border-white/[0.08] p-3 text-white focus:border-white focus:outline-none transition-colors"
+                className="w-full bg-[#151515] border border-white/[0.15] p-3 text-white focus:border-white focus:outline-none transition-colors"
               />
             </div>
           </div>

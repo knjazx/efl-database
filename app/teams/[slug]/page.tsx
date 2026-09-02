@@ -38,7 +38,7 @@ export default async function TeamProfilePage({ params }: { params: { slug: stri
         >
           <ArrowLeft className="w-4 h-4" /> Все команды
         </Link>
-        <div className="p-12 bg-[#050505] border border-white/[0.08] max-w-md mx-auto shadow-2xl">
+        <div className="p-12 bg-[#151515] border border-white/[0.15] max-w-md mx-auto shadow-2xl">
           <h2 className="text-xl font-bold text-white uppercase tracking-wider mb-2">
             КОМАНДА НЕ НАЙДЕНА
           </h2>

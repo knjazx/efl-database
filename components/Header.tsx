@@ -17,17 +17,17 @@ export function Header() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[70px] bg-[#040405] border-b border-white/[0.05]">
+    <header className="sticky top-0 z-50 w-full h-[70px] bg-[#000000] border-b border-white/10">
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-        {/* Left: EFL Branding */}
+        {/* Left: AL Branding */}
         <Link href="/" className="flex items-center gap-3.5 group">
           <div className="h-8 w-8 overflow-hidden flex-shrink-0 grayscale group-hover:grayscale-0 transition-all duration-300">
-            <img src="/efl-logo.jpg" alt="EFL Logo" className="w-full h-full object-cover" />
+            <img src="/al-logo.png" alt="AL Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-white font-bold tracking-wider text-sm leading-none group-hover:text-neutral-300 transition-colors">
-                EFL
+                ASCENT
               </span>
               <span className="text-[9px] font-mono tracking-widest text-[#666666]">
                 DATABASE

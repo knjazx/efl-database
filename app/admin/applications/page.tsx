@@ -95,13 +95,13 @@ export default function ApplicationsAdminPage() {
         {loading ? (
           <div className="text-xs text-[#666] animate-pulse">Загрузка...</div>
         ) : pendingApps.length === 0 ? (
-          <div className="p-8 text-center border border-white/[0.05] bg-[#050505]">
+          <div className="p-8 text-center border border-white/10 bg-[#151515]">
             <p className="text-xs text-[#666]">Нет новых заявок.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {pendingApps.map((app) => (
-              <div key={app.id} className="p-0 border border-white/[0.1] bg-[#050505]">
+              <div key={app.id} className="p-0 border border-white/[0.1] bg-[#151515]">
                 
                 <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
@@ -132,7 +132,7 @@ export default function ApplicationsAdminPage() {
                 </div>
 
                 {expanded[app.id] && (
-                  <div className="p-5 bg-[#020202] border-t border-white/10">
+                  <div className="p-5 bg-[#121212] border-t border-white/10">
                     
                     {/* FULL DATA DOSSIER */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -282,12 +282,12 @@ export default function ApplicationsAdminPage() {
 
         {historyApps.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-sm font-bold text-[#666] uppercase tracking-widest border-b border-white/[0.05] pb-2 mb-4">
+            <h2 className="text-sm font-bold text-[#666] uppercase tracking-widest border-b border-white/10 pb-2 mb-4">
               ИСТОРИЯ ЗАЯВОК
             </h2>
             <div className="space-y-2">
               {historyApps.map(app => (
-                <div key={app.id} className="flex items-center justify-between p-3 border border-white/[0.02] bg-[#020202] text-xs">
+                <div key={app.id} className="flex items-center justify-between p-3 border border-white/[0.15] bg-[#121212] text-xs">
                   <div className="flex items-center gap-3">
                     <span className={app.status === 'APPROVED' ? 'font-mono font-bold text-emerald-500' : 'font-mono font-bold text-red-500'}>
                       {app.status === 'APPROVED' ? '[ОДОБРЕНО]' : '[ОТКЛОНЕНО]'}
