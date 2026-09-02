@@ -1,55 +1,16 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import slugify from "slugify";
+const fs = require('fs');
+let c = fs.readFileSync('app/api/admin/applications/[id]/route.ts', 'utf8');
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const { action } = await req.json();
-    const id = params.id;
+const txStart = c.indexOf('const roster: any = application.roster || {};');
+const txEnd = c.indexOf('await tx.teamApplication.update({');
 
-    const application = await prisma.teamApplication.findUnique({
-      where: { id }
-    });
-
-    if (!application) {
-      return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
-    }
-
-    if (action === "REJECT") {
-      await prisma.teamApplication.update({
-        where: { id },
-        data: { status: "REJECTED" }
-      });
-      return NextResponse.json({ success: true });
-    }
-
-    if (action === "APPROVE") {
-      if (application.status === "APPROVED") {
-        return NextResponse.json({ success: false, error: "Already approved" }, { status: 400 });
-      }
-
-      const baseTeamSlug = slugify(application.teamName, { lower: true, strict: true }) || 'team';
-      const teamSlug = `${baseTeamSlug}-${Date.now().toString(36)}`;
-      
-      await prisma.$transaction(async (tx) => {
-        const team = await tx.team.create({
-          data: {
-            name: application.teamName,
-            tag: application.teamTag,
-            slug: teamSlug,
-            region: application.region,
-            contactDiscord: application.captainDiscord,
-            contactTelegram: application.captainTelegram,
-            logoUrl: application.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/8/84/CS2_logo.png",
-          }
-        });
-
-        const roster: any = application.roster || {};
+if (txStart !== -1 && txEnd !== -1) {
+  const newContent = `const roster: any = application.roster || {};
         
-        const createPlayer = async (nick: string, steam: string | null, faceit: string | null, country: string, role: string, defaultRole: string, isCaptain: boolean = false) => {
+        const createPlayer = async (nick: string, steam: string, faceit: string, country: string, role: string, defaultRole: string, isCaptain: boolean = false) => {
           if (!nick) return;
           const baseSlug = slugify(nick, { lower: true, strict: true }) || 'player';
-          const pSlug = `${baseSlug}-${Date.now().toString(36)}-${Math.floor(Math.random()*10000)}`;
+          const pSlug = \`\${baseSlug}-\${Date.now().toString(36)}-\${Math.floor(Math.random()*10000)}\`;
           const p = await tx.player.create({
             data: {
               nickname: nick,
@@ -122,26 +83,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             );
         }
 
-        await tx.teamApplication.update({
-          where: { id },
-          data: { status: "APPROVED" }
-        });
-        
-        await tx.activityLog.create({
-          data: {
-            teamId: team.id,
-            teamName: team.name,
-            description: `Команда ${team.name} была официально зарегистрирована в EFL.`,
-          }
-        });
-      });
-
-      return NextResponse.json({ success: true });
-    }
-
-    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
-  } catch (error) {
-    console.error("Action error:", error);
-    return NextResponse.json({ success: false, error: "Failed to process" }, { status: 500 });
-  }
+        `;
+  
+  c = c.substring(0, txStart) + newContent + c.substring(txEnd);
+  fs.writeFileSync('app/api/admin/applications/[id]/route.ts', c);
+  console.log('Done');
 }

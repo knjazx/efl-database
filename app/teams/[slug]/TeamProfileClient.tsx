@@ -53,7 +53,9 @@ interface TeamDetail {
   tag: string;
   slug: string;
   region?: string;
-  logoUrl: string;\n  contactDiscord?: string;\n  contactTelegram?: string;
+  logoUrl: string;
+  contactDiscord?: string;
+  contactTelegram?: string;
   description?: string;
   isDisqualified?: boolean;
   disqualifiedUntil?: Date | string | null;
@@ -118,6 +120,9 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
   );
   const coachPlayers = team.activeRoster.filter(
     (p) => formatRosterRole(p.role).baseRole === "COACH"
+  );
+  const ownerPlayers = team.activeRoster.filter(
+    (p) => formatRosterRole(p.role).baseRole === "OWNER"
   );
   const captainPlayer = team.activeRoster.find(
     (p) => formatRosterRole(p.role).isCaptain
@@ -487,7 +492,8 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                     {[
                       { title: "ОСНОВНОЙ СОСТАВ", players: corePlayers },
                       { title: "ЗАПАСНЫЕ ИГРОКИ", players: substitutePlayers },
-                      { title: "ТРЕНЕРСКИЙ ШТАБ", players: coachPlayers }
+                      { title: "ТРЕНЕРСКИЙ ШТАБ", players: coachPlayers },
+                      { title: "РУКОВОДСТВО", players: ownerPlayers }
                     ].map(group => group.players.length > 0 && (
                       <React.Fragment key={group.title}>
                         <tr>
@@ -531,10 +537,16 @@ export default function TeamProfileClient({ team, isAdmin }: { team: TeamDetail;
                                       >
                                         {player.nickname}
                                       </Link>
-                                      {parsedRole.isCaptain && (
+                                      {parsedRole.isOwner && (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase font-mono">
+                                          <ShieldCheck className="w-3 h-3" />
+                                          <span>ВЛАДЕЛЕЦ</span>
+                                        </span>
+                                      )}
+                                      {parsedRole.isCaptain && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/10 border border-white/20 text-white text-[10px] font-bold uppercase font-mono">
                                           <Crown className="w-3 h-3" />
-                                          <span>Владелец</span>
+                                          <span>IGL</span>
                                         </span>
                                       )}
                                     </div>
