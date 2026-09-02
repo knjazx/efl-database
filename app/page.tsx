@@ -45,7 +45,7 @@ export default async function Home() {
         {/* Teams Block */}
         <Link 
           href="/teams" 
-          className="group block bg-[#151515] border border-white/[0.15] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
+          className="group block bg-[#1c1c1c] border border-white/20 p-8 hover:border-white/40 transition-all duration-300 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 pointer-events-none">
             <Shield className="w-48 h-48" />
@@ -76,7 +76,7 @@ export default async function Home() {
         {/* Players Block */}
         <Link 
           href="/players" 
-          className="group block bg-[#151515] border border-white/[0.15] p-8 hover:border-white/30 transition-all duration-300 relative overflow-hidden"
+          className="group block bg-[#1c1c1c] border border-white/20 p-8 hover:border-white/40 transition-all duration-300 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 pointer-events-none">
             <Users className="w-48 h-48" />

@@ -17,7 +17,7 @@ export function Header() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[70px] bg-[#000000] border-b border-white/10">
+    <header className="sticky top-0 z-50 w-full h-[70px] bg-[#000000] border-b border-white/20">
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
         {/* Left: AL Branding */}
         <Link href="/" className="flex items-center gap-3.5 group">
